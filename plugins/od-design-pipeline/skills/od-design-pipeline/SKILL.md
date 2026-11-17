@@ -16,7 +16,7 @@ description: Use when 用户要求用 OpenDesign 设计或重设计移动端页�
 | ①线框 | `example-wireframe-mobile-flow` | `example-wireframe-greybox` 或 `example-wireframe-annotated` |
 | ②高保真 | `example-mobile-app` | `example-web-prototype`（可选 taste-editorial/soft/brutalist 风格变体；按 spec §2.4 可另传 skill=frontend-design / design-taste-frontend） |
 | ③评审 | `example-critique`（通用） | 同左 |
-| ②必读规范 | DESIGN.md「Mini Program」节 / `system/mini-components.md` / **`system/wot-ui-forms.md`** / `wot-ui-theme.md`（90 变量映射）/ **vendored 插件源**：`plugins/_vendored/open-design/<插件>/SKILL.md` + `references/`（官方生成逻辑，锁定上游 0701042） | brand-ci DESIGN.md 的 Web 组件 guidance（Buttons/Inputs/Alerts/Tags/Cards/Tables/Navigation）+ `system/kit.html` 组件套件 + `system/wot-ui-forms.md` 同样适用 + spec §6.4 目标子项目代码约束 + vendored `wireframe-*`/`web` 同源参照 |
+| ②必读规范 | DESIGN.md「Mini Program」节 / `system/mini-components.md` / **`system/wot-ui-forms.md`** / `wot-ui-theme.md`（90 变量映射）/ **vendored 插件源**：zard 仓库 `plugins/_vendored/open-design/<插件>/SKILL.md` + `references/`（锁定上游 0701042；规范文件本体在品牌 CI 中心项目，跨项目引用时 prompt 写绝对路径） | brand-ci DESIGN.md 的 Web 组件 guidance（Buttons/Inputs/Alerts/Tags/Cards/Tables/Navigation）+ `system/kit.html` 组件套件 + spec §6.4 目标子项目代码约束 + vendored `wireframe-*` 同源参照（通用纪律同 wot-ui-forms，组件形态以 kit.html 为准） |
 | 组件形态 | wot-ui（`wd-*`） | Element UI/Plus 形态（`el-*` 命名参照 kit.html） |
 | token 口径 | 产品 token（7/10/14、Noto Sans SC、主色 #2563EB） | 后台/登录属产品 UI → 同产品 token；仅对外营销/CI 物料用企业口径（8/12、Space Grotesk，spec §3.1） |
 | 实测断点 | 375/390 手机壳单点 | **375 / 768 / 1440 三档**（spec §5），表格区拉伸、整页不固定宽高 |
@@ -26,11 +26,11 @@ description: Use when 用户要求用 OpenDesign 设计或重设计移动端页�
 - 已有屏微调 → 直接编辑 OD 真源文件（write_file 或文件系统）
 - 只要结构讨论 → 只走第①段
 - 写代码/落地实现 → 不是本技能
-- **OD MCP 不可用 → 不降级、不手绘替代**：请用户 `/mcp` 重连后走管线；重连失败可先直改 OD 真源文件推进（组件形态仍照 `system/wot-ui-forms.md` 骨架），MCP 恢复后再走管线核对
+- OD MCP 不可用 → 暂缓发起（对策见常见错误表），不手绘替代
 
 ## 每段固定循环
 
-1. **预检**：`ToolSearch select:mcp__open-design__start_run` 确认 MCP 可用；断开则请用户 `/mcp` 重连（勿干等）。提交前必须 `git branch --show-current` 核对分支。
+1. **预检**：直接调用任一 OD 工具确认可用（重连后系统自动宣告）；断开则请用户 `/mcp` 重连（勿干等）。提交前必须 `git branch --show-current` 核对分支。
 2. **发起**：`uuidgen` 生成 requestId（重试复用同值）→ `start_run(project, plugin, requestId, prompt, agent="claude")` → `get_run` 一次取 `childPid` → 挂后台监视器：
    ```bash
    for i in $(seq 1 80); do kill -0 <pid> 2>/dev/null || { echo EXITED; exit 0; }; sleep 30; done
@@ -64,6 +64,7 @@ description: Use when 用户要求用 OpenDesign 设计或重设计移动端页�
 | MCP 断开干等 | 请用户 `/mcp` 重连；重连失败可先直改 OD 真源文件推进，恢复后走管线核对（不手绘替代） |
 | Web 用 mobile-flow 画线框（手机壳不适配 Web 布局） | Web 轨①用 greybox/annotated |
 | Web 只按桌面宽实测 | 必测 375/768/1440 三档 |
+| prompt 相对路径 → run agent 找不到规范文件 | 规范在品牌 CI 中心项目；prompt 写绝对路径或注明位置（实测 agent 可自行探索，勿依赖） |
 
 ## 参考
 
