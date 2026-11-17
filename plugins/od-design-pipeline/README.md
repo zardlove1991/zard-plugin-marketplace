@@ -22,12 +22,12 @@ OpenDesign 三段设计管线（移动端 / Web 双轨）。
 
 ## 设计系统 bootstrap（⓪）
 
-项目无规范时：design-consultation 出提案+预览 → 用户确认 → design-md 纪律落 DESIGN.md/tokens 到 SPEC_ROOT → 再走①②③。由外层 agent 执行（规范是 repo 侧真源），不依赖 OD MCP。本机有 gstack 优先调同名 skill，无则按 vendored 参照纪律执行（gstack 基建步跳过/映射）。②/③暴露的组件缺口按 design-md 纪律回写 DESIGN.md「待补」节。
+项目无规范时：**先问客户**是否建立（推荐建立）→ 同意后执行插件内置 design-brief（`vendor/design-system/design-brief/`，OpenDesign 上游、Apache-2.0：8 维 brief → DESIGN.md 九节 + 预览页 → 客户确认）→ design-md 纪律落 `SPEC_ROOT/brand-ci/DESIGN.md`/tokens → 再走①②③。内置副本**不依赖 gstack、不依赖 OD MCP**。由外层 agent 执行（规范是 repo 侧真源）。②/③暴露的组件缺口按 design-md 纪律回写 DESIGN.md「待补」节。
 
 ## 前置依赖
 
-- OpenDesign 桌面端 + `open-design` MCP（断开时 `/mcp` 重连）
-- 规范文件位于目标项目仓库，按目标仓库根推导：`designs/_system/`（SPEC_ROOT）+ `docs/open-design-spec.md`（SPEC_DOC）+ `designs/`（SNAPSHOT_ROOT）；推导路径不存在则问用户要实际路径，无规范则显式降级通用规范（见 SKILL.md「路径变量」节）
+- OpenDesign 桌面端 + `open-design` MCP（断开时 `/mcp` 重连）。MCP 状态**只看工具列表**：看不到 `mcp__open-design__*` 即视为未连接，勿用 `claude mcp list` 或读 `~/.claude.json` 探测（会逐个拉起全部已配置 server，常表现为卡死）
+- 规范文件位于目标项目仓库，按目标仓库根推导：`designs/_system/`（SPEC_ROOT）+ `docs/open-design-spec.md`（SPEC_DOC）+ `designs/`（SNAPSHOT_ROOT）；推导路径不存在 → 按 SKILL.md「开工前决策」第 2 条一次问客户（A 用内置 design-brief 建 / B 给实际路径 / C 明确降级），不静默跳过
 
 ## 来源
 
@@ -35,4 +35,4 @@ OpenDesign 三段设计管线（移动端 / Web 双轨）。
 
 官方插件参照快照随插件安装在 `vendor/open-design/`（锁定上游 commit，同步方式见该目录 UPSTREAM.md）。
 
-设计系统工作流参照随插件安装在 `vendor/design-system/`（gstack 1.98.0.0、MIT；design-md 待拉取；OD 内置 design-* 仅目录壳、不 vendored）。
+设计系统工作流参照随插件安装在 `vendor/design-system/`（design-brief：OpenDesign Apache-2.0 锁定 f1a0b60；design-review：gstack 1.98.0.0 MIT；design-md 待拉取；OD 内置与 open-design 仓库的 design-* 多为目录壳、不 vendored）。
