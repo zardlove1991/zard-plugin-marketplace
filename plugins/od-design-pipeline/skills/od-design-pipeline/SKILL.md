@@ -26,15 +26,7 @@ description: Use when 用户要求用 OpenDesign 设计或重设计移动端页�
 - 已有屏微调 → 直接编辑 OD 真源文件（write_file 或文件系统）
 - 只要结构讨论 → 只走第①段
 - 写代码/落地实现 → 不是本技能
-
-## 无 OpenDesign（降级路径）
-
-OD 不可用**或用户不想用 OD** 时，管线不变（线框→高保真→评审→修复），执行方式换本地（用 design-toolkit 插件技能）：
-
-- **①线框**：确定结构与文案后手绘灰阶线框板（单 HTML 静态板，照①段 prompt 要点：灰阶+品牌蓝仅主操作/琥珀标注/触发条件/状态覆盖）
-- **②高保真**：移动端用 `~/.cc-switch/skills/mobile-prototype-drawing`（中文业务 H5 原型）参照 `mobile-app-ui-design` 方法论；Web 用 `~/.cc-switch/skills/taste-skill` + `web-design-guidelines`（原位引用，不再包装插件）。产物直接写 repo `designs/`（无 OD 真源，repo 即真源），组件形态仍按双轨表规范文件
-- **③评审**：按③段维度逐项自查（对比度/token/spacing/五态/无障碍/文案/与参考一致性），产出自查报告
-- 五步循环保留后半段：写盘即导出（cmp 免）、playwright 实测全链路、核对分支提交
+- **OD MCP 不可用 → 不降级、不手绘替代**：请用户 `/mcp` 重连后走管线；重连失败可先直改 OD 真源文件推进（组件形态仍照 `system/wot-ui-forms.md` 骨架），MCP 恢复后再走管线核对
 
 ## 每段固定循环
 
@@ -69,7 +61,7 @@ OD 不可用**或用户不想用 OD** 时，管线不变（线框→高保真→
 | 忘导出 → OD 私有目录丢数据 | 每段结束立即导出+cmp |
 | 断言苛刻 → 假阴性（如新租户入列查不到） | 多选择器断言，先自查脚本 |
 | 提交错到 master | 提交前 `git branch --show-current` |
-| MCP 断开干等 | 先问用户用不用 OD：用则 `/mcp` 重连；不用则走「无 OpenDesign 降级路径」 |
+| MCP 断开干等 | 请用户 `/mcp` 重连；重连失败可先直改 OD 真源文件推进，恢复后走管线核对（不手绘替代） |
 | Web 用 mobile-flow 画线框（手机壳不适配 Web 布局） | Web 轨①用 greybox/annotated |
 | Web 只按桌面宽实测 | 必测 375/768/1440 三档 |
 
