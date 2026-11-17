@@ -7,12 +7,7 @@
     {
       "name": "od-design-pipeline",
       "source": "./plugins/od-design-pipeline",
-      "description": "OpenDesign 三段设计管线（线框→高保真→评审），移动端/Web 双轨，含五步循环与踩坑对策；OD 不可用时降级到 design-toolkit 本地路径"
-    },
-    {
-      "name": "design-toolkit",
-      "source": "./plugins/design-toolkit",
-      "description": "无 OD 依赖的通用设计技能包：移动端 UI/UX 设计、中文移动端 H5 原型绘制、反模板化审美、Web UI 规范审查"
+      "description": "OpenDesign 三段设计管线（线框→高保真→评审），移动端/Web 双轨，含五步循环与踩坑对策"
     }
   ]
 }

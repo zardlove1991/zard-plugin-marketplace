@@ -32,7 +32,7 @@ description: Use when 用户要求用 OpenDesign 设计或重设计移动端页�
 OD 不可用**或用户不想用 OD** 时，管线不变（线框→高保真→评审→修复），执行方式换本地（用 design-toolkit 插件技能）：
 
 - **①线框**：确定结构与文案后手绘灰阶线框板（单 HTML 静态板，照①段 prompt 要点：灰阶+品牌蓝仅主操作/琥珀标注/触发条件/状态覆盖）
-- **②高保真**：移动端用 `design-toolkit:mobile-prototype-drawing`（中文业务 H5 原型）参照 `mobile-app-ui-design` 方法论；Web 用 `design-toolkit:taste-skill` + `web-design-guidelines`。产物直接写 repo `designs/`（无 OD 真源，repo 即真源），组件形态仍按双轨表规范文件
+- **②高保真**：移动端用 `~/.cc-switch/skills/mobile-prototype-drawing`（中文业务 H5 原型）参照 `mobile-app-ui-design` 方法论；Web 用 `~/.cc-switch/skills/taste-skill` + `web-design-guidelines`（原位引用，不再包装插件）。产物直接写 repo `designs/`（无 OD 真源，repo 即真源），组件形态仍按双轨表规范文件
 - **③评审**：按③段维度逐项自查（对比度/token/spacing/五态/无障碍/文案/与参考一致性），产出自查报告
 - 五步循环保留后半段：写盘即导出（cmp 免）、playwright 实测全链路、核对分支提交
 
