@@ -16,7 +16,7 @@ description: Use when 用户要求用 OpenDesign 设计或重设计移动端页�
 | ①线框 | `example-wireframe-mobile-flow` | `example-wireframe-greybox` 或 `example-wireframe-annotated` |
 | ②高保真 | `example-mobile-app` | `example-web-prototype`（可选 taste-editorial/soft/brutalist 风格变体；按 spec §2.4 可另传 skill=frontend-design / design-taste-frontend） |
 | ③评审 | `example-critique`（通用） | 同左 |
-| ②必读规范 | DESIGN.md「Mini Program」节 / `system/mini-components.md` / **`system/wot-ui-forms.md`** / `wot-ui-theme.md`（90 变量映射） | brand-ci DESIGN.md 的 Web 组件 guidance（Buttons/Inputs/Alerts/Tags/Cards/Tables/Navigation）+ `system/kit.html` 组件套件 + spec §6.4 目标子项目代码约束 |
+| ②必读规范 | DESIGN.md「Mini Program」节 / `system/mini-components.md` / **`system/wot-ui-forms.md`** / `wot-ui-theme.md`（90 变量映射）/ **vendored 插件源**：`plugins/_vendored/open-design/<插件>/SKILL.md` + `references/`（官方生成逻辑，锁定上游 0701042） | brand-ci DESIGN.md 的 Web 组件 guidance（Buttons/Inputs/Alerts/Tags/Cards/Tables/Navigation）+ `system/kit.html` 组件套件 + `system/wot-ui-forms.md` 同样适用 + spec §6.4 目标子项目代码约束 + vendored `wireframe-*`/`web` 同源参照 |
 | 组件形态 | wot-ui（`wd-*`） | Element UI/Plus 形态（`el-*` 命名参照 kit.html） |
 | token 口径 | 产品 token（7/10/14、Noto Sans SC、主色 #2563EB） | 后台/登录属产品 UI → 同产品 token；仅对外营销/CI 物料用企业口径（8/12、Space Grotesk，spec §3.1） |
 | 实测断点 | 375/390 手机壳单点 | **375 / 768 / 1440 三档**（spec §5），表格区拉伸、整页不固定宽高 |
