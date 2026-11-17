@@ -1,0 +1,13 @@
+{
+  "name": "zard-plugin-marketplace",
+  "owner": {
+    "name": "songyu"
+  },
+  "plugins": [
+    {
+      "name": "od-design-pipeline",
+      "source": "./plugins/od-design-pipeline",
+      "description": "OpenDesign 三段设计管线（线框→高保真→评审），移动端/Web 双轨，含五步循环与踩坑对策"
+    }
+  ]
+}
