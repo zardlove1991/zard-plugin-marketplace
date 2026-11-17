@@ -22,7 +22,7 @@ OpenDesign 三段设计管线（移动端 / Web 双轨）。
 
 ## 设计系统 bootstrap（⓪）
 
-项目无规范时：**先问客户规范来源**（A 项目自有 design-brief / B 外部品牌规范站 / C 现有路径 / D 本次不建）。选 A → 执行插件内置 design-brief（`vendor/design-system/design-brief/`，OpenDesign 上游、Apache-2.0：8 维 brief → DESIGN.md 九节 + 预览页 → 客户确认）；选 B → ⓪b 读取外部品牌 CI（如 `https://w-lian.com/brandci/index.html`）的 tokens/规范文档/组件 CSS，落成本地 DESIGN.md + `SOURCE.md`（来源/日期/文件清单）。两条路都经客户确认后落 `SPEC_ROOT/brand-ci/DESIGN.md`/tokens，再走①②③。**不依赖 gstack、不依赖 OD MCP**。②/③暴露的组件缺口按 design-md 纪律回写 DESIGN.md「待补」节。
+项目无规范时：**先问客户规范来源**（A 项目自有 design-brief / B 外部品牌规范站 / C 现有路径 / D 本次不建）。选 A → 执行插件内置 design-brief（`vendor/design-system/design-brief/`，OpenDesign 上游、Apache-2.0：8 维 brief → DESIGN.md 九节 + 预览页 + `design-tokens.css`（派生）→ 客户确认）；选 B → ⓪b 读取外部品牌 CI（如 `https://w-lian.com/brandci/index.html`）的 tokens/规范文档/组件 CSS，落成本地 DESIGN.md + `design-tokens.css`（站内原文）+ `SOURCE.md`（来源/日期/文件清单）。两条路都经客户确认后落 `SPEC_ROOT/brand-ci/DESIGN.md` + `design-tokens.css`，再走①②③。**不依赖 gstack、不依赖 OD MCP**。②/③暴露的组件缺口按 design-md 纪律回写 DESIGN.md「待补」节。
 
 ## 前置依赖与缺失处理
 

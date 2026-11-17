@@ -1,7 +1,7 @@
 {
   "name": "od-design-pipeline",
-  "version": "1.4.0",
-  "description": "OpenDesign 三段设计管线：①线框流程（wireframe）②高保真原型（mobile-app / web-prototype）③评审（critique）。移动端（wot-ui 四件套规范）与 Web 端（Element 形态 + kit 套件 + 三档断点）双轨；每段五步循环（发起→监视器等待→导出 cmp→playwright 实测→核对分支提交）。无规范项目先问客户规范来源：A 项目自有 design-brief / B 外部品牌 CI 站导入（均无需 gstack/OD MCP）；内置依赖缺失分级处理与实战踩坑对策表。",
+  "version": "1.5.0",
+  "description": "OpenDesign 三段设计管线：①线框流程（wireframe）②高保真原型（mobile-app / web-prototype）③评审（critique）。移动端（wot-ui 四件套规范）与 Web 端（Element 形态 + kit 套件 + 三档断点）双轨；每段五步循环（发起→监视器等待→导出 cmp→playwright 实测→核对分支提交）。无规范项目先问客户规范来源：A 项目自有 design-brief / B 外部品牌 CI 站导入（均无需 gstack/OD MCP，落盘含 design-tokens.css）；内置依赖缺失分级处理与实战踩坑对策表。",
   "author": {
     "name": "songyu"
   },
