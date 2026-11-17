@@ -24,9 +24,18 @@ OpenDesign 三段设计管线（移动端 / Web 双轨）。
 
 项目无规范时：**先问客户规范来源**（A 项目自有 design-brief / B 外部品牌规范站 / C 现有路径 / D 本次不建）。选 A → 执行插件内置 design-brief（`vendor/design-system/design-brief/`，OpenDesign 上游、Apache-2.0：8 维 brief → DESIGN.md 九节 + 预览页 → 客户确认）；选 B → ⓪b 读取外部品牌 CI（如 `https://w-lian.com/brandci/index.html`）的 tokens/规范文档/组件 CSS，落成本地 DESIGN.md + `SOURCE.md`（来源/日期/文件清单）。两条路都经客户确认后落 `SPEC_ROOT/brand-ci/DESIGN.md`/tokens，再走①②③。**不依赖 gstack、不依赖 OD MCP**。②/③暴露的组件缺口按 design-md 纪律回写 DESIGN.md「待补」节。
 
-## 前置依赖
+## 前置依赖与缺失处理
 
-- OpenDesign 桌面端 + `open-design` MCP（断开时 `/mcp` 重连）。MCP 状态**只看工具列表**：看不到 `mcp__open-design__*` 即视为未连接，勿用 `claude mcp list` 或读 `~/.claude.json` 探测（会逐个拉起全部已配置 server，常表现为卡死）
+| 依赖 | 用途 | 缺失时 |
+|---|---|---|
+| OpenDesign 桌面端 + `open-design` MCP | ①②③ 全部 OD 段 | **硬阻塞**：⓪/⓪b 可先做，之后停下请用户启动 OD + `/mcp`；不手绘替代、不用其它绘图工具顶替 OD 真源 |
+| Playwright MCP | 实测与前后截图 | 有 browser-cdp 等浏览器工具则等价替代；都没有 → 实测标「未执行」+「待人工实测」+ 起服务命令，不得声称已验证 |
+| `git` | 分支核对/提交 | 产物照常落盘，注明「未提交（无 git）」，不擅自 `git init` |
+| `python3` | 实测静态服务 | 换 `npx serve` / `npx http-server`，或浏览器开 `file://` |
+| 网络（仅⓪b） | 抓外部品牌 CI | `curl` 兜底；仍不行 → 请客户导出 tokens 文件给本地路径，或退回选 A；不编造 token |
+
+MCP 状态**只看工具列表**：看不到 `mcp__open-design__*` 即视为未连接，勿用 `claude mcp list` 或读 `~/.claude.json` 探测（会逐个拉起全部已配置 server，常表现为卡死）。停/替代时统一交代：缺什么 / 哪几步还能做 / 怎么补 / 补好后从哪继续。
+
 - 规范文件位于目标项目仓库，按目标仓库根推导：`designs/_system/`（SPEC_ROOT）+ `docs/open-design-spec.md`（SPEC_DOC）+ `designs/`（SNAPSHOT_ROOT）；推导路径不存在 → 按 SKILL.md「开工前决策」第 2 条一次问客户（A 用内置 design-brief 建 / B 读外部品牌规范 / C 给实际路径 / D 明确降级），不静默跳过
 
 ## 来源
