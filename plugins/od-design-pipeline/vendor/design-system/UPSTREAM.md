@@ -9,6 +9,8 @@
 sha256（SKILL.md）：`de27756b79d8f91349a6c0e9d7f8808993c2bcd7fa9c133c91dd18e0a04d6294`
 拷贝日期：2026-11-17
 
+**本地伴读件**：`design-brief/SKILL.zh-CN.md`（2026-11-18 新建）是 SKILL.md 的中文翻译，**仅供人阅读，非上游内容、非执行件**——管线执行仍以英文原版为准；上游 SKILL.md 同步更新时需对照新版重新核对翻译（翻译基线 = 上文锁定的 f1a0b60 版本）。
+
 | 目录 | 用途 | 管线挂点 |
 |---|---|---|
 | design-brief | 自然语言/结构化 brief → 8 维 token 解析 → DESIGN.md（9 节）+ 预览页 | ⓪ bootstrap |
@@ -24,6 +26,8 @@ sha256（SKILL.md）：`de27756b79d8f91349a6c0e9d7f8808993c2bcd7fa9c133c91dd18e0
 拷贝日期：2026-11-17
 许可：MIT（全文见 `LICENSE-gstack`，拷贝时随附以满足署名要求）
 sha256（SKILL.md）：`94aaf7e62f7925b158d928c0fc0589cda529eca28ecbeca5709f8d45d75492dc`
+
+**本地伴读件**：`design-review/SKILL.zh-CN.md`（2026-11-18 新建）是 SKILL.md + sections/ 的**中文导读说明**（流程逐段讲解 + 10 类审计清单/AI slop 黑名单/设计硬规则完整中译 + gstack 基建到管线的映射表），非逐句翻译、非执行件——执行纪律以 od-design-pipeline SKILL.md「评审后」节为准；上游同步时需对照新版重新核对（说明基线 = gstack 1.98.0.0）。
 
 | 目录 | 用途 | 管线挂点 |
 |---|---|---|
