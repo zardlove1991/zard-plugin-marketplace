@@ -22,6 +22,8 @@ OpenDesign 三段设计管线（移动端 / Web 双轨）。
 
 **段间门控**：①完成提交后必须停下，客户确认线框（或要求改①）才发起②；②→③默认自动续跑、②交付时明示。**单段进入**（客户显式要求，默认仍三段走）：②直入（"不要线框直接高保真"，文案照客户 brief+参考图，进段前披露一次返工代价）、③单评（任意 OD artifact，不限管线产物）、①单段（只要结构讨论）。跳过某段不豁免规范 bootstrap 与定轨，详见 SKILL.md「单段进入」。
 
+**执行模式**（默认 OD run：start_run 五步循环，OD 真源）：客户显式选择、或 OD 不可用时的知情备选 → **本地直绘**（repo 即真源；读 vendored 种子 → 组合 → checklist 自检 → playwright 实测，四步；禁止从零手写 CSS；失去 OD 预览/评论/run 可观测）。详见 SKILL.md「开工前决策」第 4 步与「本地直绘循环」。
+
 ## 设计系统 bootstrap（⓪）
 
 项目无规范时：**先问客户规范来源**（A 项目自有 design-brief / B 外部品牌规范站 / C 现有路径 / D 本次不建）。选 A → 执行插件内置 design-brief（`vendor/design-system/design-brief/`，OpenDesign 上游、Apache-2.0：8 维 brief → DESIGN.md 九节 + 预览页 + `design-tokens.css`（派生）→ 客户确认）；选 B → ⓪b 读取外部品牌 CI（如 `https://w-lian.com/brandci/index.html`）的 tokens/规范文档/组件 CSS，落成本地 DESIGN.md + `design-tokens.css`（站内原文）+ `SOURCE.md`（来源/日期/文件清单）。两条路都经客户确认后落 `SPEC_ROOT/brand-ci/DESIGN.md` + `design-tokens.css`，再问客户是否进①（不自动续接）。**不依赖 gstack、不依赖 OD MCP**。②/③暴露的组件缺口按 design-md 纪律回写 DESIGN.md「待补」节。
@@ -30,7 +32,7 @@ OpenDesign 三段设计管线（移动端 / Web 双轨）。
 
 | 依赖 | 用途 | 缺失时 |
 |---|---|---|
-| OpenDesign 桌面端 + `open-design` MCP | ①②③ 全部 OD 段 | **硬阻塞**：⓪/⓪b 可先做，之后停下请用户启动 OD + `/mcp`；不手绘替代、不用其它绘图工具顶替 OD 真源 |
+| OpenDesign 桌面端 + `open-design` MCP | ①②③ 全部 OD 段（OD run 模式） | **OD run 模式下硬阻塞**：⓪/⓪b 可先做，之后停下请用户启动 OD + `/mcp`，或知情选本地直绘模式；OD 模式下不手绘替代、不用其它绘图工具顶替 OD 真源 |
 | Playwright MCP | 实测与前后截图 | 有 browser-cdp 等浏览器工具则等价替代；都没有 → 实测标「未执行」+「待人工实测」+ 起服务命令，不得声称已验证 |
 | `git` | 分支核对/提交 | 产物照常落盘，注明「未提交（无 git）」，不擅自 `git init` |
 | `python3` | 实测静态服务 | 换 `npx serve` / `npx http-server`，或浏览器开 `file://` |
