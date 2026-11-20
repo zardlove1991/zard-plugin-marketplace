@@ -7,7 +7,7 @@ description: Use when 用户要求用 OpenDesign 设计或重设计移动端页�
 
 ## 概述
 
-新屏/改版设计走⓪规范 bootstrap（可选，项目无规范时，外层执行）+ 三段 start_run 管线：线框（定结构与流程）→ 高保真（交互原型）→ 评审（报告）。**先按目标定轨（下表），每段固定五步：发起 → 等待 → 导出 → 实测 → 提交**。OD 文件为真源，repo `SNAPSHOT_ROOT` 为快照（OD→repo 单向）。
+新屏/改版设计走⓪规范 bootstrap（可选，项目无规范时，外层执行）+ 三段 start_run 管线：线框（定结构与流程）→ 高保真（交互原型）→ 评审（报告）。**先按目标定轨（下表），每段固定五步：发起 → 等待 → 导出 → 实测 → 提交**。**段间门控：①完成提交后必须停下**，客户确认线框（或要求改①）后才发起②——门控点只有"确认 / 修改"两个分支，"跳过线框"的②直入只存在于**管线发起前**（见「单段进入」）；②→③默认自动续跑，②交付时明示"将自动进入③评审，不需要请喊停"。OD 文件为真源，repo `SNAPSHOT_ROOT` 为快照（OD→repo 单向）。
 
 ## 开工前决策（先定轨，不做环境探测）
 
@@ -68,7 +68,7 @@ description: Use when 用户要求用 OpenDesign 设计或重设计移动端页�
    **注意**：open-design 仓库里同名 `design-consultation` 只是指向 gstack 的 advertise 壳（约 1.2 KB，无工作流），**不要用它、也不要安装 gstack**。
 3. **确认**：DESIGN.md 草案 + 预览页 + 默认补位清单交客户确认；未确认不落盘。**目标项目已有产品 token 时以既有 token 为真源**（如主色 #2563EB / 7/10/14 字号 / Noto Sans SC），design-brief 默认值只补缺、不覆盖已定项。
 4. **落规范**：写 `SPEC_ROOT/brand-ci/DESIGN.md`（design-brief 九节 + 按双轨追加 Mini Program 或 Web 组件 guidance + 「待补」清单），预览页写 `SPEC_ROOT/brand-ci/design-preview.html`；建好 `SPEC_ROOT/brand-ci/system/` 目录。**CSS token 落点**：项目无既有 CSS token 文件（variables.css 等）时，从 DESIGN.md token 附录**机械翻译**派生 `brand-ci/design-tokens.css`（`:root` 下 primitive + semantic 两段；值逐项对照 DESIGN.md，不发明新 token）；项目已有 variables.css 等既有文件时，以既有文件为 CSS 落点（缺项经用户确认增列），不另造 design-tokens.css、不双真源。design-tokens.css 是**派生物**：改 token 先改 DESIGN.md 再重新生成，不手改 CSS。**尚无的配套规范**（`system/mini-components.md`、`system/wot-ui-forms.md`、`system/kit.html`、`wot-ui-theme.md`）**列入 DESIGN.md「待补」、不要伪造内容**，由②/③按需补齐。design-md 真身未 vendored 期间叠加临时纪律：DESIGN.md 为规范单一真源；tokens 表与 CSS token 文件（design-tokens.css / 既有 variables.css）同步；缺口只增列、不擅改已定项。真身到位后以其为准。移动端轨的断点/组件形态以双轨表与 SPEC_DOC 为准（375 单点、wot-ui），design-brief 的 Web 响应式默认仅作 Web 轨起点。
-5. 完成后走①；此后②/③按双轨表引规范。
+5. 完成后**问客户**是否现在进①（建规范的诉求未必是马上画线框，不自动续接）；此后②/③按双轨表引规范。
 
 ## ⓪b 外部规范导入（客户选 B / 明确要求以外部品牌规范为准）
 
@@ -102,17 +102,31 @@ description: Use when 用户要求用 OpenDesign 设计或重设计移动端页�
 | token 口径 | 产品 token（7/10/14、Noto Sans SC、主色 #2563EB） | 后台/登录属产品 UI → 同产品 token；仅对外营销/CI 物料用企业口径（8/12、Space Grotesk，SPEC_DOC §3.1） |
 | 实测断点 | 375/390 手机壳单点 | **375 / 768 / 1440 三档**（SPEC_DOC §5），表格区拉伸、整页不固定宽高 |
 
+## 单段进入（客户显式选择；默认仍三段走）
+
+**默认新屏三段走**——①在便宜阶段定结构与文案，②贵的阶段才有对齐输入。客户**显式**要求时允许单段进入，仅限以下三个入口；照常执行「开工前决策」「路径变量」与规范 bootstrap（⓪/⓪b）——**跳过某段 ≠ 跳过规范与定轨**；发起仍走「每段固定循环」五步，project 显式传参：
+
+| 入口 | 触发（以客户明说为准） | prompt 变体 | 进段前必做 |
+|---|---|---|---|
+| ②直入 | 客户明说"不要线框，直接高保真"。参考图已定结构、单屏无结构可定、客户明说要快 → agent 可**提议**单段，但决定权在客户 | 双轨表②行 + 三段 prompt 要点②行，但**文案来源改为**客户 brief + 参考图/现有屏逐字对齐（顶替"照①"的输入）；其余纪律（必读规范、五态、token）一个不少 | **一次代价披露 + 客户确认**："结构未经线框确认，②返工比①贵"，客户确认后才发起 |
+| ③单评 | "帮我评审这个页面/这个 artifact"（不限管线产物：已有屏、外部导入的设计都可） | 三段 prompt 要点③行；对照物按存在性退化（下行） | 确认评审对象所在 OD project 与 artifact，project 显式传参 |
+| ①单段 | "只要结构讨论/线框就行" | ①行原样 | 交付线框后停，不自动进② |
+
+③对照物退化：有 `design-tokens.css` / DESIGN.md token 附录 → 对照评；两者皆无（D 场景、外部项目）→ 按通用口径评（五态/token 纪律/spacing 网格/无障碍/文案），**不虚构对照物**。
+
+段间衔接同「概述」门控：①后必须停（客户确认结构，或显式跳过 → 转②直入）；②→③默认自动续跑、②交付时明示。
+
 ## 不走本管线的场景
 
 - 已有屏微调 → 直接编辑 OD 真源文件（write_file 或文件系统），按 design-review 纪律（见「评审后」）
-- 只要结构讨论 → 只走第①段
+- 只要结构讨论 → 单段走①（见「单段进入」）
 - 写代码/落地实现 → 不是本技能
 - OD MCP 不可用 → 暂缓发起①（对策见「前置依赖与缺失处理」），不手绘替代；⓪ 规范 bootstrap 不受影响，可先做
 
 ## 每段固定循环
 
 1. **预检**：调用任一 OD 工具（如 `list_agents`）确认可用；工具不存在或报连接错误 → 按「开工前决策」第 3 条停下请用户 `/mcp`，**禁 shell 探测**（`claude mcp list`/读 `~/.claude.json` 会卡住）。`list_agents` 确认可用 runtime（勿猜 agent id，只有列表返回的才会被真正拉起）。提交前必须 `git branch --show-current` 核对分支。**预检同时看一眼浏览器工具**（playwright / browser-cdp）：没有就按「前置依赖与缺失处理」表决定替代或标记实测未执行，不要到第 5 步才发现。
-2. **发起**：`uuidgen` 生成 requestId（重试复用同值）→ `start_run(project, plugin, requestId, prompt, agent=<list_agents 可用 id>)` → `get_run` 一次取 `childPid`（run 尚在 queued、pid 未生成时每 5s 重试，至多 3 次）→ 挂后台监视器：
+2. **发起**：`uuidgen` 生成 requestId（重试复用同值）→ `start_run(project, plugin, requestId, prompt, agent=<list_agents 可用 id>)`（**project 一律显式传参**：①发起时记下 project 名，②③沿用同一值——客户可能在 OD 里切换活动项目，用默认活动项目会让②找不到①的线框、白跑一次；**③单评例外**：按「单段进入」取评审对象所在 project）→ `get_run` 一次取 `childPid`（run 尚在 queued、pid 未生成时每 5s 重试，至多 3 次）→ 挂后台监视器：
    ```bash
    for i in $(seq 1 80); do kill -0 <pid> 2>/dev/null || { echo EXITED; exit 0; }; sleep 30; done; echo TIMEOUT
    ```
@@ -126,8 +140,8 @@ description: Use when 用户要求用 OpenDesign 设计或重设计移动端页�
 | 段 | prompt 必含 |
 |---|---|
 | ①线框流程 | 先读现有屏逐字对齐文案；灰阶+品牌蓝仅主操作/选中；琥珀交互标注；屏间箭头带触发条件芯片；底部状态覆盖条；全中文无英文装饰 |
-| ②高保真 | **本轨规范文件存在则全部必读（双轨表②行，一个不漏——漏形态参照组件就难看）**；新项目尚未生成的（mini-components / wot-ui-forms / kit.html / wot-ui-theme）按 DESIGN.md + vendored 同源参照推导，并列入「待补」；token 无板外硬编码；五态齐全；移动端加胶囊避让+safe-area+hash 路由单文件；Web 加布局语义（flex/grid、表格拉伸）；文案逐字照①与现有屏 |
-| ③评审 | 只评不改文件；维度：对比度/token 纪律（对照 `design-tokens.css` / DESIGN.md token 附录）/spacing 网格/五态/表单校验/无障碍/文案/与参考一致性（移动端加胶囊与安全区）；按阻塞/建议/可选分级+屏/元素定位+整体评分 |
+| ②高保真 | **本轨规范文件存在则全部必读（双轨表②行，一个不漏——漏形态参照组件就难看）**；新项目尚未生成的（mini-components / wot-ui-forms / kit.html / wot-ui-theme）按 DESIGN.md + vendored 同源参照推导，并列入「待补」；token 无板外硬编码；五态齐全；移动端加胶囊避让+safe-area+hash 路由单文件；Web 加布局语义（flex/grid、表格拉伸）；文案逐字照①与现有屏（②直入时照客户 brief 与参考图/现有屏）；**vendored 上游默认（serif display 字体、种子字号阶梯、accent 预算等美学取值）与 brand-ci / 双轨口径冲突时，以 brand-ci / 双轨口径为准** |
+| ③评审 | 只评不改文件；维度：对比度/token 纪律（对照 `design-tokens.css` / DESIGN.md token 附录；**两者皆无（D 场景/外部项目）→ 按通用口径评（五态/token 纪律/spacing 网格），不虚构对照物**）/spacing 网格/五态/表单校验/无障碍/文案/与参考一致性（移动端加胶囊与安全区）；按阻塞/建议/可选分级+屏/元素定位+整体评分 |
 
 ## 评审后
 
@@ -139,7 +153,8 @@ description: Use when 用户要求用 OpenDesign 设计或重设计移动端页�
 
 | 坑 | 对策 |
 |---|---|
-| 跳过①手写高保真（用户质问"为啥不用 wireframe 技能"） | 新屏一律三段走；仅微调可直接编辑 |
+| 跳过①手写高保真（用户质问"为啥不用 wireframe 技能"） | 默认三段走；客户显式跳①→按「单段进入」②直入（一次代价披露+确认）；仅微调可直接编辑。**不经 OD run 手写高保真仍禁止** |
+| 一口气跑三段，①完不确认就冲② | 段间门控（见「概述」）：①提交后停，客户确认结构或显式跳过才发起② |
 | ②忘引 wot-ui-forms → 组件难看 | prompt 写死四规范文件 |
 | 忘导出 → OD 私有目录丢数据 | 每段结束立即导出+cmp |
 | 断言苛刻 → 假阴性（如新租户入列查不到） | 多选择器断言，先自查脚本 |

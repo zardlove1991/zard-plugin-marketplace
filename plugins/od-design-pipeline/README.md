@@ -5,7 +5,7 @@ OpenDesign 三段设计管线（移动端 / Web 双轨）。
 ## 管线
 
 ```
-⓪规范 bootstrap（可选：项目无规范时，外层执行） → ①线框（定结构与流程） → ②高保真（交互原型） → ③评审（分级报告） → 逐条修复复测（design-review 纪律）
+⓪规范 bootstrap（可选：项目无规范时，外层执行） → ①线框（定结构与流程） → 【客户确认】 → ②高保真（交互原型） → ③评审（分级报告，默认自动续） → 逐条修复复测（design-review 纪律）
 ```
 
 | | 移动端（小程序） | Web 端（后台/登录/落地页） |
@@ -13,16 +13,18 @@ OpenDesign 三段设计管线（移动端 / Web 双轨）。
 | ①线框 | example-wireframe-mobile-flow | example-wireframe-greybox / annotated |
 | ②高保真 | example-mobile-app | example-web-prototype（可选 taste 变体） |
 | ③评审 | example-critique（通用） | 同左 |
-| ②必读规范 | brand-ci/DESIGN.md Mini Program 节 / brand-ci/system/mini-components.md / brand-ci/system/wot-ui-forms.md / wot-ui-theme.md | brand-ci/DESIGN.md Web 组件 guidance / brand-ci/system/kit.html / SPEC_DOC §6.4 |
+| ②必读规范 | brand-ci/DESIGN.md Mini Program 节 / brand-ci/system/mini-components.md / brand-ci/system/wot-ui-forms.md / wot-ui-theme.md / `vendor/open-design/mobile-app/`（SKILL+references+assets） | brand-ci/DESIGN.md Web 组件 guidance / brand-ci/system/kit.html / SPEC_DOC §6.4 / `vendor/open-design/web-prototype/`（SKILL+references+assets；上游美学默认与 brand-ci 冲突时以 brand-ci 为准） |
 | 实测断点 | 375/390 | 375 / 768 / 1440 三档 |
 
 表中规范路径相对 `SPEC_ROOT`、`SPEC_DOC` 为管线规范文档路径——变量按目标仓库根推导（另有快照根 `SNAPSHOT_ROOT`），见 SKILL.md「路径变量」节。
 
 每段固定五步：发起（requestId+childPid 监视器）→ 等待（禁紧凑轮询；pid 缺失/TIMEOUT 兜底 ≥60s 低频 get_run）→ 导出（OD→repo 快照 cmp）→ 实测（playwright 全链路）→ 提交（核对分支）。
 
+**段间门控**：①完成提交后必须停下，客户确认线框（或要求改①）才发起②；②→③默认自动续跑、②交付时明示。**单段进入**（客户显式要求，默认仍三段走）：②直入（"不要线框直接高保真"，文案照客户 brief+参考图，进段前披露一次返工代价）、③单评（任意 OD artifact，不限管线产物）、①单段（只要结构讨论）。跳过某段不豁免规范 bootstrap 与定轨，详见 SKILL.md「单段进入」。
+
 ## 设计系统 bootstrap（⓪）
 
-项目无规范时：**先问客户规范来源**（A 项目自有 design-brief / B 外部品牌规范站 / C 现有路径 / D 本次不建）。选 A → 执行插件内置 design-brief（`vendor/design-system/design-brief/`，OpenDesign 上游、Apache-2.0：8 维 brief → DESIGN.md 九节 + 预览页 + `design-tokens.css`（派生）→ 客户确认）；选 B → ⓪b 读取外部品牌 CI（如 `https://w-lian.com/brandci/index.html`）的 tokens/规范文档/组件 CSS，落成本地 DESIGN.md + `design-tokens.css`（站内原文）+ `SOURCE.md`（来源/日期/文件清单）。两条路都经客户确认后落 `SPEC_ROOT/brand-ci/DESIGN.md` + `design-tokens.css`，再走①②③。**不依赖 gstack、不依赖 OD MCP**。②/③暴露的组件缺口按 design-md 纪律回写 DESIGN.md「待补」节。
+项目无规范时：**先问客户规范来源**（A 项目自有 design-brief / B 外部品牌规范站 / C 现有路径 / D 本次不建）。选 A → 执行插件内置 design-brief（`vendor/design-system/design-brief/`，OpenDesign 上游、Apache-2.0：8 维 brief → DESIGN.md 九节 + 预览页 + `design-tokens.css`（派生）→ 客户确认）；选 B → ⓪b 读取外部品牌 CI（如 `https://w-lian.com/brandci/index.html`）的 tokens/规范文档/组件 CSS，落成本地 DESIGN.md + `design-tokens.css`（站内原文）+ `SOURCE.md`（来源/日期/文件清单）。两条路都经客户确认后落 `SPEC_ROOT/brand-ci/DESIGN.md` + `design-tokens.css`，再问客户是否进①（不自动续接）。**不依赖 gstack、不依赖 OD MCP**。②/③暴露的组件缺口按 design-md 纪律回写 DESIGN.md「待补」节。
 
 ## 前置依赖与缺失处理
 

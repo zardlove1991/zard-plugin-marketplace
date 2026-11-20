@@ -4,7 +4,7 @@
 锁定上游 commit：0701042f3d2957fe485bb8508652e40ec6dae832
 上游路径前缀：plugins/_official/examples/
 本地位置：plugins/od-design-pipeline/vendor/open-design/（随插件安装；od-design-pipeline SKILL.md 按 skill 基目录 `../../vendor/` 解析）
-同步日期：2026-11-17
+同步日期：2026-11-17（2026-11-20 增补 web-prototype，同 SHA 0701042）
 
 ## 内容
 
