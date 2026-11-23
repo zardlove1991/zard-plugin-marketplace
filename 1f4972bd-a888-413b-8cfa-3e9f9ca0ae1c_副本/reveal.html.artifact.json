@@ -1,0 +1,19 @@
+{
+  "version": 1,
+  "kind": "html",
+  "title": "reveal.html",
+  "entry": "reveal.html",
+  "renderer": "html",
+  "status": "complete",
+  "exports": [
+    "html",
+    "pdf",
+    "zip"
+  ],
+  "createdAt": "2026-11-23T02:41:02.859Z",
+  "updatedAt": "2026-11-23T02:41:02.859Z",
+  "metadata": {
+    "inferred": true,
+    "reconciled": true
+  }
+}

@@ -1,0 +1,19 @@
+{
+  "version": 1,
+  "kind": "html",
+  "title": "reflective-card.html",
+  "entry": "reflective-card.html",
+  "renderer": "html",
+  "status": "complete",
+  "exports": [
+    "html",
+    "pdf",
+    "zip"
+  ],
+  "createdAt": "2026-11-23T07:48:56.387Z",
+  "updatedAt": "2026-11-23T07:48:56.387Z",
+  "metadata": {
+    "inferred": true,
+    "reconciled": true
+  }
+}

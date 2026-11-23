@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>TiltedCard · 3D 倾斜卡片</title>
+<!-- The component's own stylesheet, used verbatim so the preview matches it exactly. -->
+<link rel="stylesheet" href="components/ui/TiltedCard.css" />
+<style>
+  html, body { height: 100%; }
+  body {
+    margin: 0;
+    min-height: 100svh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 28px;
+    background: radial-gradient(120% 120% at 50% 0%, #17171d 0%, #0d0d11 62%);
+    color: #f4f4f5;
+    font-family: ui-sans-serif, system-ui, -apple-system, "SF Pro Text", "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+  }
+  .stage-hint {
+    margin: 0;
+    font-size: 12px;
+    letter-spacing: 0.05em;
+    color: rgba(244, 244, 245, 0.42);
+  }
+  .play-badge {
+    position: absolute;
+    right: 16px;
+    bottom: 16px;
+    width: 48px;
+    height: 48px;
+    display: grid;
+    place-items: center;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.16);
+    box-shadow:
+      inset 0 0 0 1px rgba(255, 255, 255, 0.45),
+      inset 0 1px 0 rgba(255, 255, 255, 0.35),
+      0 10px 24px -10px rgba(0, 0, 0, 0.55);
+    -webkit-backdrop-filter: blur(6px);
+    backdrop-filter: blur(6px);
+    color: #fff;
+    pointer-events: none;
+  }
+</style>
+</head>
+<body>
+  <figure id="tc" class="tilted-card" tabindex="0" role="button" aria-pressed="false" aria-label="Afterglow"
+    style="width: 320px; height: 320px; perspective: 800px;">
+    <div class="tilted-card__shadow" aria-hidden="true"
+      style="width: 320px; height: 320px; border-radius: 15px;"></div>
+    <div class="tilted-card__body"
+      style="width: 320px; height: 320px; --tc-radius: 15px; --tc-glare-rgb: 255, 255, 255;">
+      <div class="tilted-card__face tilted-card__front">
+        <img class="tilted-card__img" src="assets/sunset.jpg" alt="Sunset clouds" draggable="false"
+          style="--tc-depth: -24; top: -6px; left: -6px; width: calc(100% + 12px); height: calc(100% + 12px);" />
+        <div class="tilted-card__layer" style="--tc-depth: 30;">
+          <h3 style="position: absolute; left: 20px; bottom: 16px; margin: 0; color: #fff; font-size: 20px; font-weight: 600; letter-spacing: -0.01em; text-shadow: 0 2px 14px rgba(0, 0, 0, 0.5);">Afterglow</h3>
+        </div>
+        <div class="tilted-card__layer" style="--tc-depth: 22;">
+          <span class="play-badge" aria-hidden="true">
+            <svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor" aria-hidden="true" style="display: block; filter: drop-shadow(0 1px 3px rgba(0, 0, 0, 0.45));"><path d="M9 6.5v11l9-5.5z" /></svg>
+          </span>
+        </div>
+        <span class="tilted-card__glare" aria-hidden="true"></span>
+        <span class="tilted-card__rim" aria-hidden="true"></span>
+        <span class="tilted-card__edge" aria-hidden="true"></span>
+      </div>
+      <div class="tilted-card__face tilted-card__back" aria-hidden="true">
+        <p style="padding: 20px; margin: 0; color: #f4f4f5; font-size: 14px; line-height: 1.6;">The back of the card</p>
+        <span class="tilted-card__glare" aria-hidden="true"></span>
+        <span class="tilted-card__rim" aria-hidden="true"></span>
+        <span class="tilted-card__edge" aria-hidden="true"></span>
+      </div>
+    </div>
+    <figcaption class="tilted-card__caption">Afterglow</figcaption>
+  </figure>
+  <p class="stage-hint">移动光标倾斜 · 点击翻面</p>
+<script>
+(() => {
+  'use strict';
+  const FLIP_THRESHOLD = 6;
+  const clamp = (value, min, max) => Math.min(max, Math.max(min, value));
+  const smoother = t => {
+    const x = clamp(t, 0, 1);
+    return x * x * x * (x * (x * 6 - 15) + 10);
+  };
+  const step = (state, key, target, omega, zeta, dt) => {
+    const velocity = `v${key}`;
+    const steps = Math.max(1, Math.ceil(dt / (1 / 240)));
+    const h = dt / steps;
+    for (let index = 0; index < steps; index++) {
+      state[velocity] += (omega * omega * (target - state[key]) - 2 * zeta * omega * state[velocity]) * h;
+      state[key] += state[velocity] * h;
+    }
+    const settled = Math.abs(target - state[key]) < 0.001 && Math.abs(state[velocity]) < 0.01;
+    if (settled) {
+      state[key] = target;
+      state[velocity] = 0;
+    }
+    return !settled;
+  };
+
+  const figure = document.getElementById('tc');
+  const body = figure.querySelector('.tilted-card__body');
+  const shade = figure.querySelector('.tilted-card__shadow');
+  const caption = figure.querySelector('.tilted-card__caption');
+  const back = figure.querySelector('.tilted-card__back');
+
+  const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const settings = {
+    amplitude: 12,
+    scale: 1.05,
+    smoothness: 0.6,
+    glare: 0.5,
+    shadow: 0.5,
+    parallax: 1,
+    floating: false,
+    intro: true,
+    interactive: true,
+    tooltip: true
+  };
+  let flipped = false;
+
+  const state = { rx: 0, vrx: 0, ry: 0, vry: 0, lift: 0, vlift: 0, ty: 0, vty: 0, flip: 0, vflip: 0, press: 0, vpress: 0, tip: 0, vtip: 0, shown: 0, vshown: 0, tx: 0, tyy: 0 };
+  const pointer = { nx: 0, ny: 0, x: 0, y: 0, inside: false, mouse: false, vx: 0, last: 0 };
+  const press = { active: false, x: 0, y: 0, moved: false };
+  let opacity = 1;
+  let entered = true;
+  let introAt = -1;
+  let time = Math.random() * 10;
+  let focused = false;
+  let raf = 0;
+  let last = 0;
+  let visible = true;
+
+  if (settings.intro && !reduced) {
+    entered = false;
+    opacity = 0;
+    state.rx = 16;
+    state.ty = 22;
+    body.style.opacity = '0';
+  }
+
+  const frame = now => {
+    raf = 0;
+    const s = settings;
+    const dt = clamp((now - last) / 1000 || 0, 0, 0.05);
+    last = Math.max(last, now);
+    time += dt;
+    let busy = false;
+
+    const amplitude = s.amplitude * (reduced ? 0.3 : 1);
+    const hovering = pointer.inside && pointer.mouse;
+    const touching = press.active && !pointer.mouse;
+    const lifted = hovering || touching || focused ? 1 : 0;
+    let inputX = 0;
+    let inputY = 0;
+    if (hovering || touching) {
+      inputX = pointer.nx;
+      inputY = pointer.ny;
+    } else if (s.floating && !reduced && visible) {
+      inputX = 0.32 * Math.sin(time * 0.62) + 0.12 * Math.sin(time * 1.31 + 0.7);
+      inputY = 0.26 * Math.sin(time * 0.83 + 1.9) + 0.1 * Math.sin(time * 1.57);
+      busy = true;
+    }
+    const sign = 1;
+    const omega = 20 * Math.pow(0.2, s.smoothness);
+    const zeta = 1 - 0.3 * s.smoothness;
+
+    if (!entered && introAt >= 0 && now >= introAt) entered = true;
+    const settle = entered || !s.intro || reduced;
+    busy = step(state, 'rx', settle ? -inputY * amplitude * sign : state.rx, omega, zeta, dt) || busy;
+    busy = step(state, 'ry', settle ? inputX * amplitude * sign : state.ry, omega, zeta, dt) || busy;
+    busy = step(state, 'ty', settle ? 0 : state.ty, omega * 0.8, 0.9, dt) || busy;
+    busy = step(state, 'lift', lifted, omega, Math.max(zeta, 0.85), dt) || busy;
+    busy = step(state, 'flip', flipped ? 180 : 0, reduced ? 18 : 9.5, 0.72, dt) || busy;
+    busy = step(state, 'press', press.active && !press.moved && s.interactive ? 1 : 0, 26, 0.8, dt) || busy;
+    if (settle && opacity < 1) {
+      opacity = Math.min(1, opacity + dt / 0.45);
+      busy = true;
+    }
+
+    const active = lifted > 0 || state.lift > 0.01;
+    if (active !== figure.hasAttribute('data-active')) figure.toggleAttribute('data-active', active);
+    const scale = 1 + (s.scale - 1) * state.lift - 0.02 * state.press;
+    const rx = state.rx;
+    const ry = state.ry;
+    const radiansX = (rx * Math.PI) / 180;
+    const radiansY = (ry * Math.PI) / 180;
+    body.style.transform = `translate3d(0, ${state.ty.toFixed(2)}px, 0) rotateX(${rx.toFixed(3)}deg) rotateY(${(ry + state.flip).toFixed(3)}deg) scale(${scale.toFixed(4)})`;
+    body.style.opacity = opacity < 1 ? smoother(opacity).toFixed(3) : '';
+    body.style.setProperty('--tc-px', (Math.sin(radiansY) * s.parallax).toFixed(4));
+    body.style.setProperty('--tc-py', (-Math.sin(radiansX) * s.parallax).toFixed(4));
+    const reach = Math.max(amplitude, 1);
+    body.style.setProperty('--tc-gx', `${(50 + (ry / reach) * 46).toFixed(2)}%`);
+    body.style.setProperty('--tc-gy', `${(50 - (rx / reach) * 46).toFixed(2)}%`);
+    const energy = Math.min(1, Math.hypot(rx, ry) / reach);
+    body.style.setProperty('--tc-glare', (s.glare * Math.max(state.lift, energy) * (opacity < 1 ? smoother(opacity) : 1)).toFixed(3));
+
+    if (shade) {
+      const strength = s.shadow * (opacity < 1 ? smoother(opacity) : 1);
+      const offsetX = -Math.sin(radiansY) * 22;
+      const offsetY = 12 + 16 * state.lift + Math.sin(radiansX) * 18 - state.ty * 0.6;
+      const turn = Math.abs(Math.cos((state.flip * Math.PI) / 180));
+      const spread = scale * (0.86 + 0.04 * state.lift);
+      shade.style.transform = `translate3d(${offsetX.toFixed(2)}px, ${offsetY.toFixed(2)}px, 0) scale(${(spread * (0.2 + 0.8 * turn)).toFixed(4)}, ${spread.toFixed(4)})`;
+      shade.style.opacity = (strength * (0.6 + 0.4 * state.lift)).toFixed(3);
+    }
+
+    if (caption) {
+      const show = s.tooltip && hovering ? 1 : 0;
+      busy = step(state, 'shown', show, 16, 1, dt) || busy;
+      const follow = 1 - Math.exp(-dt / 0.035);
+      state.tx += (pointer.x - state.tx) * follow;
+      state.tyy += (pointer.y - state.tyy) * follow;
+      if (Math.abs(pointer.x - state.tx) + Math.abs(pointer.y - state.tyy) > 0.2) busy = true;
+      pointer.vx *= Math.exp(-dt / 0.08);
+      busy = step(state, 'tip', reduced ? 0 : clamp(-pointer.vx * 0.012, -14, 14), 18, 0.62, dt) || busy;
+      caption.style.transform = `translate3d(${state.tx.toFixed(1)}px, ${state.tyy.toFixed(1)}px, 0) rotate(${state.tip.toFixed(2)}deg)`;
+      caption.style.opacity = Math.max(0, state.shown).toFixed(3);
+    }
+
+    if ((busy || (!settle && s.intro)) && visible) raf = requestAnimationFrame(frame);
+  };
+
+  const wake = () => {
+    if (raf || !visible) return;
+    last = performance.now();
+    raf = requestAnimationFrame(frame);
+  };
+
+  const locate = event => {
+    const rect = figure.getBoundingClientRect();
+    return {
+      x: event.clientX - rect.left,
+      y: event.clientY - rect.top,
+      width: Math.max(1, rect.width),
+      height: Math.max(1, rect.height)
+    };
+  };
+
+  const track = event => {
+    const spot = locate(event);
+    const now = performance.now();
+    const elapsed = Math.max(8, now - (pointer.last || now - 16)) / 1000;
+    const dx = spot.x - pointer.x;
+    pointer.vx += (dx / elapsed - pointer.vx) * 0.5;
+    pointer.last = now;
+    pointer.x = spot.x;
+    pointer.y = spot.y;
+    pointer.nx = clamp((spot.x - spot.width / 2) / (spot.width / 2), -1, 1);
+    pointer.ny = clamp((spot.y - spot.height / 2) / (spot.height / 2), -1, 1);
+  };
+
+  const onEnter = event => {
+    pointer.inside = true;
+    pointer.mouse = event.pointerType === 'mouse' || event.pointerType === 'pen';
+    const spot = locate(event);
+    pointer.x = spot.x;
+    pointer.y = spot.y;
+    state.tx = spot.x;
+    state.tyy = spot.y;
+    pointer.vx = 0;
+    track(event);
+    wake();
+  };
+  const onMove = event => {
+    pointer.mouse = event.pointerType === 'mouse' || event.pointerType === 'pen';
+    if (!pointer.inside && pointer.mouse) {
+      pointer.inside = true;
+      const spot = locate(event);
+      pointer.x = spot.x;
+      pointer.y = spot.y;
+      state.tx = spot.x;
+      state.tyy = spot.y;
+      pointer.vx = 0;
+    }
+    track(event);
+    if (press.active && Math.hypot(event.clientX - press.x, event.clientY - press.y) > FLIP_THRESHOLD)
+      press.moved = true;
+    wake();
+  };
+  const onLeave = () => {
+    pointer.inside = false;
+    pointer.vx = 0;
+    wake();
+  };
+  const onDown = event => {
+    press.active = true;
+    press.moved = false;
+    press.x = event.clientX;
+    press.y = event.clientY;
+    pointer.mouse = event.pointerType === 'mouse' || event.pointerType === 'pen';
+    if (!pointer.mouse) {
+      pointer.inside = true;
+      track(event);
+    }
+    wake();
+  };
+  const onUp = event => {
+    if (!press.active) return;
+    press.active = false;
+    if (event.pointerType !== 'mouse' && event.pointerType !== 'pen') pointer.inside = false;
+    wake();
+  };
+  const onCancel = () => {
+    press.active = false;
+    press.moved = true;
+    pointer.inside = false;
+    wake();
+  };
+  const onFocus = () => {
+    focused = figure.matches(':focus-visible');
+    wake();
+  };
+  const onBlur = () => {
+    focused = false;
+    wake();
+  };
+
+  const toggle = () => {
+    flipped = !flipped;
+    figure.setAttribute('aria-pressed', flipped ? 'true' : 'false');
+    back.setAttribute('aria-hidden', flipped ? 'false' : 'true');
+    wake();
+  };
+  const activate = () => {
+    if (press.moved) return;
+    toggle();
+  };
+
+  figure.addEventListener('pointerenter', onEnter);
+  figure.addEventListener('pointermove', onMove);
+  figure.addEventListener('pointerleave', onLeave);
+  figure.addEventListener('pointerdown', onDown);
+  figure.addEventListener('focus', onFocus);
+  figure.addEventListener('blur', onBlur);
+  figure.addEventListener('click', activate);
+  figure.addEventListener('keydown', event => {
+    if (event.target !== figure || (event.key !== 'Enter' && event.key !== ' ')) return;
+    event.preventDefault();
+    if (event.repeat) return;
+    toggle();
+  });
+  window.addEventListener('pointerup', onUp, { passive: true });
+  window.addEventListener('pointercancel', onCancel, { passive: true });
+
+  const observer = new IntersectionObserver(entries => {
+    visible = entries.some(entry => entry.isIntersecting);
+    if (visible && !entered && introAt < 0) introAt = performance.now();
+    wake();
+  });
+  observer.observe(figure);
+
+  wake();
+})();
+</script>
+</body>
+</html>

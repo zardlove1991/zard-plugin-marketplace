@@ -1,0 +1,19 @@
+{
+  "version": 1,
+  "kind": "html",
+  "title": "index-video-hero.html",
+  "entry": "index-video-hero.html",
+  "renderer": "html",
+  "status": "complete",
+  "exports": [
+    "html",
+    "pdf",
+    "zip"
+  ],
+  "createdAt": "2026-11-23T02:56:14.020Z",
+  "updatedAt": "2026-11-23T02:56:14.020Z",
+  "metadata": {
+    "inferred": true,
+    "reconciled": true
+  }
+}

@@ -1,0 +1,19 @@
+{
+  "version": 1,
+  "kind": "html",
+  "title": "flip-card.html",
+  "entry": "flip-card.html",
+  "renderer": "html",
+  "status": "complete",
+  "exports": [
+    "html",
+    "pdf",
+    "zip"
+  ],
+  "createdAt": "2026-11-23T06:48:33.707Z",
+  "updatedAt": "2026-11-23T06:48:33.707Z",
+  "metadata": {
+    "inferred": true,
+    "reconciled": true
+  }
+}

@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Animated List</title>
+<style>
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    min-height: 100svh; display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 24px; padding: 24px 16px; background: #141416;
+    font-family: "Space Grotesk", system-ui, -apple-system, "Segoe UI", sans-serif;
+  }
+  .intro { text-align: center; display: flex; flex-direction: column; gap: 8px; }
+  .eyebrow { margin: 0; font: 600 12px/1.4 ui-sans-serif, system-ui, sans-serif; letter-spacing: .12em; text-transform: uppercase; color: rgba(244,244,245,.5); }
+  .title { margin: 0; font: 600 clamp(26px,4vw,36px)/1.3 ui-sans-serif, system-ui, sans-serif; letter-spacing: 0; color: #f4f4f5; }
+  .hint { margin: 0; font: 500 13px/1.5 ui-sans-serif, system-ui, sans-serif; color: rgba(244,244,245,.55); text-align: center; }
+
+  /* ---------- component ---------- */
+  .animated-list {
+    --al-frame: rgba(38,35,46,.66);
+    --al-frame-edge: rgba(255,255,255,.08);
+    --al-frame-highlight: rgba(255,255,255,.07);
+    --al-frame-shadow: 0 22px 44px -20px rgba(0,0,0,.8), 0 6px 16px -8px rgba(0,0,0,.5);
+    --al-tile: linear-gradient(180deg,#3a3644 0%,#27242f 100%);
+    --al-tile-edge: rgba(255,255,255,.07);
+    --al-tile-highlight: rgba(255,255,255,.12);
+    --al-tile-shadow: 0 4px 10px -4px rgba(0,0,0,.7);
+    --al-well: rgba(255,255,255,.08);
+    --al-ink: #f4f4f5;
+    --al-muted: rgba(244,244,245,.55);
+    --al-thumb: rgba(255,255,255,.16);
+    --al-ring: #2563eb;
+    --al-ring-fill: rgba(37,99,235,.08);
+    --al-radius: 14px;
+    --al-gap: 8px;
+    --al-accent: #2563eb;
+    position: relative;
+    width: min(100%, 420px);
+    min-width: 0; max-width: 100%;
+    box-sizing: border-box;
+    border-radius: calc(var(--al-radius) + 12px);
+    color: var(--al-ink);
+    -webkit-tap-highlight-color: transparent;
+  }
+  .animated-list--framed {
+    padding: 6px; background: var(--al-frame); box-shadow: var(--al-frame-shadow);
+    -webkit-backdrop-filter: blur(20px) saturate(1.6); backdrop-filter: blur(20px) saturate(1.6);
+  }
+  .animated-list__frame-rim {
+    position: absolute; inset: 0; z-index: 3; border-radius: inherit; pointer-events: none;
+    box-shadow: inset 0 0 0 1px var(--al-frame-edge), inset 0 1px 0 var(--al-frame-highlight);
+  }
+  .animated-list__viewport {
+    --al-fade-top: 0px; --al-fade-bottom: 0px;
+    position: relative; box-sizing: border-box; padding: 6px;
+    overflow-x: hidden; overflow-y: auto; overscroll-behavior: contain;
+    border-radius: calc(var(--al-radius) + 6px); outline: none;
+    scrollbar-width: thin; scrollbar-color: var(--al-thumb) transparent;
+    max-height: 440px;
+  }
+  .animated-list__viewport::-webkit-scrollbar { width: 6px; }
+  .animated-list__viewport::-webkit-scrollbar-track { background: transparent; }
+  .animated-list__viewport::-webkit-scrollbar-thumb { border-radius: 3px; background: var(--al-thumb); }
+  .animated-list__viewport:focus-visible { outline: 2px solid var(--al-accent); outline-offset: 3px; }
+  .animated-list__track { position: relative; display: flex; flex-direction: column; gap: var(--al-gap); }
+  .animated-list__item {
+    position: relative; display: flex; align-items: center; gap: 12px; min-width: 0;
+    padding: 10px 14px 10px 10px; box-sizing: border-box;
+    border-radius: var(--al-radius); background: var(--al-tile);
+    box-shadow: var(--al-tile-shadow); color: var(--al-ink);
+    cursor: pointer; user-select: none; -webkit-user-select: none;
+    transition: transform 620ms cubic-bezier(.2,1.3,.4,1), opacity 300ms cubic-bezier(.22,1,.36,1);
+  }
+  .animated-list[data-animated] .animated-list__item:not([data-state]) { opacity: 0; }
+  .animated-list__item[data-state="above"] { transform: translate3d(0,-12px,0) scale(.8); opacity: 0; }
+  .animated-list__item[data-state="below"] { transform: translate3d(0,12px,0) scale(.8); opacity: 0; }
+  .animated-list__item[data-state="in"] { transform: none; opacity: 1; }
+  .animated-list__item[data-selected] { filter: brightness(1.16); }
+  @media (hover: hover) { .animated-list__item:hover { filter: brightness(1.12); } }
+  .animated-list__lead {
+    display: grid; place-items: center; flex: none; width: 36px; height: 36px;
+    overflow: hidden; border-radius: max(8px, calc(var(--al-radius) - 4px));
+    background: var(--al-well); color: var(--al-ink);
+  }
+  .animated-list__lead svg { width: 18px; height: 18px; }
+  .animated-list__text { display: flex; flex: 1; flex-direction: column; gap: 2px; min-width: 0; }
+  .animated-list__title { overflow: hidden; font-size: 14.5px; font-weight: 600; line-height: 1.3; letter-spacing: -.01em; text-overflow: ellipsis; white-space: nowrap; }
+  .animated-list__description { overflow: hidden; font-size: 13px; line-height: 1.35; color: var(--al-muted); text-overflow: ellipsis; white-space: nowrap; }
+  .animated-list__meta { flex: none; font-size: 12.5px; font-variant-numeric: tabular-nums; color: var(--al-muted); }
+  .animated-list__rim {
+    position: absolute; inset: 0; border-radius: inherit; pointer-events: none;
+    box-shadow: inset 0 0 0 1px var(--al-tile-edge), inset 0 1px 0 var(--al-tile-highlight);
+  }
+  .animated-list__indicator {
+    position: absolute; top: 0; left: 0; right: 0; z-index: 2; height: 0;
+    opacity: 0; pointer-events: none; transition: opacity .2s ease;
+  }
+  .animated-list__ring {
+    position: absolute; inset: 0; border-radius: var(--al-radius);
+    background: var(--al-ring-fill); box-shadow: inset 0 0 0 1px var(--al-ring);
+  }
+  @media (max-width: 520px) { .animated-list { width: min(100%, 360px); } }
+</style>
+</head>
+<body>
+
+<div class="intro">
+  <p class="eyebrow">维链通 · 品牌 CI 中心</p>
+  <h1 class="title">会依次浮现的文件列表</h1>
+</div>
+
+<div class="animated-list animated-list--framed" id="root" data-animated>
+  <div class="animated-list__viewport" id="viewport" role="listbox" tabindex="0">
+    <div class="animated-list__track" id="track"></div>
+  </div>
+  <span class="animated-list__frame-rim" aria-hidden="true"></span>
+</div>
+
+<p class="hint">悬停选择，方向键 / Home / End 移动，回车确认</p>
+
+<script>
+(function () {
+  "use strict";
+
+  const ICONS = {
+    folder: '<path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2Z"/>',
+    image: '<rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="8.5" cy="9.5" r="1.5"/><path d="m4 17 5-5 4 4 3-3 4 4"/>',
+    video: '<rect x="3" y="5" width="14" height="14" rx="2"/><path d="m17 10 4-3v10l-4-3Z"/>',
+    note: '<path d="M6 3h9l4 4v14H6Z"/><path d="M14 3v5h5M9 12h6M9 16h6"/>',
+  };
+  const ITEMS = [
+    { title: "Brand assets", description: "24 files", meta: "2m", icon: ICONS.folder },
+    { title: "Launch hero.png", description: "2.4 MB", meta: "18m", icon: ICONS.image },
+    { title: "Product tour.mp4", description: "148 MB", meta: "1h", icon: ICONS.video },
+    { title: "Pricing notes", description: "1,240 words", meta: "3h", icon: ICONS.note },
+    { title: "Design tokens", description: "18 variables", meta: "5h", icon: ICONS.folder },
+    { title: "Moodboard.jpg", description: "3.6 MB", meta: "8h", icon: ICONS.image },
+    { title: "Teaser cut.mov", description: "86 MB", meta: "1d", icon: ICONS.video },
+    { title: "Release notes", description: "Version 2.4", meta: "2d", icon: ICONS.note },
+  ];
+
+  const root = document.getElementById("root");
+  const viewport = document.getElementById("viewport");
+  const track = document.getElementById("track");
+  if (!root || !viewport || !track) return;
+
+  const itemEls = [];
+  ITEMS.forEach((item, i) => {
+    const el = document.createElement("div");
+    el.className = "animated-list__item";
+    el.setAttribute("role", "option");
+    el.dataset.index = String(i);
+    el.innerHTML =
+      '<span class="animated-list__lead"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + item.icon + "</svg></span>" +
+      '<span class="animated-list__text"><span class="animated-list__title"></span><span class="animated-list__description"></span></span>' +
+      '<span class="animated-list__meta"></span><span class="animated-list__rim" aria-hidden="true"></span>';
+    el.querySelector(".animated-list__title").textContent = item.title;
+    el.querySelector(".animated-list__description").textContent = item.description;
+    el.querySelector(".animated-list__meta").textContent = item.meta;
+    el.addEventListener("pointerenter", () => select(i));
+    el.addEventListener("click", () => select(i));
+    track.appendChild(el);
+    itemEls.push(el);
+  });
+
+  const indicator = document.createElement("span");
+  indicator.className = "animated-list__indicator";
+  indicator.setAttribute("aria-hidden", "true");
+  indicator.innerHTML = '<span class="animated-list__ring"></span>';
+  track.appendChild(indicator);
+
+  let selected = -1;
+  let raf = 0;
+  let last = 0;
+  const motion = { y: 0, h: 0, vy: 0, vh: 0, ty: 0, th: 0 };
+
+  function write() {
+    indicator.style.transform = "translate3d(0," + motion.y.toFixed(2) + "px,0)";
+    indicator.style.height = motion.h.toFixed(2) + "px";
+  }
+  function tick(now) {
+    raf = 0;
+    const dt = Math.min(0.05, (now - last) / 1000 || 0);
+    last = now;
+    const omega = 30, zeta = 0.78;
+    const steps = Math.max(1, Math.ceil(dt / (1 / 240)));
+    const h = dt / steps;
+    for (let i = 0; i < steps; i++) {
+      motion.vy += (omega * omega * (motion.ty - motion.y) - 2 * zeta * omega * motion.vy) * h;
+      motion.vh += (omega * omega * (motion.th - motion.h) - 2 * zeta * omega * motion.vh) * h;
+      motion.y += motion.vy * h;
+      motion.h += motion.vh * h;
+    }
+    const moving =
+      Math.abs(motion.ty - motion.y) > 0.05 ||
+      Math.abs(motion.th - motion.h) > 0.05 ||
+      Math.abs(motion.vy) + Math.abs(motion.vh) > 0.5;
+    if (!moving) { motion.y = motion.ty; motion.h = motion.th; motion.vy = motion.vh = 0; }
+    write();
+    if (moving) raf = requestAnimationFrame(tick);
+  }
+  function place(snap) {
+    const item = itemEls[selected];
+    if (!item) { indicator.style.opacity = "0"; return; }
+    indicator.style.opacity = "1";
+    motion.ty = item.offsetTop;
+    motion.th = item.offsetHeight;
+    if (snap) { motion.y = motion.ty; motion.h = motion.th; motion.vy = motion.vh = 0; write(); return; }
+    if (!raf) { last = performance.now(); raf = requestAnimationFrame(tick); }
+  }
+  function select(i) {
+    if (i === selected) return;
+    selected = i;
+    itemEls.forEach((el, j) => {
+      if (j === i) el.setAttribute("data-selected", "");
+      else el.removeAttribute("data-selected");
+    });
+    place(false);
+  }
+
+  function updateFades() {
+    const span = 56;
+    const top = Math.min(span, Math.max(0, viewport.scrollTop));
+    const bottom = Math.min(span, Math.max(0, viewport.scrollHeight - viewport.clientHeight - viewport.scrollTop));
+    viewport.style.setProperty("--al-fade-top", top.toFixed(1) + "px");
+    viewport.style.setProperty("--al-fade-bottom", bottom.toFixed(1) + "px");
+  }
+  const smoother = t => t * t * t * (t * (t * 6 - 15) + 10);
+  function mask() {
+    const st = [0, .15, .3, .45, .6, .75, .9, 1];
+    const top = st.map(t => "rgba(0,0,0," + smoother(t).toFixed(3) + ") calc(var(--al-fade-top) * " + t + ")");
+    const bot = [...st].reverse().map(t => "rgba(0,0,0," + smoother(t).toFixed(3) + ") calc(100% - var(--al-fade-bottom) * " + t + ")");
+    const m = "linear-gradient(to bottom," + [...top, ...bot].join(",") + ")";
+    viewport.style.maskImage = m;
+    viewport.style.webkitMaskImage = m;
+  }
+  mask();
+  viewport.addEventListener("scroll", () => { updateFades(); }, { passive: true });
+
+  let entered = false;
+  function reveal() {
+    if (!entered) return;
+    const top = viewport.scrollTop;
+    const view = viewport.clientHeight;
+    let order = 0;
+    itemEls.forEach((el, i) => {
+      const start = el.offsetTop - top;
+      const overlap = Math.min(view, start + el.offsetHeight) - Math.max(0, start);
+      const hidden = overlap < Math.min(el.offsetHeight, view) * 0.5;
+      const state = hidden ? (start + el.offsetHeight / 2 < view / 2 ? "above" : "below") : "in";
+      if (state === el.dataset.state) return;
+      const delay = !hidden ? (order++ * 0.05).toFixed(3) : 0;
+      el.style.transitionDelay = delay ? delay + "s, " + delay + "s, 0s" : "";
+      el.dataset.state = state;
+    });
+  }
+  if (typeof IntersectionObserver !== "undefined") {
+    const io = new IntersectionObserver(entries => {
+      if (!entries.some(e => e.isIntersecting)) return;
+      io.disconnect();
+      entered = true;
+      reveal();
+      place(true);
+    }, { rootMargin: "0px 0px -10% 0px" });
+    io.observe(root);
+    setTimeout(() => { if (!entered) { entered = true; reveal(); place(true); } }, 1200);
+  } else {
+    entered = true; reveal(); place(true);
+  }
+
+  let engaged = false;
+  root.addEventListener("pointerenter", () => { engaged = true; });
+  root.addEventListener("pointerleave", () => { engaged = false; });
+  window.addEventListener("keydown", e => {
+    const active = document.activeElement;
+    const focused = active === viewport;
+    const idle = !active || active === document.body || active === document.documentElement;
+    if (!focused && !(engaged && idle)) return;
+    const n = itemEls.length;
+    let next = null;
+    if (e.key === "ArrowDown") next = selected < 0 ? 0 : selected + 1;
+    else if (e.key === "ArrowUp") next = selected < 0 ? n - 1 : selected - 1;
+    else if (e.key === "Home") next = 0;
+    else if (e.key === "End") next = n - 1;
+    else if (e.key === "Enter" && selected >= 0) { e.preventDefault(); return; }
+    if (next === null) return;
+    e.preventDefault();
+    next = Math.min(n - 1, Math.max(0, next));
+    select(next);
+    const item = itemEls[next];
+    const top = item.offsetTop;
+    const bottom = top + item.offsetHeight;
+    const margin = 12;
+    if (top < viewport.scrollTop + margin) viewport.scrollTo({ top: Math.max(0, top - margin), behavior: "smooth" });
+    else if (bottom > viewport.scrollTop + viewport.clientHeight - margin) viewport.scrollTo({ top: bottom - viewport.clientHeight + margin, behavior: "smooth" });
+  });
+
+  updateFades();
+})();
+</script>
+</body>
+</html>

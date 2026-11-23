@@ -1,0 +1,19 @@
+{
+  "version": 1,
+  "kind": "html",
+  "title": "specular-button.html",
+  "entry": "specular-button.html",
+  "renderer": "html",
+  "status": "complete",
+  "exports": [
+    "html",
+    "pdf",
+    "zip"
+  ],
+  "createdAt": "2026-11-23T07:30:50.548Z",
+  "updatedAt": "2026-11-23T07:30:50.548Z",
+  "metadata": {
+    "inferred": true,
+    "reconciled": true
+  }
+}

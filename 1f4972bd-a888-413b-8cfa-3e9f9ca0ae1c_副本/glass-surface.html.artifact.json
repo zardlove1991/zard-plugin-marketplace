@@ -1,0 +1,19 @@
+{
+  "version": 1,
+  "kind": "html",
+  "title": "glass-surface.html",
+  "entry": "glass-surface.html",
+  "renderer": "html",
+  "status": "complete",
+  "exports": [
+    "html",
+    "pdf",
+    "zip"
+  ],
+  "createdAt": "2026-11-23T09:38:21.030Z",
+  "updatedAt": "2026-11-23T09:38:21.030Z",
+  "metadata": {
+    "inferred": true,
+    "reconciled": true
+  }
+}

@@ -1,0 +1,19 @@
+{
+  "version": 1,
+  "kind": "html",
+  "title": "tilted-card.html",
+  "entry": "tilted-card.html",
+  "renderer": "html",
+  "status": "complete",
+  "exports": [
+    "html",
+    "pdf",
+    "zip"
+  ],
+  "createdAt": "2026-11-23T08:37:06.999Z",
+  "updatedAt": "2026-11-23T08:37:06.999Z",
+  "metadata": {
+    "inferred": true,
+    "reconciled": true
+  }
+}

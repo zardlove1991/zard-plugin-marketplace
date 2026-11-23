@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Magic Bento</title>
+<!-- The component's own stylesheet, used verbatim so the preview matches it exactly. -->
+<link rel="stylesheet" href="components/ui/MagicBento.css" />
+<style>
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    min-height: 100svh; display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 24px; padding: 32px 20px; background: #0f0e13;
+    font-family: "Space Grotesk", system-ui, -apple-system, "Segoe UI", sans-serif;
+  }
+  .wrap { width: min(100%, 1100px); }
+  .intro-kicker { margin: 0 0 8px; font: 600 12px/1.4 ui-sans-serif, system-ui, sans-serif; letter-spacing: .12em; text-transform: uppercase; color: rgba(244,244,245,.5); }
+  .intro-title { margin: 0 0 28px; font: 600 clamp(26px,4vw,36px)/1.3 ui-sans-serif, system-ui, sans-serif; letter-spacing: 0; color: #f4f4f5; }
+  .note { margin: 0; font: 500 13px/1.5 ui-sans-serif, system-ui, sans-serif; color: rgba(244,244,245,.55); text-align: center; }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <p class="intro-kicker">维链通 · 品牌 CI 中心</p>
+  <h1 class="intro-title">功能，一目了然</h1>
+  <div class="magic-bento" id="mb"></div>
+</div>
+<p class="note">移动光标，卡片边缘与内部会亮起；点击会有一道光环穿过整个网格</p>
+
+<script>
+(function () {
+  "use strict";
+
+  // Component tokens (THEMES.dark + the root vars set by the React component).
+  const THEME = {
+    '--mb-surface': 'linear-gradient(180deg, #1a1820 0%, #121116 100%)',
+    '--mb-edge': 'rgba(255, 255, 255, 0.07)',
+    '--mb-highlight': 'rgba(255, 255, 255, 0.06)',
+    '--mb-shadow': '0 24px 48px -28px rgba(0, 0, 0, 0.85), 0 8px 18px -12px rgba(0, 0, 0, 0.6)',
+    '--mb-tile': 'linear-gradient(180deg, #3a3644 0%, #27242f 100%)',
+    '--mb-tile-edge': 'rgba(255, 255, 255, 0.07)',
+    '--mb-tile-highlight': 'rgba(255, 255, 255, 0.12)',
+    '--mb-tile-shadow': '0 4px 10px -4px rgba(0, 0, 0, 0.7)',
+    '--mb-well': 'rgba(255, 255, 255, 0.03)',
+    '--mb-well-edge': 'rgba(255, 255, 255, 0.06)',
+    '--mb-ink': '#f4f4f5',
+    '--mb-muted': 'rgba(244, 244, 245, 0.6)',
+    '--mb-faint': 'rgba(244, 244, 245, 0.3)',
+    '--mb-line': 'rgba(244, 244, 245, 0.1)',
+    '--mb-secondary': '#a1a1aa',
+    '--mb-secondary-ink': '#121016',
+    '--mb-cursor-stroke': 'rgba(18, 16, 22, 0.9)',
+    '--mb-ring': 'rgba(18, 16, 22, 0.85)',
+    '--mb-focus': 'rgba(244, 244, 245, 0.5)',
+    '--mb-glow-alpha': '0.85',
+    '--mb-spot-alpha': '0.07',
+    '--mb-glow-rgb': '244, 244, 245',
+    '--mb-accent-rgb': '244, 244, 245',
+    '--mb-accent-ink': '#121016',
+    '--mb-radius': '20px',
+    '--mb-inner-radius': '10px',
+    '--mb-pad': '17px',
+    '--mb-spot-size': '300px',
+    '--mb-border-size': '225px',
+  };
+  const COLS = 4, ROWH = 200, GAP = 12, STAGGER = 80, TILT = 6, MAGNET = 6;
+  const INK = [244, 244, 245];
+  const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
+  const svgIcon = paths => '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + paths + '</svg>';
+
+  const ICONS = {
+    analytics: svgIcon('<path d="M4 19V5M4 19h16"/><path d="m7 15 4-5 3 3 5-7"/>'),
+    dashboard: svgIcon('<rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>'),
+    collaboration: svgIcon('<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M19 8v6M22 11h-6"/>'),
+    automation: svgIcon('<circle cx="6" cy="6" r="3"/><circle cx="18" cy="18" r="3"/><path d="M8.5 7.5A6 6 0 0 0 18 12M15.5 16.5A6 6 0 0 1 6 12"/>'),
+    integration: svgIcon('<path d="M10 13a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.7 1.7"/><path d="M14 11a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7l1.7-1.7"/>'),
+    security: svgIcon('<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z"/><path d="m9 12 2 2 4-4"/>'),
+    key: svgIcon('<circle cx="8" cy="15" r="4"/><path d="m10.8 12.2 8-8 2 2-2 2 1.5 1.5-2.5 2.5-1.5-1.5-2 2"/>'),
+    finger: svgIcon('<path d="M12 3c-3 0-5 2-5 5v2M12 3c3 0 5 2 5 5v2M7 10v3M17 10v3M5 12v3a7 7 0 0 0 14 0v-3M9 21h6"/>'),
+    branch: svgIcon('<circle cx="6" cy="6" r="2"/><circle cx="6" cy="18" r="2"/><circle cx="18" cy="8" r="2"/><path d="M6 8v8M8 6h4a6 6 0 0 1 6 6"/>'),
+    sparkles: svgIcon('<path d="m12 3 1.8 4.7L18.5 9.5l-4.7 1.8L12 16l-1.8-4.7L5.5 9.5l4.7-1.8Z"/><path d="m19 15 .8 2.2L22 18l-2.2.8L19 21l-.8-2.2L16 18l2.2-.8Z"/>'),
+  };
+  const ARROW = '<svg width="16" height="18" viewBox="0 0 16 18" aria-hidden="true"><path d="M2.2 1.6 13.4 9.9c.5.4.3 1.2-.4 1.3l-4.6.6-2.2 4.2c-.3.6-1.2.5-1.4-.1L1.2 2.4c-.2-.6.5-1.1 1-.8Z" stroke-width="1.2" stroke-linejoin="round"/></svg>';
+
+  // ---- built-in visuals (same markup as the component) ----
+  const CHART = [3.1, 3.8, 3.5, 4.9, 4.4, 5.8, 5.3, 6.9, 6.5, 8.2, 9.4, 12.4];
+  function curve(values, width, height) {
+    const top = 6, bottom = 2, low = Math.min(...values) * 0.7, high = Math.max(...values);
+    const points = values.map((value, i) => [
+      (i / (values.length - 1)) * width,
+      top + (1 - (value - low) / (high - low)) * (height - top - bottom)
+    ]);
+    const count = points.length, slopes = [];
+    for (let i = 0; i < count - 1; i++) slopes.push((points[i+1][1]-points[i][1])/(points[i+1][0]-points[i][0]));
+    const tangents = points.map((_, i) => i === 0 ? slopes[0] : i === count-1 ? slopes[count-2] : slopes[i-1]*slopes[i] > 0 ? (slopes[i-1]+slopes[i])/2 : 0);
+    for (let i = 0; i < count - 1; i++) {
+      if (slopes[i] === 0) { tangents[i] = 0; tangents[i+1] = 0; continue; }
+      const a = tangents[i]/slopes[i], b = tangents[i+1]/slopes[i], len = a*a+b*b;
+      if (len > 9) { const s = 3/Math.sqrt(len); tangents[i] = s*a*slopes[i]; tangents[i+1] = s*b*slopes[i]; }
+    }
+    let line = `M${points[0][0].toFixed(2)},${points[0][1].toFixed(2)}`;
+    const samples = [];
+    for (let i = 0; i < count - 1; i++) {
+      const [x0,y0]=points[i], [x1,y1]=points[i+1], third=(x1-x0)/3;
+      const c1=[x0+third, y0+tangents[i]*third], c2=[x1-third, y1-tangents[i+1]*third];
+      line += ` C${c1[0].toFixed(2)},${c1[1].toFixed(2)} ${c2[0].toFixed(2)},${c2[1].toFixed(2)} ${x1.toFixed(2)},${y1.toFixed(2)}`;
+      for (let step=0; step<12; step++) {
+        const t=step/12, u=1-t;
+        samples.push([u*u*u*x0+3*u*u*t*c1[0]+3*u*t*t*c2[0]+t*t*t*x1, u*u*u*y0+3*u*u*t*c1[1]+3*u*t*t*c2[1]+t*t*t*y1]);
+      }
+    }
+    samples.push(points[count-1]);
+    return { line, area: `${line} L${width.toFixed(2)},${height.toFixed(2)} L0,${height.toFixed(2)} Z`, samples };
+  }
+  const visualAnalytics = () => `
+    <div class="magic-bento__chart">
+      <div class="magic-bento__figure"><span class="magic-bento__figure-value">12.4k</span><span class="magic-bento__figure-note">+18%</span></div>
+      <div class="magic-bento__plot"><span class="magic-bento__scrub"><span class="magic-bento__scrub-dot"></span></span></div>
+    </div>`;
+  const visualDashboard = () => {
+    const bars = [42,58,49,71,63,88,76], peak = Math.max(...bars);
+    return `<div class="magic-bento__bars">
+      <div class="magic-bento__figure"><span class="magic-bento__figure-value">$48.2k</span><span class="magic-bento__figure-note">Weekly</span></div>
+      <div class="magic-bento__bars-plot">${bars.map((h,i)=>`<span class="magic-bento__bar" ${h===peak?'data-peak':''} style="--h:${h/100};--i:${i}"></span>`).join('')}</div>
+    </div>`;
+  };
+  const visualCollab = () => `<div class="magic-bento__collab magic-bento__well">
+    <span class="magic-bento__doc-title">Launch plan</span>
+    <div class="magic-bento__lines">
+      <span class="magic-bento__line" style="--w:92%"></span><span class="magic-bento__line" style="--w:78%"></span>
+      <span class="magic-bento__line" style="--w:86%"></span><span class="magic-bento__line" style="--w:44%"></span>
+      <span class="magic-bento__line magic-bento__line--gap" style="--w:88%"></span>
+      <span class="magic-bento__line" style="--w:70%"><span class="magic-bento__selection" style="--from:18%;--span:58%"><span class="magic-bento__caret"></span></span></span>
+      <span class="magic-bento__line" style="--w:82%"></span>
+    </div>
+    <span class="magic-bento__cursor magic-bento__cursor--primary" style="--x:58%;--y:52%;--i:0;--path:magic-bento-path-a">${ARROW}<span class="magic-bento__cursor-name">Maya</span></span>
+    <span class="magic-bento__cursor magic-bento__cursor--secondary" style="--x:30%;--y:24%;--i:1;--path:magic-bento-path-b">${ARROW}<span class="magic-bento__cursor-name">Leo</span></span>
+  </div>`;
+  const visualAutomation = () => {
+    const steps=[['Install','8s'],['Build','12s'],['Test','48s'],['Deploy','9s']];
+    return `<div class="magic-bento__flow" style="--n:${steps.length}">
+      <div class="magic-bento__flow-trigger magic-bento__tile">
+        <span class="magic-bento__flow-glyph">${ICONS.branch}</span>
+        <span class="magic-bento__flow-copy"><span class="magic-bento__flow-name">Push to main</span><span class="magic-bento__flow-meta magic-bento__flow-hash">a1c9f3e</span></span>
+      </div>
+      <ol class="magic-bento__steps magic-bento__well">
+        <span class="magic-bento__rail" aria-hidden="true"><span class="magic-bento__rail-fill"></span></span>
+        ${steps.map((s,i)=>`<li class="magic-bento__step" style="--i:${i}"><span class="magic-bento__status"><span class="magic-bento__pending"></span><span class="magic-bento__spinner"></span><span class="magic-bento__done">${svgIcon('<path d="m4 12 5 5L20 6"/>')}</span></span>${s[0]}<span class="magic-bento__step-time">${s[1]}</span></li>`).join('')}
+      </ol>
+    </div>`;
+  };
+  const visualIntegration = () => {
+    const apps=[['17%','24%'],['83%','24%'],['17%','78%'],['83%','78%']];
+    return `<div class="magic-bento__hub">
+      <svg class="magic-bento__hub-links" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">${apps.map(a=>`<line x1="${parseFloat(a[0])}" y1="${parseFloat(a[1])}" x2="50" y2="51" pathLength="1"/>`).join('')}</svg>
+      ${apps.map((a,i)=>`<span class="magic-bento__packet" style="--x:${a[0]};--y:${a[1]};--i:${i}"></span>`).join('')}
+      ${apps.map((a,i)=>`<span class="magic-bento__hub-node magic-bento__tile" style="--x:${a[0]};--y:${a[1]};--s:26px;--i:${i+1}">${svgIcon('<circle cx="12" cy="12" r="8"/><path d="M4 12h16M12 4c2 2 2 14 0 16M12 4c-2 2-2 14 0 16"/>')}</span>`).join('')}
+      <span class="magic-bento__hub-node magic-bento__tile" style="--x:50%;--y:51%;--s:34px;--i:0">${ICONS.sparkles}</span>
+    </div>`;
+  };
+  const visualSecurity = () => `<div class="magic-bento__shield">
+    ${[['SSO',ICONS.key],['2FA',ICONS.finger]].map((s,i)=>`<div class="magic-bento__setting magic-bento__tile">${s[1]}<span class="magic-bento__setting-label">${s[0]}</span><span class="magic-bento__switch" style="--i:${i}"></span></div>`).join('')}
+  </div>`;
+
+  const ITEMS = [
+    { icon:'analytics', label:'Analytics', title:'Analytics', description:'Track user behavior', visual:visualAnalytics, colSpan:1, rowSpan:1 },
+    { icon:'dashboard', label:'Dashboard', title:'Dashboard', description:'Centralized data view', visual:visualDashboard, colSpan:1, rowSpan:1 },
+    { icon:'collaboration', label:'Collaboration', title:'Collaboration', description:'Work together seamlessly', visual:visualCollab, colSpan:2, rowSpan:2 },
+    { icon:'automation', label:'Automation', title:'Automation', description:'Streamline workflows', visual:visualAutomation, colSpan:2, rowSpan:2 },
+    { icon:'integration', label:'Integration', title:'Integration', description:'Connect favorite tools', visual:visualIntegration, colSpan:1, rowSpan:1 },
+    { icon:'security', label:'Security', title:'Security', description:'Enterprise-grade protection', visual:visualSecurity, colSpan:1, rowSpan:1 },
+  ];
+
+  const root = document.getElementById('mb');
+  Object.entries(THEME).forEach(([k,v]) => root.style.setProperty(k,v));
+  root.dataset.motion = '';
+  root.dataset.intro = '';
+  root.dataset.autohide = '';
+
+  root.innerHTML = ITEMS.map((item,i) => `
+    <div class="magic-bento__cell" style="grid-column:span ${item.colSpan};grid-row:span ${item.rowSpan}">
+      <div class="magic-bento__card" data-index="${i}">
+        <span class="magic-bento__light"></span>
+        <div class="magic-bento__content">
+          <div class="magic-bento__header"><span class="magic-bento__icon">${ICONS[item.icon]}</span><span class="magic-bento__label">${item.label}</span></div>
+          <div class="magic-bento__visual" aria-hidden="true">${item.visual()}</div>
+          <div class="magic-bento__text"><h3 class="magic-bento__title">${item.title}</h3><p class="magic-bento__description">${item.description}</p></div>
+        </div>
+        <span class="magic-bento__rim"></span><span class="magic-bento__border"></span>
+      </div>
+    </div>`).join('');
+
+  const cells = Array.from(root.querySelectorAll('.magic-bento__cell'));
+  const cards = Array.from(root.querySelectorAll('.magic-bento__card'));
+
+  // ---- analytics chart scrub (same behaviour as AnalyticsVisual) ----
+  const chart = cards[0].querySelector('.magic-bento__chart');
+  const plot = chart.querySelector('.magic-bento__plot');
+  const valueEl = chart.querySelector('.magic-bento__figure-value');
+  const noteEl = chart.querySelector('.magic-bento__figure-note');
+  const scrub = chart.querySelector('.magic-bento__scrub');
+  const dot = chart.querySelector('.magic-bento__scrub-dot');
+  let shape = null;
+  function buildChart() {
+    const w = plot.clientWidth, h = plot.clientHeight;
+    if (w <= 4 || h <= 4) return;
+    shape = curve(CHART, w, h);
+    const svg = plot.querySelector('svg');
+    if (svg) svg.remove();
+    plot.insertAdjacentHTML('afterbegin', `<svg viewBox="0 0 ${w} ${h}" aria-hidden="true"><path class="magic-bento__chart-area" d="${shape.area}"/><path class="magic-bento__chart-line" d="${shape.line}" pathLength="1"/></svg>`);
+  }
+  function scrubChart(e) {
+    if (!shape) return;
+    const rect = plot.getBoundingClientRect();
+    const x = clamp(e.clientX - rect.left, 0, rect.width);
+    let idx = 1;
+    while (idx < shape.samples.length - 1 && shape.samples[idx][0] < x) idx++;
+    const [x0,y0] = shape.samples[idx-1], [x1,y1] = shape.samples[idx];
+    const t = x1 === x0 ? 0 : clamp((x-x0)/(x1-x0),0,1);
+    const y = y0 + (y1-y0)*t;
+    const position = (x/Math.max(1,rect.width))*(CHART.length-1);
+    const i = Math.floor(position), nx = Math.min(CHART.length-1, i+1);
+    const v = CHART[i] + (CHART[nx]-CHART[i])*(position-i);
+    chart.dataset.scrub = '';
+    scrub.style.transform = `translateX(${x.toFixed(1)}px)`;
+    dot.style.transform = `translateY(${y.toFixed(1)}px)`;
+    valueEl.textContent = `${v.toFixed(1)}k`;
+    noteEl.textContent = `Oct ${Math.round(position)+1}`;
+  }
+  function restChart() {
+    delete chart.dataset.scrub;
+    valueEl.textContent = `${CHART[CHART.length-1].toFixed(1)}k`;
+    noteEl.textContent = '+18%';
+  }
+  chart.addEventListener('pointermove', scrubChart);
+  chart.addEventListener('pointerdown', scrubChart);
+  chart.addEventListener('pointerleave', restChart);
+  buildChart();
+
+  // ---- interaction engine (faithful port of the component's frame loop) ----
+  const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const motion = !reduce;
+  const pointer = { x:-1e5, y:-1e5, inside:false, down:-1 };
+  const light = { x:-1e5, y:-1e5, near:0, ready:false };
+  const wave = { x:0, y:0, t:-1, duration:1.1, reach:800 };
+  const states = cards.map(() => ({ hot:0, rx:0, ry:0, tx:0, ty:0, vrx:0, vry:0, vtx:0, vty:0, press:1, vpress:0, active:false, written:{} }));
+  let rects = [], bounds = null, dirty = true, raf = 0, last = 0, visible = true, entered = false, settleTimer = 0, introTimer = 0;
+
+  const write = (card, state, name, value) => {
+    if (state.written[name] === value) return;
+    state.written[name] = value;
+    card.style.setProperty(name, value);
+  };
+  const measure = () => {
+    dirty = false;
+    bounds = root.getBoundingClientRect();
+    rects = cells.map(cell => cell.getBoundingClientRect());
+  };
+  const startWave = (x,y,duration) => {
+    if (!motion || !bounds) return;
+    wave.x=x; wave.y=y; wave.t=0; wave.duration=duration;
+    wave.reach = Math.max(
+      Math.hypot(x-bounds.left,y-bounds.top), Math.hypot(x-bounds.right,y-bounds.top),
+      Math.hypot(x-bounds.left,y-bounds.bottom), Math.hypot(x-bounds.right,y-bounds.bottom)
+    ) + 140;
+  };
+  const replay = card => {
+    if (!motion || !card.getAnimations) return;
+    for (const a of card.getAnimations({subtree:true})) {
+      if (a.effect?.getTiming?.().iterations === Infinity) continue;
+      a.currentTime = 0; a.play();
+    }
+  };
+  const frame = now => {
+    raf = 0;
+    const dt = Math.min(0.05, (now-last)/1000||0); last = now;
+    if (dirty) measure();
+    let busy = false;
+    const margin = 300*0.5;
+    const near = pointer.inside && bounds && pointer.x>bounds.left-margin && pointer.x<bounds.right+margin && pointer.y>bounds.top-margin && pointer.y<bounds.bottom+margin ? 1 : 0;
+    if (!light.ready && near) { light.x=pointer.x; light.y=pointer.y; light.ready=true; }
+    const follow = 1-Math.exp(-dt/0.05);
+    light.x += (pointer.x-light.x)*follow; light.y += (pointer.y-light.y)*follow;
+    const fade = 1-Math.exp(-dt/(near>light.near?0.12:0.4));
+    light.near += (near-light.near)*fade;
+    if (Math.abs(near-light.near)<0.002) light.near=near; else busy=true;
+    if (Math.abs(pointer.x-light.x)+Math.abs(pointer.y-light.y)>0.3) busy=true;
+    let waveRadius=0, waveAlpha=0;
+    if (wave.t>=0) {
+      wave.t+=dt;
+      const p=Math.min(1,wave.t/wave.duration);
+      waveRadius=wave.reach*(1-Math.pow(1-p,2.2));
+      waveAlpha=Math.pow(1-p,1.3);
+      if (p>=1){wave.t=-1;waveAlpha=0;} else busy=true;
+    }
+    cards.forEach((card,index) => {
+      const rect=rects[index]; if(!rect) return;
+      const state=states[index];
+      const lx=light.x-rect.left, ly=light.y-rect.top;
+      const px=pointer.x-rect.left, py=pointer.y-rect.top;
+      const inside=pointer.inside && entered && px>=0 && py>=0 && px<=rect.width && py<=rect.height;
+      if (inside!==state.active) {
+        state.active=inside;
+        if (inside) card.dataset.active=''; else delete card.dataset.active;
+      }
+      const hotTarget=inside?1:0;
+      state.hot += (hotTarget-state.hot)*(1-Math.exp(-dt/(hotTarget>state.hot?0.14:0.32)));
+      if (Math.abs(hotTarget-state.hot)<0.002) state.hot=hotTarget; else busy=true;
+      const u=clamp(px/Math.max(1,rect.width),0,1)-0.5, v=clamp(py/Math.max(1,rect.height),0,1)-0.5;
+      const targets=[0,0,0,0];
+      const keys=[['rx','vrx'],['ry','vry'],['tx','vtx'],['ty','vty']];
+      const steps=Math.max(1,Math.ceil(dt/(1/240))), h=dt/steps;
+      keys.forEach(([key,vel],k)=>{
+        for(let s=0;s<steps;s++){ state[vel]+=(170*(targets[k]-state[key])-20*state[vel])*h; state[key]+=state[vel]*h; }
+        if(Math.abs(targets[k]-state[key])<0.002&&Math.abs(state[vel])<0.01){state[key]=targets[k];state[vel]=0;} else busy=true;
+      });
+      const pressTarget=pointer.down===index&&motion?0.985:1;
+      for(let s=0;s<steps;s++){ state.vpress+=(420*(pressTarget-state.press)-28*state.vpress)*h; state.press+=state.vpress*h; }
+      if(Math.abs(pressTarget-state.press)<0.0002&&Math.abs(state.vpress)<0.001){state.press=pressTarget;state.vpress=0;} else busy=true;
+      write(card,state,'--mb-x',`${lx.toFixed(1)}px`);
+      write(card,state,'--mb-y',`${ly.toFixed(1)}px`);
+      write(card,state,'--mb-near',(light.near).toFixed(3));
+      write(card,state,'--mb-hot',state.hot.toFixed(3));
+      write(card,state,'--mb-rx',`${state.rx.toFixed(3)}deg`);
+      write(card,state,'--mb-ry',`${state.ry.toFixed(3)}deg`);
+      write(card,state,'--mb-tx',`${state.tx.toFixed(2)}px`);
+      write(card,state,'--mb-ty',`${state.ty.toFixed(2)}px`);
+      write(card,state,'--mb-press',state.press.toFixed(4));
+      write(card,state,'--mb-wx',`${(wave.x-rect.left).toFixed(1)}px`);
+      write(card,state,'--mb-wy',`${(wave.y-rect.top).toFixed(1)}px`);
+      write(card,state,'--mb-wr',`${waveRadius.toFixed(1)}px`);
+      write(card,state,'--mb-wa',waveAlpha.toFixed(3));
+    });
+    if (busy && visible) raf=requestAnimationFrame(frame);
+  };
+  const wake=()=>{ if(raf||!visible)return; last=performance.now(); raf=requestAnimationFrame(frame); };
+  const cardIndex=target=>{ if(!(target instanceof Element))return -1; const c=target.closest('.magic-bento__card'); return c?cards.indexOf(c):-1; };
+  window.addEventListener('pointermove',e=>{pointer.x=e.clientX;pointer.y=e.clientY;pointer.inside=true;wake();},{passive:true});
+  document.addEventListener('pointerout',e=>{if(e.relatedTarget)return;pointer.inside=false;pointer.down=-1;wake();});
+  window.addEventListener('pointerdown',e=>{pointer.x=e.clientX;pointer.y=e.clientY;pointer.inside=true;pointer.down=cardIndex(e.target);wake();},{passive:true});
+  window.addEventListener('pointerup',()=>{if(pointer.down<0)return;pointer.down=-1;wake();},{passive:true});
+  window.addEventListener('pointercancel',()=>{if(pointer.down<0)return;pointer.down=-1;wake();},{passive:true});
+  root.addEventListener('click',e=>{
+    const i=cardIndex(e.target); if(i<0)return;
+    startWave(e.clientX,e.clientY,1.1); replay(cards[i]); wake();
+  });
+  root.addEventListener('keydown',e=>{
+    if(e.key!=='Enter'&&e.key!==' ')return;
+    const c=cards[cardIndex(e.target)]; if(!c||e.target!==c)return;
+    e.preventDefault(); c.click();
+  });
+  window.addEventListener('scroll',()=>{dirty=true;wake();},{passive:true,capture:true});
+  window.addEventListener('resize',()=>{dirty=true;wake();},{passive:true});
+
+  // responsive columns
+  const resizeObserver=new ResizeObserver(()=>{
+    const width=root.clientWidth;
+    const cell=n=>(width-GAP*(n-1))/n;
+    const next=cell(COLS)>=150?COLS:COLS>=2&&cell(2)>=200?2:1;
+    root.style.gridTemplateColumns=`repeat(${next},minmax(0,1fr))`;
+    root.style.gridAutoRows=next===1?`minmax(${ROWH}px,auto)`:`${ROWH}px`;
+    buildChart();
+    dirty=true; wake();
+  });
+  resizeObserver.observe(root);
+
+  // intro + visibility
+  const enter=()=>{
+    entered=true;
+    let order=0;
+    cells.forEach(c=>{ c.style.setProperty('--mb-delay',`${order++*STAGGER}ms`); c.dataset.state='in'; });
+    if(dirty)measure();
+    introTimer=window.setTimeout(()=>{ if(bounds)startWave(bounds.left,bounds.top,1.7); wake(); },260);
+    settleTimer=window.setTimeout(()=>cells.forEach(c=>c.style.setProperty('--mb-delay','0ms')),order*STAGGER+2600);
+    wake();
+  };
+  if (motion && typeof IntersectionObserver!=='undefined') {
+    const gate=new IntersectionObserver((entries,obs)=>{ if(!entries.some(en=>en.isIntersecting))return; obs.disconnect(); enter(); },{threshold:0.15});
+    gate.observe(root);
+    setTimeout(()=>{ if(!entered)enter(); },1200);
+  } else {
+    cells.forEach(c=>{c.style.setProperty('--mb-delay','0ms');c.dataset.state='in';});
+    entered=true;
+  }
+  const visibility=new IntersectionObserver(entries=>{
+    const inView=entries.some(e=>e.isIntersecting);
+    if(inView&&!visible){visible=true;dirty=true;wake();}
+    else if(!inView){visible=false;}
+  },{threshold:0});
+  visibility.observe(root);
+
+  resize();
+  function resize(){
+    const width=root.clientWidth;
+    const cell=n=>(width-GAP*(n-1))/n;
+    const next=cell(COLS)>=150?COLS:COLS>=2&&cell(2)>=200?2:1;
+    root.style.gridTemplateColumns=`repeat(${next},minmax(0,1fr))`;
+    root.style.gridAutoRows=next===1?`minmax(${ROWH}px,auto)`:`${ROWH}px`;
+    root.style.gap=`${GAP}px`;
+    dirty=true; wake();
+  }
+})();
+</script>
+</body>
+</html>

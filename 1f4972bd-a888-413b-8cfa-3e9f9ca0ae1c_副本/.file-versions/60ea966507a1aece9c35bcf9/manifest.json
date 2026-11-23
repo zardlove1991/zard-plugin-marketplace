@@ -1,0 +1,22 @@
+{
+  "schemaVersion": 2,
+  "fileName": "logo.html",
+  "currentVersionId": "5cc1053a-014e-45cb-8253-36857e8b0ba3",
+  "entries": [
+    {
+      "id": "5cc1053a-014e-45cb-8253-36857e8b0ba3",
+      "fileName": "logo.html",
+      "version": 1,
+      "label": "Version 1",
+      "createdAt": 1795417207579,
+      "source": "ai",
+      "prompt": "你这里啥都没有啊",
+      "size": 193687,
+      "mime": "text/html; charset=utf-8",
+      "kind": "html",
+      "contentPath": "0001-5cc1053a-014e-45cb-8253-36857e8b0ba3.html",
+      "contentDigest": "b42c2a2f6fbd12ec08aacbfe16697f9205e71198363546e6e49365b2e4178ab1",
+      "promptSource": "message"
+    }
+  ]
+}

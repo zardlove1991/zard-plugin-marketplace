@@ -1,0 +1,38 @@
+{
+  "schemaVersion": 2,
+  "fileName": "signature.html",
+  "currentVersionId": "fd7ac06f-9c02-4f60-9a35-34fc7fe49cab",
+  "entries": [
+    {
+      "id": "7f280a28-a987-407e-80b2-5d3ee5ef9d2f",
+      "fileName": "signature.html",
+      "version": 1,
+      "label": "Version 1",
+      "createdAt": 1795418345751,
+      "source": "ai",
+      "prompt": "Add the \"Signature\" component from React Bits Pro to my project.\n\nA signature that writes itself in ink, or a pad your visitors sign\n\nSteps:\n1. Ensure my components.json has the React Bits Pro registries configured (see https://pro.reactbits.dev/docs/installation), including the Authorization header with my REACTBITS_LICENSE_KEY environment variable.\n2. Install the component with:\n   npx shadcn@latest add @reactbits-starter/signature-tw\n3. Import it where needed and adapt it to my project's content and design tokens.\n\nDocs page for reference: https://pro.reactbits.dev/docs/components/signature\n继续",
+      "size": 8796,
+      "mime": "text/html; charset=utf-8",
+      "kind": "html",
+      "contentPath": "0001-7f280a28-a987-407e-80b2-5d3ee5ef9d2f.html",
+      "promptSource": "message",
+      "contentDigest": "07a11675155ebcc67b7640519b9877b1c3cf59532fbecf831d31b44aad18867e"
+    },
+    {
+      "id": "fd7ac06f-9c02-4f60-9a35-34fc7fe49cab",
+      "fileName": "signature.html",
+      "version": 2,
+      "label": "Version 2",
+      "createdAt": 1795418585499,
+      "source": "ai",
+      "prompt": "这里的签名的文字可以是维链通吗",
+      "size": 9317,
+      "mime": "text/html; charset=utf-8",
+      "kind": "html",
+      "contentPath": "0002-fd7ac06f-9c02-4f60-9a35-34fc7fe49cab.html",
+      "promptSource": "message",
+      "contentDigest": "28a71191adb3f0aa0d01404381918fa7240e3c91430e8f3629ea9c44d08f3e78"
+    }
+  ],
+  "deletedAt": 1795418651644
+}

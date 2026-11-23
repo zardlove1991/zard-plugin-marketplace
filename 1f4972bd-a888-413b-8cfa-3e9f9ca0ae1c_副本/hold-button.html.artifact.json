@@ -1,0 +1,19 @@
+{
+  "version": 1,
+  "kind": "html",
+  "title": "hold-button.html",
+  "entry": "hold-button.html",
+  "renderer": "html",
+  "status": "complete",
+  "exports": [
+    "html",
+    "pdf",
+    "zip"
+  ],
+  "createdAt": "2026-11-23T06:38:08.764Z",
+  "updatedAt": "2026-11-23T06:38:08.764Z",
+  "metadata": {
+    "inferred": true,
+    "reconciled": true
+  }
+}

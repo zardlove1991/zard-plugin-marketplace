@@ -1,0 +1,19 @@
+{
+  "version": 1,
+  "kind": "html",
+  "title": "magic-bento.html",
+  "entry": "magic-bento.html",
+  "renderer": "html",
+  "status": "complete",
+  "exports": [
+    "html",
+    "pdf",
+    "zip"
+  ],
+  "createdAt": "2026-11-23T08:22:07.842Z",
+  "updatedAt": "2026-11-23T08:22:07.842Z",
+  "metadata": {
+    "inferred": true,
+    "reconciled": true
+  }
+}

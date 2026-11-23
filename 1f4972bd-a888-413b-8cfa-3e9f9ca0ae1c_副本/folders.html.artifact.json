@@ -1,0 +1,19 @@
+{
+  "version": 1,
+  "kind": "html",
+  "title": "folders.html",
+  "entry": "folders.html",
+  "renderer": "html",
+  "status": "complete",
+  "exports": [
+    "html",
+    "pdf",
+    "zip"
+  ],
+  "createdAt": "2026-11-23T03:13:14.248Z",
+  "updatedAt": "2026-11-23T03:13:14.248Z",
+  "metadata": {
+    "inferred": true,
+    "reconciled": true
+  }
+}

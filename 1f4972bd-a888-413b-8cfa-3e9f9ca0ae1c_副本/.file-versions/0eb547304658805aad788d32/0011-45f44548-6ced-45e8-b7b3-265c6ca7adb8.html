@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>GlassSurface · 折射玻璃</title>
+<!-- The component's own stylesheet, used verbatim so the preview matches it exactly. -->
+<link rel="stylesheet" href="components/ui/GlassSurface.css" />
+<style>
+  :root { color-scheme: dark; }
+  html, body { height: 100%; }
+  body {
+    margin: 0;
+    min-height: 100svh;
+    color: #f2f4f8;
+    background: #0b0d12;
+    font-family: "Space Grotesk", system-ui, -apple-system, "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+  }
+  .stage {
+    min-height: 100svh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: clamp(44px, 7vh, 76px);
+    padding: clamp(56px, 9vh, 104px) 24px;
+    background:
+      linear-gradient(180deg, rgba(5, 7, 13, 0.62), rgba(5, 7, 13, 0.34) 42%, rgba(5, 7, 13, 0.74)),
+      url("assets/sunset.jpg") center / cover no-repeat;
+  }
+  .stage-head { text-align: center; display: flex; flex-direction: column; align-items: center; gap: 12px; }
+  .kicker {
+    font-size: 11.5px;
+    font-weight: 600;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: rgba(242, 244, 248, 0.62);
+  }
+  .stage-head h1 { margin: 0; font-size: clamp(26px, 4.5vw, 40px); line-height: 1.3; letter-spacing: 0; }
+  .stage-head p { margin: 0; max-width: 520px; font-size: 14.5px; line-height: 1.7; color: rgba(242, 244, 248, 0.74); }
+  .demo-row { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: clamp(28px, 4vw, 52px); }
+  .demo-label { font-size: 16px; font-weight: 600; letter-spacing: 0.02em; white-space: nowrap; text-shadow: 0 1px 8px rgba(0, 0, 0, 0.45); }
+  .demo-copy { display: flex; flex-direction: column; gap: 6px; text-align: left; }
+  .demo-copy strong { font-size: 16px; font-weight: 600; text-shadow: 0 1px 8px rgba(0, 0, 0, 0.45); }
+  .demo-copy span { font-size: 13px; line-height: 1.7; color: rgba(242, 244, 248, 0.82); text-shadow: 0 1px 6px rgba(0, 0, 0, 0.45); }
+  .stage-foot { text-align: center; font-size: 12.5px; line-height: 1.8; color: rgba(242, 244, 248, 0.58); }
+</style>
+</head>
+<body>
+  <main class="stage">
+    <header class="stage-head">
+      <span class="kicker">Glass Surface</span>
+      <h1>GlassSurface · 折射玻璃</h1>
+      <p>边缘把背后的画面弯折出彩色色散，中心保持平静。改换窗口尺寸，置换贴图会实时重算。</p>
+    </header>
+    <div class="demo-row" id="row-1"></div>
+    <div class="demo-row" id="row-2"></div>
+    <footer class="stage-foot">Chromium 走 SVG 滤镜折射 · 其他浏览器自动降级为雾面玻璃</footer>
+  </main>
+<script>
+(() => {
+  'use strict';
+  const SVG_NS = 'http://www.w3.org/2000/svg';
+  const FAR = 1e20;
+
+  /* ---- signed-distance helpers, ported verbatim from the component ---- */
+  const distanceLine = (f, d, v, z, n) => {
+    let k = 0;
+    v[0] = 0;
+    z[0] = -FAR;
+    z[1] = FAR;
+    for (let q = 1; q < n; q++) {
+      let s = (f[q] + q * q - (f[v[k]] + v[k] * v[k])) / (2 * q - 2 * v[k]);
+      while (s <= z[k]) {
+        k--;
+        s = (f[q] + q * q - (f[v[k]] + v[k] * v[k])) / (2 * q - 2 * v[k]);
+      }
+      k++;
+      v[k] = q;
+      z[k] = s;
+      z[k + 1] = FAR;
+    }
+    k = 0;
+    for (let q = 0; q < n; q++) {
+      while (z[k + 1] < q) k++;
+      d[q] = (q - v[k]) * (q - v[k]) + f[v[k]];
+    }
+  };
+
+  const distanceGrid = (grid, w, h) => {
+    const n = Math.max(w, h);
+    const f = new Float64Array(n);
+    const d = new Float64Array(n);
+    const v = new Int32Array(n);
+    const z = new Float64Array(n + 1);
+    for (let x = 0; x < w; x++) {
+      for (let y = 0; y < h; y++) f[y] = grid[y * w + x];
+      distanceLine(f, d, v, z, h);
+      for (let y = 0; y < h; y++) grid[y * w + x] = d[y];
+    }
+    for (let y = 0; y < h; y++) {
+      for (let x = 0; x < w; x++) f[x] = grid[y * w + x];
+      distanceLine(f, d, v, z, w);
+      for (let x = 0; x < w; x++) grid[y * w + x] = d[x];
+    }
+  };
+
+  const blurLine = (src, dst, offset, stride, n, r) => {
+    const scale = 1 / (2 * r + 1);
+    let sum = src[offset] * (r + 1);
+    for (let i = 1; i <= r; i++) sum += src[offset + Math.min(i, n - 1) * stride];
+    for (let i = 0; i < n; i++) {
+      dst[offset + i * stride] = sum * scale;
+      sum += src[offset + Math.min(i + r + 1, n - 1) * stride] - src[offset + Math.max(i - r, 0) * stride];
+    }
+  };
+
+  const blurGrid = (grid, w, h, r) => {
+    const tmp = new Float32Array(w * h);
+    for (let pass = 0; pass < 3; pass++) {
+      for (let y = 0; y < h; y++) blurLine(grid, tmp, y * w, 1, w, r);
+      for (let x = 0; x < w; x++) blurLine(tmp, grid, x, w, h, r);
+    }
+  };
+
+  const settle = x => 1 / (1 + Math.exp(-1.702 * x));
+
+  const paint = (w, h, fill) => {
+    const canvas = document.createElement('canvas');
+    canvas.width = w;
+    canvas.height = h;
+    const context = canvas.getContext('2d');
+    const image = context.createImageData(w, h);
+    fill(image.data);
+    context.putImageData(image, 0, 0);
+    return canvas.toDataURL();
+  };
+
+  const shade = (depth, w, h, falloff) =>
+    paint(w, h, data => {
+      data.fill(255);
+      for (let i = 0; i < w * h; i++) data[i * 4 + 3] = 255 * (1 - falloff(depth[i]));
+    });
+
+  const traceShape = (image, width, height, ratio) => {
+    const naturalWidth = image.naturalWidth || width;
+    const naturalHeight = image.naturalHeight || height;
+    const fit = Math.min(width / naturalWidth, height / naturalHeight);
+    const box = {
+      x: (width - naturalWidth * fit) / 2,
+      y: (height - naturalHeight * fit) / 2,
+      width: naturalWidth * fit,
+      height: naturalHeight * fit
+    };
+    const w = Math.max(2, Math.round(width * ratio));
+    const h = Math.max(2, Math.round(height * ratio));
+    const canvas = document.createElement('canvas');
+    canvas.width = w;
+    canvas.height = h;
+    const context = canvas.getContext('2d', { willReadFrequently: true });
+    context.drawImage(image, box.x * ratio, box.y * ratio, box.width * ratio, box.height * ratio);
+    const pixels = context.getImageData(0, 0, w, h).data;
+    const outside = new Float32Array(w * h);
+    const inside = new Float32Array(w * h);
+    for (let i = 0; i < w * h; i++) {
+      const edge = 0.5 - pixels[i * 4 + 3] / 255;
+      outside[i] = edge >= 0.5 ? FAR : Math.max(edge, 0) ** 2;
+      inside[i] = edge <= -0.5 ? FAR : Math.min(edge, 0) ** 2;
+    }
+    distanceGrid(outside, w, h);
+    distanceGrid(inside, w, h);
+    const depth = new Float32Array(w * h);
+    for (let i = 0; i < w * h; i++) depth[i] = (Math.sqrt(inside[i]) - Math.sqrt(outside[i])) / ratio;
+    return {
+      box,
+      depth,
+      w,
+      h,
+      ratio,
+      line: shade(depth, w, h, t => settle(t - 1)),
+      glow: shade(depth, w, h, t => settle((t - 4) / 5))
+    };
+  };
+
+  const bendShape = (trace, edge, softness, calm, level) => {
+    const { depth, w, h, ratio } = trace;
+    const reach = edge + softness * 2;
+    const field = new Float32Array(w * h);
+    for (let i = 0; i < w * h; i++) field[i] = Math.min(Math.max(depth[i], -6), reach);
+    blurGrid(field, w, h, Math.max(1, Math.round(Math.max(1.5, softness * 0.35) * ratio)));
+    return paint(w, h, data => {
+      for (let y = 0; y < h; y++) {
+        for (let x = 0; x < w; x++) {
+          const i = y * w + x;
+          const dx = field[i + (x < w - 1 ? 1 : 0)] - field[i - (x > 0 ? 1 : 0)];
+          const dy = field[i + (y < h - 1 ? w : 0)] - field[i - (y > 0 ? w : 0)];
+          const still = calm * settle((depth[i] - edge) / softness);
+          const bend = (1 - still) * ratio * 0.25;
+          const shift = still * (level - 0.5);
+          data[i * 4] = 255 * (0.5 + dx * bend + shift);
+          data[i * 4 + 1] = 255 * (0.5 + dy * bend + shift);
+          data[i * 4 + 2] = 255 * (0.5 + shift);
+          data[i * 4 + 3] = 255;
+        }
+      }
+    });
+  };
+
+  /* ---- the component's renderer probe: Chromium's SVG-filter branch ---- */
+  const supportsSVGFilters = () => {
+    const div = document.createElement('div');
+    div.style.backdropFilter = 'url(#glass-surface-probe)';
+    return div.style.backdropFilter !== '';
+  };
+
+  let uid = 0;
+
+  function createGlass(mount, options) {
+    const o = Object.assign(
+      {
+        width: 200,
+        height: 80,
+        borderRadius: 20,
+        borderWidth: 0.07,
+        brightness: 50,
+        opacity: 0.93,
+        blur: 11,
+        displace: 0,
+        backgroundOpacity: 0,
+        saturation: 1,
+        distortionScale: -180,
+        redOffset: 0,
+        greenOffset: 10,
+        blueOffset: 20,
+        xChannel: 'R',
+        yChannel: 'G',
+        mixBlendMode: 'difference',
+        refraction: true,
+        shape: '',
+        content: ''
+      },
+      options
+    );
+
+    const id = 'gs' + ++uid;
+    const filterId = 'glass-filter-' + id;
+    const redGradId = 'red-grad-' + id;
+    const blueGradId = 'blue-grad-' + id;
+    const softId = 'soft-' + id;
+
+    /* In this Chromium-based preview the SVG-filter branch is the refraction
+       path; the component's WebGL branch (Safari/Firefox with a backdrop)
+       never engages here, and anything else gets the frosted fallback. */
+    const svgSupported = supportsSVGFilters();
+    const refractive = svgSupported && o.refraction;
+
+    const container = document.createElement('div');
+    container.className = 'glass-surface ' + (refractive ? 'glass-surface--svg' : 'glass-surface--fallback');
+    container.style.width = typeof o.width === 'number' ? o.width + 'px' : o.width;
+    container.style.height = typeof o.height === 'number' ? o.height + 'px' : o.height;
+    container.style.borderRadius = o.borderRadius + 'px';
+    container.style.setProperty('--glass-frost', String(o.backgroundOpacity));
+    container.style.setProperty('--glass-saturation', String(o.saturation));
+    container.style.setProperty('--filter-id', 'url(#' + filterId + ')');
+    mount.appendChild(container);
+
+    /* hidden <filter> chain: feImage map + three channel-split displacement passes */
+    const svgEl = document.createElementNS(SVG_NS, 'svg');
+    svgEl.setAttribute('class', 'glass-surface__filter');
+    svgEl.setAttribute('xmlns', SVG_NS);
+    const defs = document.createElementNS(SVG_NS, 'defs');
+    const filter = document.createElementNS(SVG_NS, 'filter');
+    filter.setAttribute('id', filterId);
+    filter.setAttribute('color-interpolation-filters', 'sRGB');
+    filter.setAttribute('x', '0%');
+    filter.setAttribute('y', '0%');
+    filter.setAttribute('width', '100%');
+    filter.setAttribute('height', '100%');
+    const el = (name, attrs) => {
+      const node = document.createElementNS(SVG_NS, name);
+      for (const key in attrs) node.setAttribute(key, attrs[key]);
+      filter.appendChild(node);
+      return node;
+    };
+    const feImage = el('feImage', { x: '0', y: '0', width: '100%', height: '100%', preserveAspectRatio: 'none', result: 'map' });
+    const redMap = el('feDisplacementMap', { in: 'SourceGraphic', in2: 'map', id: 'redchannel', result: 'dispRed' });
+    el('feColorMatrix', { in: 'dispRed', type: 'matrix', values: '1 0 0 0 0\n                      0 0 0 0 0\n                      0 0 0 0 0\n                      0 0 0 1 0', result: 'red' });
+    const greenMap = el('feDisplacementMap', { in: 'SourceGraphic', in2: 'map', id: 'greenchannel', result: 'dispGreen' });
+    el('feColorMatrix', { in: 'dispGreen', type: 'matrix', values: '0 0 0 0 0\n                      0 1 0 0 0\n                      0 0 0 0 0\n                      0 0 0 1 0', result: 'green' });
+    const blueMap = el('feDisplacementMap', { in: 'SourceGraphic', in2: 'map', id: 'bluechannel', result: 'dispBlue' });
+    el('feColorMatrix', { in: 'dispBlue', type: 'matrix', values: '0 0 0 0 0\n                      0 0 0 0 0\n                      0 0 1 0 0\n                      0 0 0 1 0', result: 'blue' });
+    el('feBlend', { in: 'red', in2: 'green', mode: 'screen', result: 'rg' });
+    el('feBlend', { in: 'rg', in2: 'blue', mode: 'screen', result: 'output' });
+    const softBlur = el('feGaussianBlur', { in: 'output', stdDeviation: '0.7' });
+    defs.appendChild(filter);
+    svgEl.appendChild(defs);
+    container.appendChild(svgEl);
+
+    if (!refractive) {
+      const sheen = document.createElement('span');
+      sheen.className = 'glass-surface__sheen';
+      sheen.setAttribute('aria-hidden', 'true');
+      container.appendChild(sheen);
+      const rim = document.createElement('span');
+      rim.className = 'glass-surface__rim';
+      rim.setAttribute('aria-hidden', 'true');
+      container.appendChild(rim);
+    }
+
+    const content = document.createElement('div');
+    content.className = 'glass-surface__content';
+    if (typeof o.content === 'string') content.innerHTML = o.content;
+    else if (o.content) content.appendChild(o.content);
+    container.appendChild(content);
+
+    /* ---- displacement map: rounded-rect gradient map, or the traced shape map ---- */
+    const generateDisplacementMap = () => {
+      const rect = container.getBoundingClientRect();
+      const actualWidth = (rect && rect.width) || 400;
+      const actualHeight = (rect && rect.height) || 200;
+      const edgeSize = Math.min(actualWidth, actualHeight) * (o.borderWidth * 0.5);
+      const svgContent =
+        '<svg width="' + actualWidth + '" height="' + actualHeight + '" viewBox="0 0 ' + actualWidth + ' ' + actualHeight + '" xmlns="http://www.w3.org/2000/svg">' +
+        '<defs>' +
+        '<linearGradient id="' + redGradId + '" x1="100%" y1="0%" x2="0%" y2="0%">' +
+        '<stop offset="0%" stop-color="#0000"/>' +
+        '<stop offset="100%" stop-color="red"/>' +
+        '</linearGradient>' +
+        '<linearGradient id="' + blueGradId + '" x1="0%" y1="0%" x2="0%" y2="100%">' +
+        '<stop offset="0%" stop-color="#0000"/>' +
+        '<stop offset="100%" stop-color="blue"/>' +
+        '</linearGradient>' +
+        '<filter id="' + softId + '" filterUnits="userSpaceOnUse" x="0" y="0" width="' + actualWidth + '" height="' + actualHeight + '" color-interpolation-filters="sRGB">' +
+        '<feGaussianBlur stdDeviation="' + o.blur + '" />' +
+        '</filter>' +
+        '</defs>' +
+        '<rect x="0" y="0" width="' + actualWidth + '" height="' + actualHeight + '" fill="black"></rect>' +
+        '<rect x="0" y="0" width="' + actualWidth + '" height="' + actualHeight + '" rx="' + o.borderRadius + '" fill="url(#' + redGradId + ')" />' +
+        '<rect x="0" y="0" width="' + actualWidth + '" height="' + actualHeight + '" rx="' + o.borderRadius + '" fill="url(#' + blueGradId + ')" style="mix-blend-mode: ' + o.mixBlendMode + '" />' +
+        '<rect x="' + edgeSize + '" y="' + edgeSize + '" width="' + (actualWidth - edgeSize * 2) + '" height="' + (actualHeight - edgeSize * 2) + '" rx="' + o.borderRadius + '" fill="hsl(0 0% ' + o.brightness + '% / ' + o.opacity + ')" filter="url(#' + softId + ')" />' +
+        '</svg>';
+      return 'data:image/svg+xml,' + encodeURIComponent(svgContent);
+    };
+
+    let shapeMapUrl = '';
+    const updateDisplacementMap = () => {
+      const url = shapeMapUrl || generateDisplacementMap();
+      feImage.setAttribute('href', url);
+    };
+
+    const applyChannelSettings = () => {
+      [
+        { node: redMap, offset: o.redOffset },
+        { node: greenMap, offset: o.greenOffset },
+        { node: blueMap, offset: o.blueOffset }
+      ].forEach(({ node, offset }) => {
+        node.setAttribute('scale', String(o.distortionScale + offset));
+        node.setAttribute('xChannelSelector', o.xChannel);
+        node.setAttribute('yChannelSelector', o.yChannel);
+      });
+      softBlur.setAttribute('stdDeviation', String(o.displace));
+    };
+
+    /* ---- shape mode: trace the outline, bend the map, mask the edges ---- */
+    let trace = null;
+    let art = null;
+    const glowSpan = document.createElement('span');
+    const lineSpan = document.createElement('span');
+
+    const applyOutline = () => {
+      if (!art || art.failed) return;
+      container.style.opacity = '';
+      container.style.transition = '';
+      container.style.borderRadius = '0px';
+      container.style.boxShadow = 'none';
+      const maskUrl = 'url("' + art.src.replace(/"/g, '%22').replace(/[\n\r]+/g, ' ') + '")';
+      const place = art.box.x + 'px ' + art.box.y + 'px / ' + art.box.width + 'px ' + art.box.height + 'px no-repeat';
+      container.style.webkitMask = maskUrl + ' ' + place;
+      container.style.mask = maskUrl + ' ' + place;
+      glowSpan.className = 'glass-surface__glow';
+      glowSpan.setAttribute('aria-hidden', 'true');
+      glowSpan.style.webkitMaskImage = 'url(' + art.glow + ')';
+      glowSpan.style.maskImage = 'url(' + art.glow + ')';
+      lineSpan.className = 'glass-surface__line';
+      lineSpan.setAttribute('aria-hidden', 'true');
+      lineSpan.style.webkitMaskImage = 'url(' + art.line + ')';
+      lineSpan.style.maskImage = 'url(' + art.line + ')';
+      if (!glowSpan.isConnected) container.insertBefore(glowSpan, content);
+      if (!lineSpan.isConnected) container.insertBefore(lineSpan, content);
+    };
+
+    const refreshShape = () => {
+      const w = container.offsetWidth;
+      const h = container.offsetHeight;
+      if (!art || !art.image || !w || !h) return;
+      const ratio = Math.min(2, window.devicePixelRatio || 1, Math.sqrt(400000 / (w * h)));
+      try {
+        if (!trace || trace.image !== art.image || trace.width !== w || trace.height !== h || trace.ratio !== ratio) {
+          trace = Object.assign({ image: art.image, width: w, height: h, ratio }, traceShape(art.image, w, h, ratio));
+        }
+        shapeMapUrl = bendShape(trace, Math.min(w, h) * o.borderWidth * 0.5, Math.max(o.blur, 0.5), o.opacity, o.brightness / 100);
+        art = { src: art.src, image: art.image, box: trace.box, line: trace.line, glow: trace.glow };
+        applyOutline();
+      } catch (error) {
+        trace = null;
+        shapeMapUrl = '';
+        art = { src: o.shape, failed: true };
+        container.style.opacity = '0';
+        container.style.transition = 'none';
+      }
+      updateDisplacementMap();
+    };
+
+    if (o.shape) {
+      container.style.opacity = '0';
+      container.style.transition = 'none';
+      const image = new Image();
+      image.crossOrigin = 'anonymous';
+      image.decoding = 'async';
+      image.onload = () => {
+        art = { src: o.shape, image };
+        refreshShape();
+      };
+      image.onerror = () => {
+        art = { src: o.shape, failed: true };
+        container.style.opacity = '0';
+        container.style.transition = 'none';
+      };
+      image.src = o.shape;
+    }
+
+    applyChannelSettings();
+    updateDisplacementMap();
+
+    const observer = new ResizeObserver(() => {
+      applyChannelSettings();
+      if (art && art.image) refreshShape();
+      else updateDisplacementMap();
+    });
+    observer.observe(container);
+  }
+
+  /* ---- demo pieces: pill with content, panel, traced outline, frosted fallback ---- */
+  const BLOB =
+    '<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200" viewBox="0 0 200 200">' +
+    '<path fill="#ffffff" d="M100 12C138 10 170 34 178 68 186 100 176 136 148 158 122 178 84 182 56 164 28 146 14 112 22 80 30 46 62 14 100 12Z"/>' +
+    '</svg>';
+  const shapeUrl = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(BLOB);
+
+  createGlass(document.getElementById('row-1'), {
+    width: 360,
+    height: 76,
+    borderRadius: 38,
+    distortionScale: -180,
+    displace: 0.5,
+    backgroundOpacity: 0.1,
+    content: '<span class="demo-label">维链通 · 品牌 CI 中心</span>'
+  });
+
+  createGlass(document.getElementById('row-1'), {
+    width: 320,
+    height: 190,
+    borderRadius: 20,
+    displace: 0.35,
+    backgroundOpacity: 0.08,
+    content:
+      '<div class="demo-copy"><strong>折射玻璃面板</strong>' +
+      '<span>边缘弯折背后的画面，中心保持平静，色散沿边缘分出彩色。</span></div>'
+  });
+
+  createGlass(document.getElementById('row-2'), {
+    width: 260,
+    height: 260,
+    borderWidth: 0.09,
+    blur: 10,
+    distortionScale: -200,
+    shape: shapeUrl
+  });
+
+  createGlass(document.getElementById('row-2'), {
+    width: 300,
+    height: 64,
+    borderRadius: 32,
+    refraction: false,
+    backgroundOpacity: 0.16,
+    content: '<span class="demo-label">雾面玻璃 · 无折射降级</span>'
+  });
+})();
+</script>
+</body>
+</html>

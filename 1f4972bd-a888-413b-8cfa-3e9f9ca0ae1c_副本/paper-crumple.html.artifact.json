@@ -1,0 +1,19 @@
+{
+  "version": 1,
+  "kind": "html",
+  "title": "paper-crumple.html",
+  "entry": "paper-crumple.html",
+  "renderer": "html",
+  "status": "complete",
+  "exports": [
+    "html",
+    "pdf",
+    "zip"
+  ],
+  "createdAt": "2026-11-23T06:53:18.697Z",
+  "updatedAt": "2026-11-23T06:53:18.697Z",
+  "metadata": {
+    "inferred": true,
+    "reconciled": true
+  }
+}

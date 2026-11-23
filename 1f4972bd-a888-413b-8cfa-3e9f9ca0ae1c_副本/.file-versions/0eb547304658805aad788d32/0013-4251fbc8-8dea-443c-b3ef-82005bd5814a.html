@@ -1,0 +1,758 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>SwipeRow · 滑动操作行</title>
+<style>
+  /* Derived line-by-line from the component's Tailwind class strings so the
+     preview's computed styles match Tailwind's rendering. */
+  .sr-root {
+    position: relative;
+    overflow: hidden;
+    height: var(--sr-h);
+    transition:
+      height var(--sr-collapse) cubic-bezier(0.23, 1, 0.32, 1),
+      margin-bottom var(--sr-collapse) cubic-bezier(0.23, 1, 0.32, 1),
+      opacity var(--sr-collapse) cubic-bezier(0.23, 1, 0.32, 1);
+  }
+  .sr-root[data-phase='collapsing'] { height: 0 !important; margin-bottom: 0 !important; opacity: 0; }
+  .sr-root[data-disabled] { pointer-events: none; opacity: 0.55; }
+
+  .sr-shell {
+    position: relative;
+    overflow: hidden;
+    height: var(--sr-h);
+    border-radius: var(--sr-r);
+    background: var(--sr-row);
+  }
+  .sr-rail { position: absolute; inset: 0; background: var(--sr-drawer); }
+
+  .sr-btn {
+    position: absolute;
+    top: 0;
+    display: grid;
+    height: 100%;
+    width: var(--sr-a);
+    place-items: center;
+    border: 0;
+    padding: 0;
+    cursor: pointer;
+    touch-action: manipulation;
+    font: inherit;
+    outline: none;
+    user-select: none;
+    -webkit-touch-callout: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .sr-btn::after { content: ''; pointer-events: none; position: absolute; inset: 0; background: #fff; opacity: 0; }
+  @media (hover: hover) and (pointer: fine) {
+    .sr-btn::after { transition: opacity 150ms ease; }
+    .sr-btn:hover::after { opacity: 0.08; }
+  }
+  .sr-glyph {
+    display: grid;
+    justify-items: center;
+    gap: 4px;
+    font-size: 11px;
+    line-height: 1;
+    font-weight: 500;
+    letter-spacing: 0.01em;
+    transition: transform 160ms cubic-bezier(0.23, 1, 0.32, 1);
+  }
+  .sr-btn:active .sr-glyph { transform: scale(0.97); }
+  @media (prefers-reduced-motion: reduce) {
+    .sr-btn:active .sr-glyph { transform: none; }
+  }
+
+  .sr-block { position: absolute; top: 0; height: 100%; width: 100%; background: var(--sr-action); }
+  .sr-root[data-direction='left'] .sr-block { left: calc(100% - var(--sr-a)); }
+  .sr-root[data-direction='right'] .sr-block { right: calc(100% - var(--sr-a)); }
+  .sr-btn--primary { background: transparent; color: var(--sr-on-action); }
+  .sr-root[data-direction='left'] .sr-btn--primary { left: 0; }
+  .sr-root[data-direction='right'] .sr-btn--primary { right: 0; }
+
+  .sr-surface {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    height: 100%;
+    align-items: center;
+    gap: 12px;
+    padding: 0 16px;
+    background: var(--sr-row);
+    color: var(--sr-text);
+    touch-action: pan-y;
+    -webkit-touch-callout: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+  @media (hover: hover) and (pointer: fine) {
+    .sr-surface { cursor: grab; }
+    .sr-root[data-dragging] .sr-surface { cursor: grabbing; }
+  }
+  @media (pointer: coarse) { .sr-surface { user-select: none; } }
+  .sr-root[data-dragging] .sr-surface,
+  .sr-root[data-dragging] .sr-surface * { user-select: none; }
+
+  .sr-toggle {
+    position: absolute;
+    top: 50%;
+    margin: 0;
+    height: 1px;
+    width: 1px;
+    overflow: hidden;
+    border: 0;
+    background: transparent;
+    padding: 0;
+    font: inherit;
+    outline: none;
+    clip-path: inset(50%);
+    color: var(--sr-text);
+  }
+  .sr-root[data-direction='left'] .sr-toggle { right: 12px; }
+  .sr-root[data-direction='right'] .sr-toggle { left: 12px; }
+  .sr-toggle:focus-visible {
+    height: 24px;
+    width: auto;
+    transform: translateY(-50%);
+    overflow: visible;
+    border-radius: 12px;
+    padding: 0 10px;
+    font-size: 12px;
+    white-space: nowrap;
+    clip-path: none;
+    background: color-mix(in srgb, var(--sr-text) 12%, transparent);
+  }
+
+  .sr-live {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
+
+  /* page chrome */
+  html, body { height: 100%; }
+  body {
+    margin: 0;
+    min-height: 100svh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 28px;
+    padding: 48px 24px;
+    background: #101014;
+    color: #f2f4f8;
+    font-family: "Space Grotesk", system-ui, -apple-system, "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+  }
+  .stage { width: min(560px, 100%); }
+  .stage-head { display: flex; flex-direction: column; gap: 8px; margin-bottom: 24px; padding: 0 4px; }
+  .kicker {
+    font-size: 11.5px;
+    font-weight: 600;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: rgba(242, 244, 248, 0.55);
+  }
+  .stage-head h1 { margin: 0; font-size: 22px; line-height: 1.3; letter-spacing: 0; font-weight: 600; }
+  .row-copy { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+  .row-copy strong { font-size: 14.5px; font-weight: 500; }
+  .row-copy span { font-size: 12px; line-height: 1.4; color: rgba(245, 245, 245, 0.55); }
+  .empty { margin: 16px 4px 0; font-size: 13.5px; line-height: 1.7; color: rgba(245, 245, 245, 0.5); }
+  .hint { margin: 0; font-size: 12.5px; line-height: 1.7; color: rgba(245, 245, 245, 0.5); text-align: center; }
+</style>
+</head>
+<body>
+  <main class="stage">
+    <header class="stage-head">
+      <span class="kicker">Swipe Row</span>
+      <h1>SwipeRow · 滑动操作行</h1>
+    </header>
+    <div id="list"></div>
+    <p class="empty" id="empty" hidden>全部处理完了。刷新页面可重置列表。</p>
+  </main>
+  <p class="hint">向左拖动露出抽屉 · 满滑删除 · 方向键开合</p>
+<script>
+(() => {
+  'use strict';
+  const HYST = 10;
+  const FLICK = 110;
+  const DECEL = 0.998;
+  const VMAX = 1500;
+
+  /* ---- helpers, ported verbatim from the component ---- */
+  const clamp = (v, lo, hi) => Math.min(hi, Math.max(lo, v));
+  const rubber = (o, dim, c) => (o * dim * c) / (dim + c * Math.abs(o));
+  const unrubber = (y, dim, c) => (y * dim) / (c * Math.max(1, dim - Math.abs(y)));
+  const project = v => ((v / 1000) * DECEL) / (1 - DECEL);
+  const velocityOf = hist => {
+    if (hist.length < 2) return 0;
+    const a = hist[0];
+    const b = hist[hist.length - 1];
+    return ((b[1] - a[1]) / Math.max(1, b[0] - a[0])) * 1000;
+  };
+  const onColor = hex => {
+    const m = /^#?([0-9a-f]{3}|[0-9a-f]{6})$/i.exec(hex.trim());
+    if (!m) return '#ffffff';
+    const h = m[1].length === 3 ? [...m[1]].map(ch => ch + ch).join('') : m[1];
+    const r = parseInt(h.slice(0, 2), 16);
+    const g = parseInt(h.slice(2, 4), 16);
+    const b = parseInt(h.slice(4, 6), 16);
+    return (r * 299 + g * 587 + b * 114) / 1000 >= 150 ? '#111111' : '#ffffff';
+  };
+  const watchWindow = live => {
+    const onMove = e => {
+      if (e.isTrusted) live.move(e);
+    };
+    const onUp = e => {
+      if (e.isTrusted) live.up(e);
+    };
+    window.addEventListener('pointermove', onMove);
+    window.addEventListener('pointerup', onUp);
+    window.addEventListener('pointercancel', onUp);
+    return () => {
+      window.removeEventListener('pointermove', onMove);
+      window.removeEventListener('pointerup', onUp);
+      window.removeEventListener('pointercancel', onUp);
+    };
+  };
+
+  /* ---- motion-value stand-ins: springs and tweens native to the page ---- */
+  const EASE_OUT = [0.23, 1, 0.32, 1];
+  const SPRING_UI = { type: 'spring', duration: 0.3, bounce: 0 };
+  const bezier = (() => {
+    const cx = 3 * EASE_OUT[0], bx = 3 * (EASE_OUT[2] - EASE_OUT[0]) - cx, ax = 1 - cx - bx;
+    const cy = 3 * EASE_OUT[1], by = 3 * (EASE_OUT[3] - EASE_OUT[1]) - cy, ay = 1 - cy - by;
+    const sampleX = t => ((ax * t + bx) * t + cx) * t;
+    const sampleY = t => ((ay * t + by) * t + cy) * t;
+    const solveX = x => {
+      let t = x;
+      for (let i = 0; i < 8; i++) {
+        const dx = sampleX(t) - x;
+        if (Math.abs(dx) < 1e-5) return t;
+        const d = (3 * ax * t + 2 * bx) * t + cx;
+        if (Math.abs(d) < 1e-6) break;
+        t -= dx / d;
+      }
+      return t;
+    };
+    return x => sampleY(solveX(clamp(x, 0, 1)));
+  })();
+
+  const value = (initial, emit) => {
+    const mv = {
+      v: initial,
+      token: 0,
+      emit,
+      get: () => mv.v,
+      set: v => {
+        mv.token++;
+        mv.v = v;
+        mv.emit();
+      },
+      stop: () => mv.token++
+    };
+    return mv;
+  };
+
+  function animateValue(mv, target, spec = {}) {
+    const token = ++mv.token;
+    const from = mv.v;
+    const restDelta = spec.restDelta ?? 0.35;
+    const restVel = spec.restVel ?? restDelta * 10;
+    const finish = () => {
+      if (mv.token !== token) return;
+      mv.v = target;
+      mv.emit();
+    };
+    return new Promise(resolve => {
+      if (spec.type === 'spring') {
+        const duration = clamp(spec.duration ?? 0.3, 0.01, 10);
+        const bounce = clamp(spec.bounce ?? 0, 0, 1);
+        const zeta = 1 - bounce;
+        const omega = (2 * Math.PI) / (duration * 1.35);
+        let pos = from;
+        let vel = clamp(spec.velocity ?? 0, -VMAX, VMAX);
+        let last = performance.now();
+        const step = now => {
+          if (mv.token !== token) return resolve();
+          const dt = Math.min(0.05, (now - last) / 1000 || 0);
+          last = now;
+          const steps = Math.max(1, Math.ceil(dt / (1 / 240)));
+          const h = dt / steps;
+          for (let i = 0; i < steps; i++) {
+            const a = -omega * omega * (pos - target) - 2 * zeta * omega * vel;
+            vel += a * h;
+            pos += vel * h;
+          }
+          mv.v = pos;
+          mv.emit();
+          if (Math.abs(pos - target) < restDelta && Math.abs(vel) < restVel) {
+            finish();
+            return resolve();
+          }
+          requestAnimationFrame(step);
+        };
+        requestAnimationFrame(step);
+      } else {
+        const duration = Math.max(1, (spec.duration ?? 0.3) * 1000);
+        const start = performance.now();
+        const step = now => {
+          if (mv.token !== token) return resolve();
+          const t = Math.min(1, (now - start) / duration);
+          mv.v = from + (target - from) * bezier(t);
+          mv.emit();
+          if (t >= 1) {
+            finish();
+            return resolve();
+          }
+          requestAnimationFrame(step);
+        };
+        requestAnimationFrame(step);
+      }
+    });
+  }
+
+  /* ---- one swipe row ---- */
+  function createSwipeRow(mount, cfg) {
+    const o = {
+      actions: [{ id: 'delete', label: '删除' }],
+      actionColor: '#e5484d',
+      drawerColor: '#3f3f46',
+      rowColor: '#27272a',
+      textColor: '#f5f5f5',
+      height: 64,
+      radius: 16,
+      actionWidth: 80,
+      direction: 'left',
+      snapBounce: 0.2,
+      resistance: 0.55,
+      collapseMs: 200,
+      commitAt: 0.6,
+      fullSwipe: true,
+      disabled: false,
+      closeOnAction: true,
+      haptic: true,
+      label: 'List item',
+      contentHTML: '',
+      marginBottom: 8,
+      onAction: null,
+      onCommit: null,
+      onOpenChange: null,
+      ...cfg
+    };
+    const reduce = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false;
+    const s = o.direction === 'left' ? -1 : 1;
+    const A = o.actionWidth;
+    const actions = o.actions;
+    const n = actions.length;
+    const D = n * A;
+    const c = clamp(o.resistance, 0.05, 1);
+    const primary = actions[0];
+
+    const root = document.createElement('div');
+    root.className = 'sr-root';
+    root.setAttribute('role', 'group');
+    root.setAttribute('aria-label', o.label);
+    root.dataset.direction = o.direction;
+    root.dataset.phase = 'idle';
+    if (o.disabled) root.dataset.disabled = '';
+    root.style.setProperty('--sr-h', `${o.height}px`);
+    root.style.setProperty('--sr-r', `${o.radius}px`);
+    root.style.setProperty('--sr-a', `${A}px`);
+    root.style.setProperty('--sr-row', o.rowColor);
+    root.style.setProperty('--sr-text', o.textColor);
+    root.style.setProperty('--sr-drawer', o.drawerColor);
+    root.style.setProperty('--sr-on-drawer', onColor(o.drawerColor));
+    root.style.setProperty('--sr-action', o.actionColor);
+    root.style.setProperty('--sr-on-action', onColor(o.actionColor));
+    root.style.setProperty('--sr-collapse', `${o.collapseMs}ms`);
+    root.style.marginBottom = `${o.marginBottom}px`;
+
+    const shell = document.createElement('div');
+    shell.className = 'sr-shell';
+    const rail = document.createElement('div');
+    rail.className = 'sr-rail';
+    rail.setAttribute('aria-hidden', 'true');
+    rail.toggleAttribute('inert', true);
+    const railId = `sr-rail-${Math.random().toString(36).slice(2, 8)}`;
+    rail.id = railId;
+
+    actions.slice(1).forEach((a, i) => {
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'sr-btn';
+      if (s < 0) btn.style.right = `${(i + 1) * A}px`;
+      else btn.style.left = `${(i + 1) * A}px`;
+      btn.style.background = a.color ?? o.drawerColor;
+      btn.style.color = onColor(a.color ?? o.drawerColor);
+      const glyph = document.createElement('span');
+      glyph.className = 'sr-glyph';
+      if (a.icon) {
+        const icon = document.createElement('span');
+        icon.style.display = 'inline-flex';
+        icon.innerHTML = a.icon;
+        glyph.appendChild(icon);
+      }
+      const text = document.createElement('span');
+      text.textContent = a.label;
+      glyph.appendChild(text);
+      btn.appendChild(glyph);
+      btn.addEventListener('click', e => act(a, e));
+      rail.appendChild(btn);
+    });
+
+    let block = null;
+    let glyphEl = null;
+    if (primary) {
+      block = document.createElement('div');
+      block.className = 'sr-block';
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'sr-btn sr-btn--primary';
+      glyphEl = document.createElement('span');
+      glyphEl.className = 'sr-glyph';
+      const icon = document.createElement('span');
+      icon.style.display = 'inline-flex';
+      icon.innerHTML = primary.icon || '';
+      glyphEl.appendChild(icon);
+      const text = document.createElement('span');
+      text.textContent = primary.label;
+      glyphEl.appendChild(text);
+      btn.appendChild(glyphEl);
+      btn.addEventListener('click', e => act(primary, e));
+      block.appendChild(btn);
+      rail.appendChild(block);
+    }
+
+    const surface = document.createElement('div');
+    surface.className = 'sr-surface';
+    const content = document.createElement('div');
+    content.innerHTML = o.contentHTML;
+    surface.appendChild(content);
+    const toggle = document.createElement('button');
+    toggle.type = 'button';
+    toggle.className = 'sr-toggle';
+    toggle.tabIndex = o.disabled ? -1 : 0;
+    toggle.setAttribute('aria-expanded', 'false');
+    toggle.setAttribute('aria-controls', railId);
+    toggle.setAttribute('aria-keyshortcuts', s < 0 ? 'ArrowLeft' : 'ArrowRight');
+    toggle.textContent = `${n} ${n === 1 ? 'action' : 'actions'}`;
+    toggle.addEventListener('keydown', onToggleKey);
+    toggle.addEventListener('click', onToggleClick);
+    surface.appendChild(toggle);
+
+    shell.appendChild(rail);
+    shell.appendChild(surface);
+    const sayEl = document.createElement('span');
+    sayEl.className = 'sr-live';
+    sayEl.setAttribute('aria-live', 'polite');
+    root.appendChild(shell);
+    root.appendChild(sayEl);
+    mount.appendChild(root);
+
+    /* ---- state ---- */
+    let open = false;
+    let phase = 'idle';
+    let say = '';
+    let heading = null;
+    let grip = null;
+    let unwatch = null;
+    const w = { current: root.offsetWidth || 360 };
+    const foldTimer = { id: 0 };
+    const live = {};
+
+    const commitPoint = () => Math.max(o.commitAt * w.current, D + A / 2);
+    const canCommit = () => o.fullSwipe && n > 0 && commitPoint() <= w.current;
+
+    const x = value(0, render);
+    const spread = value(0, render);
+    const landed = value(0, render);
+
+    const map = raw => {
+      const W = w.current;
+      if (raw < 0) return rubber(raw, W, c);
+      if (raw <= D) return raw;
+      if (!canCommit()) return D + rubber(raw - D, W, c);
+      const C = commitPoint();
+      const knee = D + (C - D) / c;
+      return raw <= knee ? D + c * (raw - D) : C + rubber(raw - knee, W, c);
+    };
+    const inv = ex => {
+      const W = w.current;
+      if (ex < 0) return unrubber(ex, W, c);
+      if (ex <= D) return ex;
+      if (!canCommit()) return D + unrubber(ex - D, W, c);
+      const C = commitPoint();
+      const knee = D + (C - D) / c;
+      return ex <= C ? D + (ex - D) / c : knee + unrubber(ex - C, W, c);
+    };
+
+    function render() {
+      const xv = x.v;
+      const e = s * xv;
+      const p = spread.v;
+      const l = landed.v;
+      surface.style.transform = `translateX(${xv}px)`;
+      rail.style.transform = `translateX(${-s * Math.max(0, D - e)}px)`;
+      const shift = p * Math.max(0, e - A);
+      if (block) block.style.transform = `translateX(${s * shift}px)`;
+      if (glyphEl) glyphEl.style.transform = `translateX(${-s * l * (shift - (w.current - A) / 2)}px)`;
+    }
+
+    const setSay = text => {
+      say = text;
+      sayEl.textContent = say;
+    };
+    const setOpen = next => {
+      if (next === open) return;
+      open = next;
+      o.onOpenChange?.(next);
+      root.toggleAttribute('data-open', open);
+      rail.toggleAttribute('inert', !open);
+      rail.setAttribute('aria-hidden', String(!open));
+      toggle.setAttribute('aria-expanded', String(open));
+    };
+    const settle = (target, v = 0) => {
+      heading = target;
+      if (reduce) {
+        animateValue(x, s * target, { duration: 0.2, ease: true });
+        return;
+      }
+      const flick = Math.abs(v) >= FLICK;
+      animateValue(
+        x,
+        s * target,
+        flick
+          ? { type: 'spring', duration: 0.4, bounce: o.snapBounce, velocity: s * clamp(v, -VMAX, VMAX) }
+          : { ...SPRING_UI, velocity: s * v }
+      );
+    };
+    const setSpread = on => {
+      if ((spread.v === 1) === on) return;
+      if (reduce) spread.set(on ? 1 : 0);
+      else animateValue(spread, on ? 1 : 0, SPRING_UI);
+      if (on && primary) {
+        setSay(`Release to ${primary.label}`);
+        if (o.haptic && grip?.touch) navigator.vibrate?.(8);
+      }
+    };
+    const commit = (a, viaKey, v = 0) => {
+      const leap = a === primary;
+      phase = 'committing';
+      root.dataset.phase = 'committing';
+      setSay(a.label);
+      setOpen(false);
+      const fold = () => {
+        phase = 'collapsing';
+        root.dataset.phase = 'collapsing';
+        foldTimer.id = setTimeout(() => {
+          o.onCommit?.(a);
+          a.onSelect?.();
+        }, o.collapseMs);
+      };
+      if (viaKey || reduce) {
+        if (leap) {
+          spread.set(1);
+          landed.set(1);
+        }
+        if (viaKey) {
+          x.set(s * w.current);
+          fold();
+        } else animateValue(x, s * w.current, { duration: 0.2, ease: true }).then(fold);
+        return;
+      }
+      if (leap) {
+        if (spread.v < 1) animateValue(spread, 1, SPRING_UI);
+        animateValue(landed, 1, SPRING_UI);
+      }
+      animateValue(x, s * w.current, { ...SPRING_UI, velocity: s * v }).then(fold);
+    };
+
+    const down = e => {
+      if (o.disabled || n === 0 || phase !== 'idle' || grip || e.button !== 0) return;
+      x.stop();
+      heading = null;
+      grip = {
+        id: e.pointerId,
+        x0: e.clientX,
+        y0: e.clientY,
+        grab: null,
+        moved: false,
+        hist: [],
+        touch: e.pointerType === 'touch'
+      };
+      try {
+        surface.setPointerCapture(e.pointerId);
+      } catch {}
+      unwatch?.();
+      unwatch = watchWindow(live);
+    };
+    const move = e => {
+      const g = grip;
+      if (!g || g.id !== e.pointerId) return;
+      if (g.grab === null) {
+        const dx = e.clientX - g.x0;
+        const dy = e.clientY - g.y0;
+        if (Math.abs(dx) < HYST || Math.abs(dx) < Math.abs(dy)) return;
+        g.grab = s * (g.x0 + Math.sign(dx) * HYST) - inv(s * x.v);
+        g.moved = true;
+        root.setAttribute('data-dragging', '');
+      }
+      const ex = map(s * e.clientX - g.grab);
+      x.set(s * ex);
+      g.hist.push([performance.now(), ex]);
+      if (g.hist.length > 4) g.hist.shift();
+      setSpread(canCommit() && ex >= commitPoint());
+    };
+    const up = e => {
+      const g = grip;
+      if (!g || g.id !== e.pointerId) return;
+      grip = null;
+      unwatch?.();
+      unwatch = null;
+      root.removeAttribute('data-dragging');
+      try {
+        surface.releasePointerCapture(e.pointerId);
+      } catch {}
+      const ex = s * x.v;
+      const v = velocityOf(g.hist);
+      if (!g.moved) {
+        if (open) {
+          setOpen(false);
+          settle(0);
+        }
+        return;
+      }
+      if (primary && canCommit() && ex >= commitPoint()) {
+        commit(primary, false, v);
+        return;
+      }
+      const target = Math.abs(v) >= FLICK ? (v > 0 ? D : 0) : ex + project(v) > D / 2 ? D : 0;
+      setSpread(false);
+      setOpen(target === D);
+      settle(target, v);
+    };
+    live.move = move;
+    live.up = up;
+    surface.addEventListener('pointerdown', down);
+
+    const act = (a, e) => {
+      if (phase !== 'idle') return;
+      o.onAction?.(a);
+      if (a === primary || a.dismiss) {
+        commit(a, e.detail === 0);
+        return;
+      }
+      a.onSelect?.();
+      if (!o.closeOnAction) return;
+      setOpen(false);
+      if (e.detail === 0) {
+        heading = 0;
+        x.set(0);
+      } else settle(0);
+    };
+    const openNow = () => {
+      heading = D;
+      x.set(s * D);
+      setOpen(true);
+      setSay(`${n} actions revealed`);
+    };
+    const closeNow = () => {
+      heading = 0;
+      x.set(0);
+      setOpen(false);
+    };
+    function onToggleKey(e) {
+      if (o.disabled || phase !== 'idle' || n === 0) return;
+      const openKey = s < 0 ? 'ArrowLeft' : 'ArrowRight';
+      const closeKey = s < 0 ? 'ArrowRight' : 'ArrowLeft';
+      const toggle = e.key === 'Enter' || e.key === ' ';
+      if (e.key === openKey || (toggle && !open)) {
+        e.preventDefault();
+        openNow();
+      } else if (e.key === closeKey || e.key === 'Escape' || (toggle && open)) {
+        e.preventDefault();
+        closeNow();
+      } else if ((e.key === 'Delete' || e.key === 'Backspace') && open && primary && canCommit()) {
+        e.preventDefault();
+        commit(primary, true);
+      }
+    }
+    function onToggleClick(e) {
+      if (e.detail !== 0 || o.disabled || phase !== 'idle' || n === 0) return;
+      if (open) closeNow();
+      else openNow();
+    }
+
+    const observer = new ResizeObserver(entries => {
+      const width = entries[0]?.contentRect.width;
+      if (width) {
+        w.current = width;
+        render();
+      }
+    });
+    observer.observe(root);
+    render();
+
+    return { root, setSay };
+  }
+
+  /* ---- demo list ---- */
+  const ICONS = {
+    trash:
+      '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 6h16M9 6V4.5A1.5 1.5 0 0 1 10.5 3h3A1.5 1.5 0 0 1 15 4.5V6m3 0-.7 12.05A2 2 0 0 1 15.3 20H8.7a2 2 0 0 1-2-1.95L6 6"/></svg>',
+    archive:
+      '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="5" rx="1.2"/><path d="M5 9v9.5A1.5 1.5 0 0 0 6.5 20h11a1.5 1.5 0 0 0 1.5-1.5V9M10 13h4"/></svg>'
+  };
+
+  const list = document.getElementById('list');
+  const emptyEl = document.getElementById('empty');
+  let remaining = 0;
+
+  const ROWS = [
+    { id: 'notes', title: '设计评审笔记', meta: '今天 14:00 · 3 条待办' },
+    { id: 'brand', title: '品牌规范 v2', meta: '昨天 · 已同步到 CI 中心' },
+    { id: 'launch', title: '发布清单确认', meta: '周五 · 12 项待核' }
+  ];
+
+  ROWS.forEach(row => {
+    const handle = createSwipeRow(list, {
+      label: row.title,
+      contentHTML: `<div class="row-copy"><strong>${row.title}</strong><span>${row.meta}</span></div>`,
+      actions: [
+        { id: 'delete', label: '删除', icon: ICONS.trash },
+        { id: 'archive', label: '归档', icon: ICONS.archive, dismiss: true }
+      ],
+      onAction: action => console.log(action.id),
+      onCommit: () => {
+        handle.root.remove();
+        remaining--;
+        emptyEl.hidden = remaining > 0;
+      },
+      actionColor: '#e5484d',
+      drawerColor: '#3f3f46',
+      rowColor: '#27272a',
+      textColor: '#f5f5f5',
+      height: 64,
+      radius: 16,
+      actionWidth: 80,
+      direction: 'left',
+      snapBounce: 0.2,
+      resistance: 0.55,
+      collapseMs: 200,
+      commitAt: 0.6,
+      fullSwipe: true
+    });
+    remaining++;
+  });
+})();
+</script>
+</body>
+</html>

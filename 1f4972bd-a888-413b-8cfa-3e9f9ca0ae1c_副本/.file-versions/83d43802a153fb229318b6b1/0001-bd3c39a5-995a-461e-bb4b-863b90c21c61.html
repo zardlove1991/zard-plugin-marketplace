@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>THE CITY OPENS — Scroll-Locked Video Hero</title>
+<style>
+  :root {
+    --bg: #05070d;
+    --text: #f2f4f8;
+    --muted: rgba(240, 244, 248, 0.75);
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  }
+
+  * { box-sizing: border-box; }
+
+  html, body { margin: 0; padding: 0; background: var(--bg); }
+  html { scroll-behavior: auto; }
+
+  body {
+    font-family: var(--sans);
+    color: var(--text);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .hero {
+    position: relative;
+    height: 100dvh;
+    min-height: 420px;
+    width: 100%;
+    overflow: hidden;
+    background: var(--bg);
+    touch-action: none;
+  }
+
+  .hero__poster {
+    position: absolute;
+    inset: 0;
+    background-image: url("assets/city-poster.jpg");
+    background-size: cover;
+    background-position: center;
+    opacity: 0.55;
+  }
+
+  .hero__video {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    opacity: 0;
+    transform-origin: center center;
+    will-change: transform;
+    transition: opacity 0.6s ease;
+    touch-action: none;
+    pointer-events: none;
+  }
+
+  .hero__video.is-ready { opacity: 1; }
+
+  .hero__scrim {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      180deg,
+      rgba(5, 7, 13, 0.35),
+      rgba(5, 7, 13, 0) 30%,
+      rgba(5, 7, 13, 0.15) 70%,
+      rgba(5, 7, 13, 0.55)
+    );
+    pointer-events: none;
+  }
+
+  .hero__title,
+  .hero__tagline {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    pointer-events: none;
+    padding: 0 6%;
+  }
+
+  .hero__title span {
+    display: inline-block;
+    font-weight: 800;
+    font-size: clamp(30px, 7vw, 96px);
+    line-height: 1;
+    letter-spacing: -0.02em;
+    color: var(--text);
+    text-shadow: 0 4px 30px rgba(0, 0, 0, 0.5);
+    will-change: transform, filter, opacity;
+  }
+
+  .hero__tagline {
+    padding: 0 8%;
+    opacity: 0;
+  }
+
+  .hero__tagline span {
+    font-weight: 700;
+    font-size: clamp(20px, 3.4vw, 40px);
+    line-height: 1.2;
+    letter-spacing: -0.01em;
+    color: var(--text);
+    text-shadow: 0 4px 24px rgba(0, 0, 0, 0.5);
+  }
+
+  .hero__hint {
+    position: absolute;
+    left: 50%;
+    bottom: clamp(20px, 6vh, 48px);
+    transform: translateX(-50%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    color: var(--muted);
+    font-size: clamp(10px, 1.4vw, 12px);
+    font-weight: 600;
+    letter-spacing: 0.3em;
+    transition: opacity 0.4s ease;
+    pointer-events: none;
+  }
+
+  .hero__hint svg { animation: metro-hero-bounce 1.6s ease-in-out infinite; }
+
+  @keyframes metro-hero-bounce {
+    0%, 100% { transform: translateY(0); opacity: 0.5; }
+    50% { transform: translateY(5px); opacity: 1; }
+  }
+
+  .hero__progress {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 2px;
+    background: rgba(255, 255, 255, 0.12);
+  }
+
+  .hero__progress-fill {
+    height: 100%;
+    width: 100%;
+    background: linear-gradient(90deg, rgba(255, 255, 255, 0.5), rgba(255, 255, 255, 0.95));
+    transform: scaleX(0);
+    transform-origin: left center;
+  }
+
+  .hero__signature {
+    position: absolute;
+    right: clamp(12px, 2.5vw, 24px);
+    bottom: clamp(10px, 2vw, 18px);
+    font-size: clamp(11px, 1.4vw, 13px);
+    font-weight: 500;
+    letter-spacing: 0.01em;
+    color: rgba(220, 224, 232, 0.6);
+    z-index: 2;
+  }
+
+  .hero__signature a {
+    color: rgba(220, 224, 232, 0.6);
+    text-decoration: none;
+    transition: color 0.2s ease;
+  }
+
+  .hero__signature a:hover,
+  .hero__signature a:focus-visible { color: var(--text); outline: none; }
+
+  .after {
+    min-height: 100dvh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 18px;
+    padding: 48px 24px;
+    text-align: center;
+    background: var(--bg);
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+  }
+
+  .after h2 {
+    margin: 0;
+    font-size: clamp(28px, 5vw, 56px);
+    font-weight: 800;
+    letter-spacing: -0.02em;
+  }
+
+  .after p {
+    margin: 0;
+    max-width: 44ch;
+    font-size: clamp(15px, 2vw, 18px);
+    line-height: 1.6;
+    color: rgba(242, 244, 248, 0.68);
+  }
+
+  .after__hint {
+    margin-top: 12px;
+    font-size: 12px;
+    letter-spacing: 0.22em;
+    color: rgba(242, 244, 248, 0.45);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .hero__hint svg { animation: none; }
+    .hero__video { transition: none; }
+  }
+</style>
+</head>
+<body>
+
+<section class="hero" id="hero" aria-label="THE CITY OPENS">
+  <div class="hero__poster" aria-hidden="true"></div>
+
+  <video
+    class="hero__video"
+    id="video"
+    muted
+    playsinline
+    preload="auto"
+    poster="assets/city-poster.jpg"
+    src="https://cdn.21st.dev/assets/mirror/21/21a77eac28eacbb7e142016eefeaa0b4a766619e51113629a3bc6df6af066c0f.mp4"
+    aria-hidden="true"
+  ></video>
+
+  <div class="hero__scrim" aria-hidden="true"></div>
+
+  <div class="hero__title" id="title">
+    <span>THE CITY OPENS</span>
+  </div>
+
+  <div class="hero__tagline" id="tagline">
+    <span>Every door in the city is already open.</span>
+  </div>
+
+  <div class="hero__hint" id="hint">
+    <span>SCROLL</span>
+    <svg width="14" height="18" viewBox="0 0 14 18" aria-hidden="true">
+      <path d="M7 1 L7 17 M2 12 L7 17 L12 12" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round" />
+    </svg>
+  </div>
+
+  <div class="hero__progress" aria-hidden="true">
+    <div class="hero__progress-fill" id="progress"></div>
+  </div>
+
+  <span class="hero__signature">
+    by <a href="https://www.guglielmogiannattasio.it" target="_blank" rel="noopener noreferrer">guglielmogiannattasio.exe</a>
+  </span>
+</section>
+
+<section class="after">
+  <h2>THE CITY IS OPEN</h2>
+  <p>视频走到结尾后继续向下滚动，页面即可恢复正常浏览；向上滚回顶部会重新锁定并反向驱动视频。</p>
+  <div class="after__hint">SCROLL UP TO RE-LOCK</div>
+</section>
+
+<script>
+(function () {
+  "use strict";
+
+  var section = document.getElementById("hero");
+  var video = document.getElementById("video");
+  var title = document.getElementById("title");
+  var hint = document.getElementById("hint");
+  var tagline = document.getElementById("tagline");
+  var progress = document.getElementById("progress");
+
+  if (!section || !video || !title || !hint || !tagline || !progress) return;
+
+  var reduceMotion = window.matchMedia &&
+    window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  var SCRUB_DISTANCE = 3200;
+  var duration = 0;
+  var rafId = 0;
+  var targetProgress = reduceMotion ? 1 : 0;
+  var currentProgress = reduceMotion ? 1 : 0;
+  var hasStartedScrolling = false;
+  var isSeeking = false;
+  var pendingTime = null;
+  var locked = false;
+  var lockedScrollY = 0;
+  var touchStartY = 0;
+  var suppressUntil = 0;
+
+  function clamp(v, min, max) { return Math.min(max, Math.max(min, v)); }
+
+  function onLoadedData() {
+    duration = video.duration || 0;
+    video.classList.add("is-ready");
+    if (reduceMotion && duration > 0) video.currentTime = duration * 0.92;
+  }
+  video.addEventListener("loadeddata", onLoadedData);
+  video.addEventListener("error", function () { video.classList.remove("is-ready"); });
+
+  // iOS Safari needs a real play() call before it buffers seekable data.
+  (function kickstart() {
+    try {
+      var p = video.play();
+      if (p && typeof p.then === "function") p.then(function () { video.pause(); })["catch"](function () {});
+      else video.pause();
+    } catch (e) { /* autoplay blocked — poster remains visible */ }
+  })();
+
+  video.addEventListener("seeked", function () {
+    isSeeking = false;
+    if (pendingTime !== null) {
+      var t = pendingTime;
+      pendingTime = null;
+      isSeeking = true;
+      video.currentTime = t;
+    }
+  });
+
+  function seekTo(t) {
+    if (isSeeking) { pendingTime = t; return; }
+    isSeeking = true;
+    video.currentTime = t;
+  }
+
+  function engageLock() {
+    if (locked) return;
+    locked = true;
+    lockedScrollY = window.scrollY || window.pageYOffset || 0;
+    var b = document.body.style;
+    b.position = "fixed";
+    b.top = "-" + lockedScrollY + "px";
+    b.left = "0";
+    b.right = "0";
+    b.width = "100%";
+    b.height = "100%";
+    b.overscrollBehavior = "none";
+  }
+
+  function releaseLock() {
+    if (!locked) return;
+    locked = false;
+    var y = lockedScrollY;
+    var b = document.body.style;
+    b.position = "";
+    b.top = "";
+    b.left = "";
+    b.right = "";
+    b.width = "";
+    b.height = "";
+    b.overscrollBehavior = "";
+    window.scrollTo(0, y);
+    suppressUntil = Date.now() + 250;
+  }
+
+  engageLock();
+
+  function addDelta(deltaY) {
+    targetProgress = clamp(targetProgress + deltaY / SCRUB_DISTANCE, 0, 1);
+    if (targetProgress > 0.001) hasStartedScrolling = true;
+  }
+
+  function onWheel(e) {
+    if (locked) {
+      if (targetProgress >= 0.999 && e.deltaY > 0) {
+        releaseLock();
+        return;
+      }
+      addDelta(e.deltaY);
+      e.preventDefault();
+    } else {
+      var y = window.scrollY || window.pageYOffset || 0;
+      if (y <= 4 && e.deltaY < 0 && Date.now() > suppressUntil) {
+        engageLock();
+        e.preventDefault();
+      }
+    }
+  }
+
+  function onTouchStart(e) {
+    touchStartY = e.touches[0] ? e.touches[0].clientY : 0;
+  }
+
+  function onTouchMove(e) {
+    var y = e.touches[0] ? e.touches[0].clientY : touchStartY;
+    var deltaY = touchStartY - y;
+    touchStartY = y;
+    if (locked) {
+      if (targetProgress >= 0.999 && deltaY > 0) {
+        releaseLock();
+        return;
+      }
+      addDelta(deltaY);
+      e.preventDefault();
+    } else {
+      var scrollY = window.scrollY || window.pageYOffset || 0;
+      if (scrollY <= 4 && deltaY < 0 && Date.now() > suppressUntil) {
+        engageLock();
+        e.preventDefault();
+      }
+    }
+  }
+
+  window.addEventListener("wheel", onWheel, { passive: false });
+  window.addEventListener("touchstart", onTouchStart, { passive: true });
+  window.addEventListener("touchmove", onTouchMove, { passive: false });
+  section.addEventListener("touchstart", onTouchStart, { passive: true, capture: true });
+  section.addEventListener("touchmove", onTouchMove, { passive: false, capture: true });
+
+  function render() {
+    currentProgress += (targetProgress - currentProgress) * 0.18;
+
+    if (duration > 0) seekTo(currentProgress * duration);
+    video.style.transform = "scale(" + (1 + currentProgress * 0.06) + ")";
+
+    var t = 1 - clamp(currentProgress / 0.35, 0, 1);
+    title.style.opacity = String(t);
+    title.style.transform = "translateY(" + ((1 - t) * -24) + "px) scale(" + (0.96 + t * 0.04) + ")";
+    title.style.filter = "blur(" + ((1 - t) * 10) + "px)";
+
+    hint.style.opacity = hasStartedScrolling ? "0" : "1";
+
+    var p = clamp((currentProgress - 0.82) / 0.18, 0, 1);
+    tagline.style.opacity = String(p);
+    tagline.style.transform = "translateY(" + ((1 - p) * 20) + "px) scale(" + (0.97 + p * 0.03) + ")";
+    tagline.style.filter = "blur(" + ((1 - p) * 8) + "px)";
+
+    progress.style.transform = "scaleX(" + currentProgress + ")";
+
+    rafId = requestAnimationFrame(render);
+  }
+
+  if (!reduceMotion) {
+    rafId = requestAnimationFrame(render);
+  } else {
+    title.style.opacity = "0";
+    tagline.style.opacity = "1";
+    hint.style.opacity = "0";
+    progress.style.transform = "scaleX(1)";
+  }
+
+  window.addEventListener("pagehide", function () {
+    cancelAnimationFrame(rafId);
+    releaseLock();
+  });
+})();
+</script>
+</body>
+</html>

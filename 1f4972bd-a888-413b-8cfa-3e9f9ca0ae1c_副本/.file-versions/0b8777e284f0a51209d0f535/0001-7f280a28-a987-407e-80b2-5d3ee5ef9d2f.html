@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Signature</title>
+<style>
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    min-height: 100svh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 40px;
+    padding: 40px 16px;
+    background: #f5f5f5;
+    font-family: "Space Grotesk", system-ui, -apple-system, "Segoe UI", sans-serif;
+    color: #000;
+  }
+  .col { width: min(100%, 720px); }
+  .eyebrow { margin: 0 0 8px; font: 600 12px/1.4 ui-sans-serif, system-ui, sans-serif; letter-spacing: .12em; text-transform: uppercase; }
+  .title { margin: 0 0 20px; font: 600 clamp(26px,4vw,36px)/1.3 ui-sans-serif, system-ui, sans-serif; letter-spacing: 0; }
+  .sub { margin: 0 0 16px; font: 600 18px/1.4 ui-sans-serif, system-ui, sans-serif; }
+
+  .card {
+    position: relative;
+    height: 300px;
+    padding: 22px 26px 18px;
+    border-radius: 18px;
+    border: 1px solid rgba(255,255,255,.08);
+    box-shadow: 0 16px 40px -24px rgba(0,0,0,.9);
+    overflow: hidden;
+  }
+  .card--dark { background: #141416; }
+  .card--light { background: #ffffff; border-color: rgba(0,0,0,.09); box-shadow: 0 16px 40px -24px rgba(0,0,0,.28); }
+  .card.fade { opacity: 0; transition: opacity .5s ease; }
+  .card.fade.show { opacity: 1; }
+  canvas { width: 100%; height: calc(100% - 44px); display: block; touch-action: none; }
+  .card--sign canvas { cursor: crosshair; }
+  .placeholder {
+    position: absolute; left: 26px; right: 26px; top: 46%;
+    text-align: center; font-size: 14px; pointer-events: none;
+  }
+  .card--dark .placeholder { color: rgba(228,232,242,.32); }
+  .card--light .placeholder { color: rgba(0,0,0,.32); }
+  .rule { height: 1px; transform-origin: left center; animation: sig-line .8s ease both; }
+  .card--dark .rule { background: rgba(228,232,242,.22); }
+  .card--light .rule { background: rgba(0,0,0,.18); }
+  @keyframes sig-line { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+  .meta { display: flex; align-items: baseline; gap: 10px; margin-top: 8px; }
+  .meta b { font-size: 13px; font-weight: 600; }
+  .meta span { font-size: 12px; opacity: .5; }
+  .card--dark .meta b { color: #E4E8F2; }
+  .card--dark .meta span { color: rgba(228,232,242,.5); }
+  .actions { display: flex; gap: 10px; margin-top: 14px; }
+  .actions button {
+    padding: 8px 16px; border: 1px solid #dbdbdb; border-radius: 8px;
+    background: #fff; color: #000; font: 500 13px/1 ui-sans-serif, system-ui, sans-serif; cursor: pointer;
+  }
+</style>
+</head>
+<body>
+
+<div class="col">
+  <p class="eyebrow">维链通 · 品牌 CI 中心</p>
+  <h1 class="title">一笔写成的签名</h1>
+  <div class="card card--dark fade" id="playCard">
+    <canvas id="playCanvas"></canvas>
+    <div class="rule"></div>
+    <div class="meta"><b>维链通</b><span>品牌 CI 中心</span></div>
+  </div>
+</div>
+
+<div class="col">
+  <h2 class="sub">在这里签下你的名字</h2>
+  <div class="card card--light" id="signCard">
+    <canvas id="signCanvas"></canvas>
+    <span class="placeholder" id="ph">在此处签名</span>
+    <div class="rule"></div>
+    <div class="meta"><b>访客签名</b><span>Signature pad</span></div>
+  </div>
+  <div class="actions">
+    <button type="button" id="undo">撤销</button>
+    <button type="button" id="clear">清空</button>
+    <button type="button" id="replay">回放</button>
+  </div>
+</div>
+
+<script>
+(function () {
+  "use strict";
+
+  const DEFAULT_STROKES = [
+    [{x:.08,y:.66},{x:.14,y:.46},{x:.2,y:.33},{x:.26,y:.4},{x:.22,y:.64},{x:.3,y:.5},{x:.36,y:.36},{x:.42,y:.48},{x:.4,y:.62}],
+    [{x:.43,y:.6},{x:.5,y:.4},{x:.56,y:.3},{x:.58,y:.45},{x:.53,y:.62},{x:.62,y:.5},{x:.7,y:.36},{x:.74,y:.5},{x:.7,y:.63}],
+    [{x:.5,y:.54},{x:.62,y:.58},{x:.76,y:.56},{x:.88,y:.5}],
+    [{x:.78,y:.62},{x:.86,y:.42},{x:.92,y:.6}],
+    [{x:.1,y:.76},{x:.3,y:.73},{x:.52,y:.75},{x:.74,y:.72},{x:.9,y:.74}],
+  ];
+  const clamp = (v,a,b) => Math.min(b, Math.max(a,v));
+  function widthAt(angle, speedRatio) {
+    const down = clamp(Math.abs(Math.sin(angle)) * 1.6, .55, 1.7);
+    return 2.6 * down * (1 - .35 * clamp(speedRatio, 0, 1));
+  }
+  function ctxOf(cv) {
+    const rect = cv.getBoundingClientRect();
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    const w = Math.max(1, Math.round(rect.width * dpr));
+    const h = Math.max(1, Math.round(rect.height * dpr));
+    if (cv.width !== w || cv.height !== h) { cv.width = w; cv.height = h; }
+    const ctx = cv.getContext("2d");
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    return { ctx, w: rect.width, h: rect.height };
+  }
+  function drawStroke(ctx, pts, ink, w, h, upto) {
+    if (pts.length < 2) return;
+    ctx.strokeStyle = ink;
+    ctx.lineCap = "round";
+    ctx.lineJoin = "round";
+    for (let i = 1; i < Math.min(upto, pts.length); i++) {
+      const a = pts[i-1], b = pts[i];
+      const dx = (b.x-a.x)*w, dy = (b.y-a.y)*h;
+      const angle = Math.atan2(dy, dx);
+      const seg = Math.hypot(dx, dy);
+      ctx.lineWidth = widthAt(angle, clamp(seg/26,0,1)) * (b.p ?? 1);
+      ctx.beginPath();
+      ctx.moveTo(a.x*w, a.y*h);
+      ctx.lineTo(b.x*w, b.y*h);
+      ctx.stroke();
+    }
+  }
+  function render(cv, list, ink, progress) {
+    const { ctx, w, h } = ctxOf(cv);
+    ctx.clearRect(0, 0, w, h);
+    if (!list.length) return;
+    const total = list.reduce((n,s) => n+s.length, 0);
+    let left = (progress === undefined ? 1 : progress) * total;
+    for (const s of list) {
+      if (left <= 0) break;
+      const take = Math.min(s.length, left);
+      if (take >= 1) drawStroke(ctx, s, ink, w, h, Math.ceil(take));
+      left -= s.length;
+    }
+  }
+
+  /* ---------- play mode ---------- */
+  const playCanvas = document.getElementById("playCanvas");
+  const playCard = document.getElementById("playCard");
+  let playGen = 0;
+  function play() {
+    const gen = ++playGen;
+    playCard.classList.add("show");
+    const total = DEFAULT_STROKES.reduce((n,s) => n+s.length, 0);
+    const duration = (total / 26) * 1000;
+    const start = performance.now();
+    const tick = now => {
+      if (gen !== playGen) return;
+      const t = clamp((now - start) / duration, 0, 1);
+      render(playCanvas, DEFAULT_STROKES, "#E4E8F2", t);
+      if (t < 1) requestAnimationFrame(tick);
+    };
+    requestAnimationFrame(tick);
+  }
+  if (typeof IntersectionObserver !== "undefined") {
+    const io = new IntersectionObserver(entries => {
+      if (entries[0].isIntersecting) { io.disconnect(); setTimeout(play, 260); }
+    }, { threshold: .25 });
+    io.observe(playCard);
+  } else { play(); }
+  // Fallback for environments where the observer never fires.
+  setTimeout(() => { if (!playCard.classList.contains("show")) play(); }, 1200);
+
+  /* ---------- sign mode ---------- */
+  const signCanvas = document.getElementById("signCanvas");
+  const ph = document.getElementById("ph");
+  let strokes = [];
+  let active = 0;
+  function repaint() { render(signCanvas, strokes, "#1d4ed8", 1); ph.style.display = strokes.length ? "none" : "block"; }
+  const local = e => {
+    const r = signCanvas.getBoundingClientRect();
+    return { x: clamp((e.clientX-r.left)/r.width,0,1), y: clamp((e.clientY-r.top)/r.height,0,1) };
+  };
+  signCanvas.addEventListener("pointerdown", e => {
+    try { signCanvas.setPointerCapture(e.pointerId); } catch (_) {}
+    const p = local(e);
+    active = strokes.length;
+    strokes = [...strokes, [{ ...p, t: performance.now(), p: e.pressure > 0 ? e.pressure : 1 }]];
+    repaint();
+  });
+  signCanvas.addEventListener("pointermove", e => {
+    if (!signCanvas.hasPointerCapture(e.pointerId)) return;
+    const p = local(e);
+    const list = strokes.slice();
+    if (!list[active]) return;
+    list[active] = [...list[active], { ...p, t: performance.now(), p: e.pressure > 0 ? e.pressure : 1 }];
+    strokes = list;
+    repaint();
+  });
+  signCanvas.addEventListener("pointerup", () => repaint());
+  signCanvas.addEventListener("pointercancel", () => repaint());
+  document.getElementById("undo").addEventListener("click", () => { strokes = strokes.slice(0,-1); repaint(); });
+  document.getElementById("clear").addEventListener("click", () => { strokes = []; repaint(); });
+  document.getElementById("replay").addEventListener("click", () => {
+    if (!strokes.length) return;
+    const total = strokes.reduce((n,s) => n+s.length, 0);
+    const duration = (total / 26) * 1000;
+    const start = performance.now();
+    const step = now => {
+      const t = clamp((now-start)/duration, 0, 1);
+      render(signCanvas, strokes, "#1d4ed8", t);
+      if (t < 1) requestAnimationFrame(step);
+    };
+    requestAnimationFrame(step);
+  });
+  repaint();
+})();
+</script>
+</body>
+</html>

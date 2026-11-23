@@ -1,0 +1,22 @@
+{
+  "schemaVersion": 2,
+  "fileName": "index-video-hero.html",
+  "currentVersionId": "bd3c39a5-995a-461e-bb4b-863b90c21c61",
+  "entries": [
+    {
+      "id": "bd3c39a5-995a-461e-bb4b-863b90c21c61",
+      "fileName": "index-video-hero.html",
+      "version": 1,
+      "label": "Version 1",
+      "createdAt": 1795402584054,
+      "source": "ai",
+      "prompt": "{\"error\":{\"code\":\"WORKSPACE_CONTEXT_REQUIRED\",\"message\":\"an exact workspace identity is required\"}}这个问题能解决吗",
+      "size": 11741,
+      "mime": "text/html; charset=utf-8",
+      "kind": "html",
+      "contentPath": "0001-bd3c39a5-995a-461e-bb4b-863b90c21c61.html",
+      "contentDigest": "d4d3c1d8741df3dd3b166f5474f3a3595bc811426b2f4bf0189a6efb2485d6ac",
+      "promptSource": "message"
+    }
+  ]
+}

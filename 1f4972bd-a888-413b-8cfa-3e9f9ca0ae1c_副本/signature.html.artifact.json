@@ -1,0 +1,19 @@
+{
+  "version": 1,
+  "kind": "html",
+  "title": "signature.html",
+  "entry": "signature.html",
+  "renderer": "html",
+  "status": "complete",
+  "exports": [
+    "html",
+    "pdf",
+    "zip"
+  ],
+  "createdAt": "2026-11-23T07:18:19.497Z",
+  "updatedAt": "2026-11-23T07:18:19.497Z",
+  "metadata": {
+    "inferred": true,
+    "reconciled": true
+  }
+}

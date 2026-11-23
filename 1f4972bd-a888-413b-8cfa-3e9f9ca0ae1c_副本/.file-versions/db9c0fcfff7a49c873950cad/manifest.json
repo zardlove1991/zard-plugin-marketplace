@@ -1,0 +1,22 @@
+{
+  "schemaVersion": 2,
+  "fileName": "terminal-replay.html",
+  "currentVersionId": "e675e4ae-b391-42a2-87f8-abb0d8b672fd",
+  "entries": [
+    {
+      "id": "e675e4ae-b391-42a2-87f8-abb0d8b672fd",
+      "fileName": "terminal-replay.html",
+      "version": 1,
+      "label": "Version 1",
+      "createdAt": 1795418139304,
+      "source": "ai",
+      "prompt": "Add the \"Terminal Replay\" component from React Bits Pro to my project.\n\nA terminal window that plays back a scripted CLI session\n\nSteps:\n1. Ensure my components.json has the React Bits Pro registries configured (see https://pro.reactbits.dev/docs/installation), including the Authorization header with my REACTBITS_LICENSE_KEY environment variable.\n2. Install the component with:\n   npx shadcn@latest add @reactbits-starter/terminal-replay-tw\n3. Import it where needed and adapt it to my project's content and design tokens.\n\nDocs page for reference: https://pro.reactbits.dev/docs/components/terminal-replay\n这个效果实现一下",
+      "size": 11711,
+      "mime": "text/html; charset=utf-8",
+      "kind": "html",
+      "contentPath": "0001-e675e4ae-b391-42a2-87f8-abb0d8b672fd.html",
+      "contentDigest": "eb81c11dd54ff642b45af0df9643bcd484c5fb836d7d4b2a84c72fbf7aac2713",
+      "promptSource": "message"
+    }
+  ]
+}
