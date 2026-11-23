@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Terminal Replay</title>
+<style>
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    min-height: 100svh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 24px;
+    padding: 24px 16px;
+    background: #f5f5f5;
+    font-family: ui-sans-serif, -apple-system, "Segoe UI", system-ui, sans-serif;
+  }
+  .intro { text-align: center; display: flex; flex-direction: column; gap: 8px; }
+  .eyebrow { margin: 0; font: 600 12px/1.4 ui-sans-serif, system-ui, sans-serif; letter-spacing: .12em; text-transform: uppercase; color: #000; }
+  .title { margin: 0; font: 600 clamp(26px,4vw,36px)/1.3 ui-sans-serif, system-ui, sans-serif; letter-spacing: 0; color: #000; }
+  .hint { margin: 0; font: 500 13px/1.5 ui-sans-serif, system-ui, sans-serif; color: #000; text-align: center; }
+
+  /* ---------- terminal ---------- */
+  .tr {
+    --tr-accent: #2563eb;
+    --tr-window: #111113;
+    --tr-ink: #e7e7ea;
+    --tr-frame: rgba(255,255,255,.05);
+    width: 100%;
+    max-width: 720px;
+    height: 360px;
+    border-radius: 16px;
+    overflow: hidden;
+    background: var(--tr-frame);
+    border: 1px solid rgba(255,255,255,.08);
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+    font-size: 13px;
+    line-height: 1.7;
+    color: var(--tr-ink);
+    cursor: pointer;
+    outline: none;
+  }
+  .tr:focus-visible { outline: 2px solid var(--tr-accent); outline-offset: 3px; }
+  .tr__bar {
+    display: flex; align-items: center; gap: 8px;
+    height: 38px; padding: 0 14px;
+    border-bottom: 1px solid rgba(255,255,255,.07);
+  }
+  .tr__dots { display: flex; gap: 7px; }
+  .tr__dot { width: 11px; height: 11px; border-radius: 9px; background: rgba(128,128,128,.55); }
+  .tr__title { margin: 0 auto; font-size: 11px; letter-spacing: .02em; opacity: .62; }
+  .tr__screen {
+    position: relative;
+    height: calc(100% - 38px);
+    overflow: hidden;
+    background: var(--tr-window);
+    border-radius: 6px;
+    margin: 8px;
+    padding: 14px 16px;
+  }
+  .tr__lines { display: flex; flex-direction: column; gap: 2px; }
+  .tr__row { display: flex; align-items: baseline; gap: 8px; min-height: 22px; }
+  .tr__prompt { color: var(--tr-accent); flex: none; }
+  .tr__dir { opacity: .55; flex: none; }
+  .tr__cmd { color: var(--tr-ink); }
+  .tr__copy {
+    margin-left: auto; opacity: 0; border: 0; background: none; color: var(--tr-ink);
+    font-size: 11px; cursor: pointer; font-family: inherit; transition: opacity .18s ease;
+  }
+  .tr:hover .tr__copy, .tr__copy:focus-visible { opacity: .7; }
+  .tr__caret {
+    display: inline-block; width: .62em; height: 1.05em;
+    background: var(--tr-accent); vertical-align: middle;
+    animation: tr-blink 1s steps(1) infinite;
+  }
+  @keyframes tr-blink { 50% { opacity: 0; } }
+  @media (max-width: 520px) { .tr { height: 400px; } }
+</style>
+</head>
+<body>
+
+<div class="intro">
+  <p class="eyebrow">维链通 · 命令行回放</p>
+  <h1 class="title">一段会自己敲完的终端会话</h1>
+</div>
+
+<div class="tr" id="tr" role="button" tabindex="0" aria-label="Terminal session playback">
+  <div class="tr__bar">
+    <div class="tr__dots"><span class="tr__dot"></span><span class="tr__dot"></span><span class="tr__dot"></span></div>
+    <span class="tr__title">weiliantong — zsh</span>
+  </div>
+  <div class="tr__screen" id="screen"><div class="tr__lines" id="lines"></div></div>
+</div>
+
+<p class="hint">点击终端可跳过当前步骤，结束后点击重播</p>
+
+<script>
+(function () {
+  "use strict";
+
+  const SCRIPT = [
+    { type: "command", text: "npx create-next-app@latest weiliantong --typescript --tailwind", directory: "~" },
+    { type: "output", lines: ["[muted]✓[/] 创建项目目录 weiliantong", "[muted]✓[/] 安装依赖中…"], delay: 90 },
+    { type: "spinner", text: "正在安装依赖", duration: 1400, done: "[success]依赖安装完成[/]", status: "success" },
+    { type: "command", text: "cd weiliantong && npm run dev", directory: "~" },
+    { type: "output", lines: ["[accent]▲[/] Next.js 15.2.0", "[success]✓[/] 本地服务已启动", "[muted]→[/] http://localhost:3000"] },
+    { type: "progress", text: "构建设计令牌", duration: 1500, done: "[success]设计令牌已生成[/]" },
+    { type: "pause", duration: 300 },
+    { type: "command", text: "git status --short", directory: "~/weiliantong" },
+    { type: "output", lines: ["[success] M[/] app/globals.css", "[info]??[/] components/ui/terminal-replay.tsx"], delay: 80 },
+  ];
+  const COLORS = { success: "#4ADE80", error: "#F87171", warning: "#FBBF24", info: "#60A5FA", accent: "#2563eb", muted: "rgba(231,231,234,.62)", dim: "rgba(231,231,234,.4)", bold: "inherit" };
+  const ACCENT = "#2563eb";
+  const TYPING = 26, VARIANCE = 0.5, LINE_DELAY = 70, START_DELAY = 700, HOLD = 3200;
+  const PROMPT = "❯";
+  const FRAMES = ["⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏"];
+
+  const root = document.getElementById("tr");
+  const screen = document.getElementById("screen");
+  const linesBox = document.getElementById("lines");
+  if (!root || !linesBox || !screen) return;
+
+  let gen = 0;
+  let skip = false;
+  let wake = null;
+  let running = false;
+  let finished = false;
+  let visible = true;
+
+  function markup(text) {
+    const frag = document.createDocumentFragment();
+    const re = /\[(success|error|warning|info|accent|muted|dim|bold)\]([\s\S]*?)\[\/\1\]/g;
+    let last = 0, m;
+    while ((m = re.exec(text)) !== null) {
+      if (m.index > last) frag.appendChild(document.createTextNode(text.slice(last, m.index)));
+      const s = document.createElement("span");
+      s.textContent = m[2];
+      s.style.color = m[1] === "accent" ? ACCENT : COLORS[m[1]];
+      if (m[1] === "bold") s.style.fontWeight = "700";
+      frag.appendChild(s);
+      last = m.index + m[0].length;
+    }
+    if (last < text.length) frag.appendChild(document.createTextNode(text.slice(last)));
+    return frag;
+  }
+  function wait(ms) {
+    return new Promise(resolve => {
+      if (skip || ms <= 0) { resolve(); return; }
+      const id = setTimeout(() => { wake = null; resolve(); }, ms);
+      wake = () => { clearTimeout(id); wake = null; resolve(); };
+    });
+  }
+  function clearScreen() { linesBox.textContent = ""; }
+  function row() {
+    const r = document.createElement("div");
+    r.className = "tr__row";
+    linesBox.appendChild(r);
+    screen.scrollTop = screen.scrollHeight;
+    return r;
+  }
+  function commandRow(dir, text, done) {
+    const r = row();
+    const p = document.createElement("span"); p.className = "tr__prompt"; p.textContent = PROMPT;
+    const d = document.createElement("span"); d.className = "tr__dir"; d.textContent = dir;
+    const c = document.createElement("span"); c.className = "tr__cmd"; c.appendChild(markup(text));
+    r.appendChild(p); r.appendChild(d); r.appendChild(c);
+    if (done) {
+      const b = document.createElement("button");
+      b.className = "tr__copy"; b.type = "button"; b.textContent = "复制";
+      b.addEventListener("click", e => {
+        e.stopPropagation();
+        try { navigator.clipboard?.writeText(text); } catch (_) {}
+      });
+      r.appendChild(b);
+    }
+    return r;
+  }
+  function textRow(text, color) {
+    const r = row();
+    const s = document.createElement("span");
+    s.appendChild(markup(text));
+    if (color) s.style.color = color;
+    r.appendChild(s);
+    return r;
+  }
+
+  async function run(generation) {
+    running = true; finished = false; skip = false;
+    clearScreen();
+    await wait(START_DELAY);
+    for (const step of SCRIPT) {
+      if (gen !== generation) return;
+      skip = false;
+      if (step.type === "command") {
+        const dir = step.directory || "~";
+        const gap = 1000 / TYPING;
+        const r = row();
+        const p = document.createElement("span"); p.className = "tr__prompt"; p.textContent = PROMPT;
+        const d = document.createElement("span"); d.className = "tr__dir"; d.textContent = dir;
+        const c = document.createElement("span"); c.className = "tr__cmd";
+        const caret = document.createElement("span"); caret.className = "tr__caret";
+        r.appendChild(p); r.appendChild(d); r.appendChild(c); r.appendChild(caret);
+        for (let i = 0; i <= step.text.length; i++) {
+          if (gen !== generation) return;
+          c.textContent = step.text.slice(0, i);
+          screen.scrollTop = screen.scrollHeight;
+          await wait(skip ? 0 : gap * (1 + (Math.random() - 0.5) * VARIANCE));
+        }
+        caret.remove();
+        commandRow(dir, step.text, true);
+        r.remove();
+      } else if (step.type === "output") {
+        for (const line of step.lines) {
+          if (gen !== generation) return;
+          textRow(line);
+          await wait(step.delay ?? LINE_DELAY);
+        }
+      } else if (step.type === "spinner") {
+        const r = row();
+        const sp = document.createElement("span"); sp.style.color = ACCENT; sp.textContent = FRAMES[0];
+        const tx = document.createElement("span"); tx.appendChild(markup(step.text));
+        r.appendChild(sp); r.appendChild(tx);
+        const end = performance.now() + (step.duration || 1200);
+        let i = 0;
+        while (performance.now() < end) {
+          if (gen !== generation) return;
+          await wait(80);
+          i = (i + 1) % FRAMES.length;
+          sp.textContent = FRAMES[i];
+        }
+        r.remove();
+        textRow(step.done || step.text, COLORS[step.status || "success"]);
+      } else if (step.type === "progress") {
+        const r = row();
+        const ic = document.createElement("span"); ic.style.color = ACCENT; ic.textContent = "▍";
+        const tx = document.createElement("span"); tx.appendChild(markup(step.text));
+        const bar = document.createElement("span"); bar.style.color = ACCENT;
+        r.appendChild(ic); r.appendChild(tx); r.appendChild(bar);
+        const dur = step.duration || 1200;
+        const end = performance.now() + dur;
+        while (performance.now() < end) {
+          if (gen !== generation) return;
+          await wait(60);
+          const pct = Math.min(100, Math.round(((performance.now() - (end - dur)) / dur) * 100));
+          const filled = Math.floor(pct / 5);
+          bar.textContent = " [" + "█".repeat(filled) + "·".repeat(20 - filled) + "] " + pct + "%";
+        }
+        r.remove();
+        textRow(step.done || step.text, COLORS.success);
+      } else if (step.type === "pause") {
+        await wait(step.duration || 300);
+      } else if (step.type === "clear") {
+        clearScreen();
+      }
+    }
+    if (gen !== generation) return;
+    finished = true; running = false;
+    await wait(HOLD);
+    if (gen === generation) { gen += 1; void run(gen); }
+  }
+
+  function interact() {
+    if (finished) { gen += 1; void run(gen); }
+    else if (running) { skip = true; wake?.(); }
+  }
+  root.addEventListener("click", interact);
+  root.addEventListener("keydown", e => {
+    if (e.key === "Enter" || e.key === " ") { e.preventDefault(); interact(); }
+  });
+
+  if (typeof IntersectionObserver !== "undefined") {
+    const io = new IntersectionObserver(entries => {
+      const now = entries[0].isIntersecting;
+      if (now && !visible) { visible = true; gen += 1; void run(gen); }
+      else if (!now && visible) { visible = false; gen += 1; wake?.(); }
+    }, { threshold: 0.25 });
+    io.observe(root);
+  }
+  // Start on mount; the observer only pauses and resumes playback afterwards.
+  void run(gen);
+})();
+</script>
+</body>
+</html>

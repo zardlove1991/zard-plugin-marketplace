@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Rubber Segment</title>
+<style>
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    min-height: 100svh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 24px;
+    padding: 0 16px;
+    background: #f5f5f5;
+    font-family: ui-sans-serif, -apple-system, "Segoe UI", system-ui, sans-serif;
+  }
+  .status {
+    margin: 0;
+    font: 500 13px/1.5 ui-sans-serif, system-ui, sans-serif;
+    letter-spacing: 0.01em;
+    color: #8c8c8c;
+  }
+
+  /* ---------- component ---------- */
+  .rubber-segment {
+    --rs-track: #27272a;
+    --rs-thumb: #fafafa;
+    --rs-ink: #fafafa;
+    --rs-ink-active: #18181b;
+    --rs-radius: 10px;
+    --rs-inset: 3px;
+    --rs-thumb-radius: 7px;
+    --rs-h: 36px;
+    --rs-font: 13px;
+    --rs-pad: 14px;
+    --rs-min: 44px;
+    --rs-idle: 0.7;
+    --rs-hover: 0.9;
+    --rs-ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+
+    position: relative;
+    display: inline-grid;
+    grid-auto-flow: column;
+    grid-auto-columns: auto;
+    vertical-align: middle;
+    padding: var(--rs-inset);
+    border-radius: var(--rs-radius);
+    background: var(--rs-track);
+    font-family: inherit;
+    touch-action: pan-y;
+    user-select: none;
+    -webkit-user-select: none;
+    -webkit-touch-callout: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .rubber-segment[data-equal] { grid-auto-columns: minmax(0, 1fr); }
+  .rubber-segment[aria-disabled='true'] { opacity: 0.5; pointer-events: none; }
+  .rubber-segment__item {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    height: calc(var(--rs-h) - var(--rs-inset) * 2);
+    min-width: var(--rs-min);
+    margin: 0;
+    padding: 0 var(--rs-pad);
+    border: 0;
+    border-radius: var(--rs-thumb-radius);
+    background: none;
+    color: var(--rs-ink);
+    opacity: var(--rs-idle);
+    font: inherit;
+    font-size: var(--rs-font);
+    font-weight: 500;
+    line-height: 1;
+    white-space: nowrap;
+    cursor: pointer;
+    outline: none;
+    transition: opacity 160ms ease, transform 160ms var(--rs-ease-out);
+  }
+  .rubber-segment__item[aria-checked='true'] { cursor: default; }
+  .rubber-segment[data-draggable] .rubber-segment__item[aria-checked='true'] { cursor: grab; }
+  .rubber-segment[data-held],
+  .rubber-segment[data-held] .rubber-segment__item { cursor: grabbing; }
+  .rubber-segment__item[data-pressed] { transform: scale(0.96); }
+  .rubber-segment__item:focus-visible { outline: 2px solid var(--rs-thumb); outline-offset: 3px; }
+  @media (hover: hover) and (pointer: fine) {
+    .rubber-segment__item[aria-checked='false']:hover { opacity: var(--rs-hover); }
+  }
+  .rubber-segment__thumb {
+    position: absolute;
+    inset: var(--rs-inset);
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: auto;
+    background: var(--rs-thumb);
+    color: var(--rs-ink-active);
+    pointer-events: none;
+  }
+  .rubber-segment[data-equal] .rubber-segment__thumb { grid-auto-columns: minmax(0, 1fr); }
+  .rubber-segment__copy { color: inherit; opacity: 1; cursor: default; }
+  @media (prefers-reduced-motion: reduce) {
+    .rubber-segment__item { transition: opacity 160ms ease; }
+  }
+</style>
+</head>
+<body>
+
+<div
+  class="rubber-segment"
+  id="rs"
+  role="radiogroup"
+  aria-label="Segmented control"
+  data-equal
+  data-draggable
+  style="--rs-track:#27272a;--rs-thumb:#fafafa;--rs-ink:#fafafa;--rs-ink-active:#18181b;--rs-radius:10px;--rs-inset:3px;--rs-thumb-radius:7px;--rs-h:36px;--rs-font:13px;--rs-pad:14px;--rs-min:44px;"
+>
+  <button type="button" role="radio" class="rubber-segment__item" aria-checked="false" tabindex="-1">Day</button>
+  <button type="button" role="radio" class="rubber-segment__item" aria-checked="true" tabindex="0">Week</button>
+  <button type="button" role="radio" class="rubber-segment__item" aria-checked="false" tabindex="-1">Month</button>
+  <button type="button" role="radio" class="rubber-segment__item" aria-checked="false" tabindex="-1">Year</button>
+  <div class="rubber-segment__thumb" aria-hidden="true">
+    <span class="rubber-segment__item rubber-segment__copy">Day</span>
+    <span class="rubber-segment__item rubber-segment__copy">Week</span>
+    <span class="rubber-segment__item rubber-segment__copy">Month</span>
+    <span class="rubber-segment__item rubber-segment__copy">Year</span>
+  </div>
+</div>
+
+<p class="status" id="status">当前：Week · 1 · 可点击、拖拽或方向键切换</p>
+
+<script>
+(function () {
+  "use strict";
+
+  const LABELS = ["Day", "Week", "Month", "Year"];
+  const INSET = 3;
+  const SQUASH = 3;
+  const DEADZONE = 4;
+  const SLOP = 10;
+  const RUBBER = 0.55;
+  const FLICK = 110;
+  const reduce = !!(window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches);
+
+  const track = document.getElementById("rs");
+  const status = document.getElementById("status");
+  const thumb = track.querySelector(".rubber-segment__thumb");
+  const items = Array.prototype.slice.call(track.querySelectorAll("button"));
+  if (!track || !thumb || !items.length) return;
+
+  let slots = [];
+  let innerW = 0;
+  let committed = 1;
+  let edgeL = 0, edgeR = 0;
+  let gen = 0;
+  let handoff = 0;
+  let drag = null;
+  let box = null;
+
+  const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
+  const rubber = (over, dim) => (over * dim * RUBBER) / (dim + RUBBER * Math.abs(over));
+  const easeOutCubic = t => 1 - Math.pow(1 - t, 3);
+  const easeOutBack = t => 1 + 2.2 * Math.pow(t - 1, 3) + 1.2 * Math.pow(t - 1, 2);
+  const project = (v, glide) => {
+    const d = 1 - 0.1 * Math.pow(0.05, glide / 100);
+    return ((v / 1000) * d) / (1 - d);
+  };
+  const velocityOf = hist => {
+    if (hist.length < 2) return 0;
+    const [t0, x0] = hist[0];
+    const [t1, x1] = hist[hist.length - 1];
+    return t1 - t0 >= 8 ? ((x1 - x0) / (t1 - t0)) * 1000 : 0;
+  };
+  const nearestSlot = x => {
+    let best = 0;
+    for (let i = 1; i < slots.length; i++) {
+      if (Math.abs((slots[i].l + slots[i].r) / 2 - x) < Math.abs((slots[best].l + slots[best].r) / 2 - x)) best = i;
+    }
+    return best;
+  };
+
+  function paint() {
+    const left = Math.max(0, edgeL);
+    const right = Math.max(0, innerW - edgeR);
+    thumb.style.clipPath = "inset(0 " + right + "px 0 " + left + "px round " + Math.max(0, 10 - INSET) + "px)";
+  }
+  function animateEdges(toL, toR, duration, ease, done) {
+    const g = ++gen;
+    const fromL = edgeL, fromR = edgeR;
+    const start = performance.now();
+    function step(now) {
+      if (g !== gen) return;
+      const t = duration > 0 ? Math.min(1, (now - start) / duration) : 1;
+      const k = ease(t);
+      edgeL = fromL + (toL - fromL) * k;
+      edgeR = fromR + (toR - fromR) * k;
+      paint();
+      if (t < 1) requestAnimationFrame(step);
+      else if (done) done();
+    }
+    requestAnimationFrame(step);
+  }
+  function jump(i) {
+    const s = slots[i];
+    if (!s) return;
+    gen++;
+    clearTimeout(handoff);
+    edgeL = s.l; edgeR = s.r;
+    paint();
+  }
+  function land(to, withSquash) {
+    const b = slots[to];
+    if (!b) return;
+    const dir = Math.sign((b.l + b.r) / 2 - (edgeL + edgeR) / 2) || 1;
+    if (withSquash && SQUASH > 0 && !reduce) {
+      const overL = dir > 0 ? b.l - SQUASH : b.l;
+      const overR = dir > 0 ? b.r : b.r + SQUASH;
+      animateEdges(overL, overR, 300, easeOutBack, function () {
+        animateEdges(b.l, b.r, 160, easeOutCubic);
+      });
+    } else {
+      animateEdges(b.l, b.r, reduce ? 0 : 300, reduce ? easeOutCubic : easeOutBack);
+    }
+  }
+  function travel(from, to) {
+    const a = slots[from], b = slots[to];
+    if (!a || !b) return;
+    if (reduce) { jump(to); return; }
+    gen++;
+    clearTimeout(handoff);
+    const u = 1;
+    animateEdges(
+      b.l + (Math.min(a.l, b.l) - b.l) * u,
+      b.r + (Math.max(a.r, b.r) - b.r) * u,
+      190, easeOutCubic
+    );
+    handoff = setTimeout(function () { land(to, true); }, 150);
+  }
+  function commit(i) {
+    committed = i;
+    items.forEach(function (b, j) {
+      b.setAttribute("aria-checked", String(j === i));
+      b.tabIndex = j === i ? 0 : -1;
+    });
+    status.textContent = "当前：" + LABELS[i] + " · " + i + " · 可点击、拖拽或方向键切换";
+  }
+  function measure() {
+    box = track.getBoundingClientRect();
+    slots = items.map(function (el) {
+      return { l: el.offsetLeft - INSET, r: el.offsetLeft + el.offsetWidth - INSET };
+    });
+    innerW = box.width - INSET * 2;
+    jump(committed);
+  }
+
+  const localX = e => e.clientX - (box ? box.left : 0) - INSET;
+
+  items.forEach(function (el, i) {
+    el.addEventListener("pointerdown", function (e) {
+      if (e.button !== 0 || drag) return;
+      box = track.getBoundingClientRect();
+      try { el.setPointerCapture(e.pointerId); } catch (_) {}
+      const x = localX(e);
+      const onThumb = x >= edgeL && x <= edgeR;
+      drag = { id: e.pointerId, x0: x, slot: i, onThumb, live: false, offset: 0, w: 0, hist: [[e.timeStamp, x]] };
+      if (onThumb) { gen++; clearTimeout(handoff); }
+      else if (!reduce) el.dataset.pressed = "";
+      track.addEventListener("pointermove", onMove);
+      track.addEventListener("pointerup", onUp);
+      track.addEventListener("pointercancel", onCancel);
+    });
+    el.addEventListener("keydown", function (e) {
+      const last = items.length - 1;
+      let next = null;
+      if (e.key === "ArrowRight" || e.key === "ArrowDown") next = Math.min(last, committed + 1);
+      else if (e.key === "ArrowLeft" || e.key === "ArrowUp") next = Math.max(0, committed - 1);
+      else if (e.key === "Home") next = 0;
+      else if (e.key === "End") next = last;
+      if (next === null) return;
+      e.preventDefault();
+      if (next === committed) return;
+      commit(next); jump(next);
+      items[next].focus();
+    });
+  });
+
+  function onMove(e) {
+    const d = drag;
+    if (!d || e.pointerId !== d.id || !d.onThumb) return;
+    const x = localX(e);
+    d.hist.push([e.timeStamp, x]);
+    if (d.hist.length > 8) d.hist.shift();
+    if (!d.live) {
+      if (Math.abs(x - d.x0) < DEADZONE) return;
+      d.live = true;
+      d.offset = x - edgeL;
+      d.w = edgeR - edgeL;
+      track.dataset.held = "";
+      gen++;
+      clearTimeout(handoff);
+    }
+    const l = x - d.offset;
+    const maxL = innerW - d.w;
+    if (l < 0) {
+      edgeL = 0;
+      edgeR = d.w - rubber(-l, d.w);
+    } else if (l > maxL) {
+      edgeR = innerW;
+      edgeL = maxL + rubber(l - maxL, d.w);
+    } else {
+      edgeL = l; edgeR = l + d.w;
+    }
+    paint();
+  }
+  function unbind() {
+    track.removeEventListener("pointermove", onMove);
+    track.removeEventListener("pointerup", onUp);
+    track.removeEventListener("pointercancel", onCancel);
+    delete track.dataset.held;
+    items.forEach(function (b) { delete b.dataset.pressed; });
+  }
+  function onUp(e) {
+    const d = drag;
+    if (!d || e.pointerId !== d.id) return;
+    drag = null;
+    unbind();
+    const x = localX(e);
+    if (!d.live) {
+      if (Math.abs(x - d.x0) <= SLOP && d.slot !== committed) {
+        const from = committed;
+        commit(d.slot);
+        travel(from, d.slot);
+      }
+      return;
+    }
+    const v = velocityOf(d.hist);
+    const flick = Math.abs(v) > FLICK;
+    let to = nearestSlot((edgeL + edgeR) / 2 + project(v, 75));
+    if (flick && to === committed) to = clamp(to + Math.sign(v), 0, items.length - 1);
+    commit(to);
+    if (reduce) jump(to);
+    else land(to, flick);
+  }
+  function onCancel(e) {
+    const d = drag;
+    if (!d || e.pointerId !== d.id) return;
+    drag = null;
+    unbind();
+    if (!d.live) return;
+    if (reduce) jump(committed);
+    else land(committed, false);
+  }
+
+  if (typeof ResizeObserver !== "undefined") {
+    const ro = new ResizeObserver(measure);
+    ro.observe(track);
+  }
+  measure();
+})();
+</script>
+</body>
+</html>
