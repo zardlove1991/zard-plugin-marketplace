@@ -8,6 +8,11 @@
       "name": "od-design-pipeline",
       "source": "./plugins/od-design-pipeline",
       "description": "OpenDesign 三段设计管线（线框→高保真→评审），移动端/Web 双轨，含五步循环与踩坑对策"
+    },
+    {
+      "name": "motion-effects",
+      "source": "./plugins/motion-effects",
+      "description": "20 个高保真交互动效接入技能（玻璃拟态/3D 卡片/滑动操作/滚动视频/WebGL），Vue 3 优先，含 gallery、React 源码、移植手册与验收清单"
     }
   ]
 }

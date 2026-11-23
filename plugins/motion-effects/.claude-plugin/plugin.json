@@ -1,0 +1,21 @@
+{
+  "name": "motion-effects",
+  "version": "0.1.0",
+  "description": "20 个高保真交互动效的接入技能：玻璃拟态、3D 卡片、滑动操作、滚动视频、WebGL 光标、胶囊导航、终端回放、手写签名等。Vue 3 优先，附可运行 gallery、React 源码、React→Vue 移植手册与生产验收清单。",
+  "author": {
+    "name": "songyu"
+  },
+  "license": "MIT",
+  "keywords": [
+    "motion",
+    "effects",
+    "vue3",
+    "react",
+    "webgl",
+    "glassmorphism",
+    "3d-card",
+    "swipe",
+    "animation",
+    "skill"
+  ]
+}
