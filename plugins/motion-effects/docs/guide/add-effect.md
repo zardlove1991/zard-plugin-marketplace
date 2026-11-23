@@ -37,6 +37,13 @@
 
    `sync-assets.mjs` 会校验 demo/source/本地资产是否存在；缺文件会直接失败。
 
+## 如果同时做 Vue 实装
+
+- 组件放 `packages/vue/src/components/<Name>.vue`，逻辑优先抽到 `src/composables/`
+- 测试放 `packages/vue/tests/<name>.spec.ts`（黑盒：props / 事件 / 键盘 / 指针）
+- 在 `docs/.vitepress/data/effects.mjs` 对应条目加 `vueReady: true`
+- 在 `VueLivePreview.vue` 加该 id 的真实组件预览与代码片段
+
 ## 更新已有特效
 
 - 演示改了：直接替换 `assets/demos/<id>.html`；如果新增了本地资产，同步放进 `demos/assets/`。

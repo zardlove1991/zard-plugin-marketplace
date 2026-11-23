@@ -7,6 +7,8 @@
 - Vue 3 移植难度、依赖与关键 API
 - 移植/降级注意事项
 
+首批 3 个已有 Vue 3 实装（`HoldButton` / `SwipeRow` / `SpecularButton`），详见 [Vue 组件（0.1）](/guide/vue-components)。
+
 ## 选型
 
 先按场景挑 1–2 个，不要为了丰富而堆特效：

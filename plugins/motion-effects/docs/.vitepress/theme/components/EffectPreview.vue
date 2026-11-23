@@ -2,6 +2,7 @@
 import { computed, ref } from 'vue'
 import { useData, withBase } from 'vitepress'
 import { EFFECTS, LEVEL_TEXT, getEffect } from '../../data/effects.mjs'
+import VueLivePreview from './VueLivePreview.vue'
 
 const props = defineProps({
   /** 静态页可直接传 id；动态路由页从 params 取 */
@@ -53,6 +54,7 @@ function reload() {
       </h1>
       <p class="me-desc">{{ effect.desc }}</p>
       <div class="me-badges">
+        <span v-if="effect.vueReady" class="me-badge is-live">Vue 实装</span>
         <span class="me-badge" :class="levelClass">Vue 移植 {{ level }}</span>
         <span v-for="dep in effect.deps" :key="dep" class="me-badge is-dep">{{ dep }}</span>
         <span v-if="!effect.deps.length" class="me-badge is-dep">无第三方依赖</span>
@@ -109,6 +111,8 @@ function reload() {
         <p>{{ effect.note }}</p>
       </section>
     </div>
+
+    <VueLivePreview :id="effect.id" />
 
     <p class="me-hint">
       移植前读

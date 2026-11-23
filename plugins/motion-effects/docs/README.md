@@ -5,7 +5,7 @@
 ## 本地
 
 ```bash
-cd plugins/motion-effects/docs
+cd plugins/motion-effects
 pnpm install
 pnpm dev
 ```
@@ -17,6 +17,8 @@ pnpm dev
 ```bash
 pnpm build
 pnpm preview
+pnpm test
+pnpm typecheck
 ```
 
 ## 部署

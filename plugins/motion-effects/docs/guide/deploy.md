@@ -2,10 +2,10 @@
 
 ## 本地开发
 
-站点在 `plugins/motion-effects/docs/`，用 pnpm：
+`plugins/motion-effects/` 是 pnpm workspace（`docs/` + `packages/vue/`）：
 
 ```bash
-cd plugins/motion-effects/docs
+cd plugins/motion-effects
 pnpm install
 pnpm dev          # 构建前会自动同步 demos/source 到 public/
 ```
@@ -23,8 +23,10 @@ pnpm dev          # 构建前会自动同步 demos/source 到 public/
 ## 构建
 
 ```bash
-pnpm build        # 输出到 .vitepress/dist
+pnpm build        # 输出到 docs/.vitepress/dist
 pnpm preview      # 本地预览构建产物
+pnpm test         # Vue 组件单元测试
+pnpm typecheck    # vue-tsc
 ```
 
 默认 `base` 是 `/`。部署到 GitHub Pages 项目页时通过环境变量指定：

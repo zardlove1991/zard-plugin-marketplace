@@ -5,7 +5,11 @@ on:
     branches: [main]
     paths:
       - 'plugins/motion-effects/docs/**'
+      - 'plugins/motion-effects/packages/**'
       - 'plugins/motion-effects/skills/motion-effects/assets/**'
+      - 'plugins/motion-effects/package.json'
+      - 'plugins/motion-effects/pnpm-lock.yaml'
+      - 'plugins/motion-effects/pnpm-workspace.yaml'
       - '.github/workflows/deploy-motion-effects-docs.yml'
   workflow_dispatch:
 
@@ -38,17 +42,21 @@ jobs:
         with:
           node-version: 22
           cache: pnpm
-          cache-dependency-path: plugins/motion-effects/docs/pnpm-lock.yaml
+          cache-dependency-path: plugins/motion-effects/pnpm-lock.yaml
 
       - name: Install dependencies
-        working-directory: plugins/motion-effects/docs
+        working-directory: plugins/motion-effects
         run: pnpm install --frozen-lockfile
+
+      - name: Test Vue package
+        working-directory: plugins/motion-effects
+        run: pnpm check
 
       - name: Configure Pages
         uses: actions/configure-pages@v5
 
       - name: Build VitePress
-        working-directory: plugins/motion-effects/docs
+        working-directory: plugins/motion-effects
         env:
           # 项目页默认子路径；仓库变量 DOCS_BASE 可覆盖（自定义域名用 /）
           DOCS_BASE: ${{ vars.DOCS_BASE || '/zard-plugin-marketplace/' }}

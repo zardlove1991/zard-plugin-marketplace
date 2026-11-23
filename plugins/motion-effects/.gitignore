@@ -1,0 +1,12 @@
+node_modules/
+
+# VitePress 构建产物
+docs/.vitepress/cache/
+docs/.vitepress/dist/
+docs/public/demos/
+docs/public/source/
+docs/public/gallery.html
+
+# 本地验证产物
+*.local
+.DS_Store

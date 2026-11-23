@@ -49,6 +49,7 @@ export default defineConfig({
           text: '接入指南',
           items: [
             { text: '概览', link: '/guide/' },
+            { text: 'Vue 组件（0.1）', link: '/guide/vue-components' },
             { text: '本地运行与部署', link: '/guide/deploy' },
             { text: '维护者：新增特效', link: '/guide/add-effect' }
           ]

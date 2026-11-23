@@ -74,7 +74,10 @@ function indexOf(effect) {
       >
         <div class="me-card__top">
           <span class="me-card__idx">{{ indexOf(effect) }}</span>
-          <span class="me-badge" :class="`is-${effect.vue}`">{{ LEVEL_TEXT[effect.vue] }}</span>
+          <span class="me-card__badges">
+            <span v-if="effect.vueReady" class="me-badge is-live">Vue 实装</span>
+            <span class="me-badge" :class="`is-${effect.vue}`">{{ LEVEL_TEXT[effect.vue] }}</span>
+          </span>
         </div>
         <h3 class="me-card__title">{{ effect.zh }}</h3>
         <p class="me-card__name">{{ effect.name }}</p>

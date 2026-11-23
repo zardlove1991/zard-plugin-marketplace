@@ -52,7 +52,7 @@ export const EFFECTS = [
     note: 'Tailwind 是硬依赖；不用 Tailwind 时复用 demo 的 .gm-* CSS。items 可为图片、文字或节点；移动端降低 rows 与 speed。'
   },
   {
-    id: 'hold-button', name: 'HoldButton', zh: '长按确认', cat: '操作与反馈', vue: 'easy', height: 420,
+    id: 'hold-button', name: 'HoldButton', zh: '长按确认', cat: '操作与反馈', vue: 'easy', vueReady: true, height: 420,
     desc: '长按确认按钮：进度填充、波浪、发光与完成态；支持鼠标、触屏与键盘长按。',
     deps: [], demo: 'hold-button.html', source: 'react/components/ui/HoldButton.jsx',
     props: ['holdTime', 'fillColor', 'wave', 'glow', 'onHold / onTap'],
@@ -94,14 +94,14 @@ export const EFFECTS = [
     note: '保留 radiogroup 语义与键盘左右切换；touch-action:none 只加在轨道上。'
   },
   {
-    id: 'specular-button', name: 'SpecularButton', zh: '高光按钮', cat: '操作与反馈', vue: 'mid', height: 360,
+    id: 'specular-button', name: 'SpecularButton', zh: '高光按钮', cat: '操作与反馈', vue: 'mid', vueReady: true, height: 360,
     desc: 'WebGL 高光描边按钮：跟随鼠标的高光带、边缘泛光，也可自动扫光。',
     deps: [], demo: 'specular-button.html', source: 'react/components/ui/SpecularButton.jsx',
     props: ['children', 'intensity', 'lineColor', 'followMouse', 'autoAnimate', 'glow'],
     note: '语义与点击区域留在真实 <button>；WebGL 失败要有 CSS 边框 / 渐变兜底。'
   },
   {
-    id: 'swipe-row', name: 'SwipeRow', zh: '滑动操作行', cat: '操作与反馈', vue: 'mid', height: 620,
+    id: 'swipe-row', name: 'SwipeRow', zh: '滑动操作行', cat: '操作与反馈', vue: 'mid', vueReady: true, height: 620,
     desc: '移动端滑动操作行：左滑删除 / 归档，整行滑到底可提交，带阻力与回弹。',
     deps: ['motion-v', 'Hugeicons', 'Tailwind / demo CSS'], demo: 'swipe-row.html', source: 'react/components/ui/SwipeRow.jsx',
     props: ['actions', 'direction', 'commitAt', 'fullSwipe', 'onCommit', 'haptic'],

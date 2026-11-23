@@ -1,0 +1,19 @@
+{
+  "name": "motion-effects",
+  "private": true,
+  "version": "0.1.0",
+  "packageManager": "pnpm@10.34.9",
+  "scripts": {
+    "dev": "pnpm --filter motion-effects-docs dev",
+    "build": "pnpm --filter motion-effects-docs build",
+    "preview": "pnpm --filter motion-effects-docs preview",
+    "test": "pnpm --filter @motion-effects/vue test",
+    "typecheck": "pnpm --filter @motion-effects/vue typecheck",
+    "check": "pnpm test && pnpm typecheck"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "esbuild"
+    ]
+  }
+}

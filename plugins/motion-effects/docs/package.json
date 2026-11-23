@@ -13,12 +13,10 @@
     "build": "node scripts/sync-assets.mjs && vitepress build",
     "preview": "vitepress preview"
   },
+  "dependencies": {
+    "@motion-effects/vue": "workspace:*"
+  },
   "devDependencies": {
     "vitepress": "^1.6.4"
-  },
-  "pnpm": {
-    "onlyBuiltDependencies": [
-      "esbuild"
-    ]
   }
 }

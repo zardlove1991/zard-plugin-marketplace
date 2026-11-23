@@ -14,6 +14,7 @@
 | `skills/motion-effects/assets/demos/` | 20 个独立 HTML 演示（vanilla，无构建） |
 | `skills/motion-effects/assets/react/` | React 源码（JSX/TSX + CSS）与 `SETUP.md` |
 | `docs/` | VitePress 预览站：特效详情、搜索、分类、源码链接；CI 部署到 GitHub Pages |
+| `packages/vue/` | 首批 Vue 3 实装：`HoldButton` / `SwipeRow` / `SpecularButton` + Vitest |
 
 ## 特效清单
 
@@ -45,6 +46,27 @@ pnpm dev          # 构建前自动同步 demos/source 到 public/
 
 > 首次部署需在仓库 **Settings → Pages → Source** 选择 **GitHub Actions**。仓库改名或自定义域名时设置仓库变量 `DOCS_BASE`。
 > 部署细节见 `docs/guide/deploy.md`。
+
+## Vue 3 组件（0.1）
+
+首批 3 个已完成移植并有 Vitest 覆盖：
+
+- `HoldButton`：长按确认
+- `SwipeRow`：滑动操作行
+- `SpecularButton`：WebGL 高光按钮
+
+```ts
+import { HoldButton, SpecularButton, SwipeRow } from '@motion-effects/vue'
+```
+
+组件是 workspace 源码包（未发布 npm），文档站对应详情页有「Vue 3 实装」live 预览。契约与限制见 `packages/vue/README.md`，测试：
+
+```bash
+cd plugins/motion-effects
+pnpm test
+pnpm typecheck
+pnpm check
+```
 
 ## 打开单页 gallery
 
