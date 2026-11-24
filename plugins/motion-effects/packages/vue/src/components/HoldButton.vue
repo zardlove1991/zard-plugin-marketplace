@@ -114,9 +114,11 @@ const styleVars = computed(() => ({
   >
     <span class="hold-button__pulse" aria-hidden="true" />
 
+    <!-- 只转发调用方实际传入的插槽：HoldButtonLabel 用 $slots.icon 判断是否渲染图标容器，
+         无条件转发会多出空容器，占掉文案前的 gap -->
     <HoldButtonLabel :done="phase === 'done'" :done-label="doneLabel">
-      <template #icon><slot name="icon" /></template>
-      <template #done-icon><slot name="done-icon" /></template>
+      <template v-if="$slots.icon" #icon><slot name="icon" /></template>
+      <template v-if="$slots['done-icon']" #done-icon><slot name="done-icon" /></template>
       <slot />
     </HoldButtonLabel>
 
@@ -128,8 +130,8 @@ const styleVars = computed(() => ({
           :done="phase === 'done'"
           :done-label="doneLabel"
         >
-          <template #icon><slot name="icon" /></template>
-          <template #done-icon><slot name="done-icon" /></template>
+          <template v-if="$slots.icon" #icon><slot name="icon" /></template>
+          <template v-if="$slots['done-icon']" #done-icon><slot name="done-icon" /></template>
           <slot />
         </HoldButtonLabel>
       </span>
@@ -140,8 +142,8 @@ const styleVars = computed(() => ({
           :done="phase === 'done'"
           :done-label="doneLabel"
         >
-          <template #icon><slot name="icon" /></template>
-          <template #done-icon><slot name="done-icon" /></template>
+          <template v-if="$slots.icon" #icon><slot name="icon" /></template>
+          <template v-if="$slots['done-icon']" #done-icon><slot name="done-icon" /></template>
           <slot />
         </HoldButtonLabel>
       </span>

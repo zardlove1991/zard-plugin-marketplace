@@ -187,7 +187,7 @@ interface UseSpecularLightOptions {
 
 /**
  * WebGL2 高光描边引擎。shader / 几何 / 指针数学与 React 版本保持一致。
- * 无 WebGL2 时直接不接管，按钮仍由 CSS 兜底。
+ * 无 WebGL2 时直接不接管，按钮仍由 CSS 兜底；上下文丢失时暂停，浏览器恢复后重建资源继续渲染。
  */
 export function useSpecularLight(options: UseSpecularLightOptions) {
   let wake = () => {}
@@ -212,20 +212,32 @@ export function useSpecularLight(options: UseSpecularLightOptions) {
     }
     if (!gl) return
 
-    const program = link(gl)
+    // program / buffer / VAO 会随上下文一起丢失，所以创建过程要能在上下文恢复后重放
+    let program: WebGLProgram | null = null
+    let buffer: WebGLBuffer | null = null
+    let vao: WebGLVertexArrayObject | null = null
+    let uniforms: Record<string, WebGLUniformLocation | null> = {}
+    let contextLost = false
+
+    const createResources = () => {
+      if (!gl) return
+      buffer = null
+      vao = null
+      program = link(gl)
+      if (!program) return
+      uniforms = {}
+      for (const name of UNIFORMS) uniforms[name] = gl.getUniformLocation(program, name)
+      buffer = gl.createBuffer()
+      vao = gl.createVertexArray()
+      gl.bindVertexArray(vao)
+      gl.bindBuffer(gl.ARRAY_BUFFER, buffer)
+      gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 3, -1, -1, 3]), gl.STATIC_DRAW)
+      gl.enableVertexAttribArray(0)
+      gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0)
+      gl.bindVertexArray(null)
+    }
+    createResources()
     if (!program) return
-
-    const uniforms: Record<string, WebGLUniformLocation | null> = {}
-    for (const name of UNIFORMS) uniforms[name] = gl.getUniformLocation(program, name)
-
-    const buffer = gl.createBuffer()
-    const vao = gl.createVertexArray()
-    gl.bindVertexArray(vao)
-    gl.bindBuffer(gl.ARRAY_BUFFER, buffer)
-    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 3, -1, -1, 3]), gl.STATIC_DRAW)
-    gl.enableVertexAttribArray(0)
-    gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0)
-    gl.bindVertexArray(null)
 
     const probe = document.createElement('canvas').getContext('2d', { willReadFrequently: true })
     const reduce = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false
@@ -282,7 +294,7 @@ export function useSpecularLight(options: UseSpecularLightOptions) {
     }
 
     const draw = (s: SpecularSettings) => {
-      if (!gl) return
+      if (!gl || !program) return
       const { width, height } = view
       const scaleX = canvas.width / (width + PAD * 2)
       const scaleY = canvas.height / (height + PAD * 2)
@@ -312,7 +324,7 @@ export function useSpecularLight(options: UseSpecularLightOptions) {
 
     const frame = (now: number) => {
       raf = 0
-      if (!visible || !gl) return
+      if (!visible || !gl || !program) return
       const s = options.getSettings()
       const dt = last ? Math.min(0.05, (now - last) / 1000) : 1 / 60
       last = now
@@ -344,7 +356,7 @@ export function useSpecularLight(options: UseSpecularLightOptions) {
     }
 
     const wakeFrame = () => {
-      if (!raf && visible) raf = requestAnimationFrame(frame)
+      if (!raf && visible && !contextLost) raf = requestAnimationFrame(frame)
     }
 
     const measure = (entry?: ResizeObserverEntry) => {
@@ -400,9 +412,19 @@ export function useSpecularLight(options: UseSpecularLightOptions) {
     }
 
     const onContextLost = (event: Event) => {
+      // preventDefault 表示"之后请恢复上下文"；恢复事件到达时再重建资源
       event.preventDefault()
+      contextLost = true
       if (raf) cancelAnimationFrame(raf)
       raf = 0
+      last = 0
+    }
+    const onContextRestored = () => {
+      contextLost = false
+      // 丢失前创建的 program / buffer / VAO 已全部失效
+      createResources()
+      // measure 会重设画布尺寸并补画一帧
+      if (program) measure()
     }
 
     window.addEventListener('pointermove', onPointerMove, { passive: true })
@@ -411,6 +433,7 @@ export function useSpecularLight(options: UseSpecularLightOptions) {
     document.documentElement.addEventListener('pointerleave', onPointerLeave)
     button.addEventListener('pointerdown', onPointerDown)
     canvas.addEventListener('webglcontextlost', onContextLost)
+    canvas.addEventListener('webglcontextrestored', onContextRestored)
 
     measure()
     wake = wakeFrame
@@ -426,6 +449,7 @@ export function useSpecularLight(options: UseSpecularLightOptions) {
       document.documentElement.removeEventListener('pointerleave', onPointerLeave)
       button.removeEventListener('pointerdown', onPointerDown)
       canvas.removeEventListener('webglcontextlost', onContextLost)
+      canvas.removeEventListener('webglcontextrestored', onContextRestored)
       gl?.deleteBuffer(buffer)
       gl?.deleteVertexArray(vao)
       gl?.deleteProgram(program)

@@ -1,5 +1,10 @@
 <script setup lang="ts">
-import { computed, shallowRef, useTemplateRef } from 'vue'
+import {
+  computed,
+  shallowRef,
+  useTemplateRef,
+  type ComponentPublicInstance
+} from 'vue'
 import { motion } from 'motion-v'
 import { HugeiconsIcon } from '@hugeicons/vue'
 import { Delete02Icon } from '@hugeicons/core-free-icons'
@@ -68,7 +73,11 @@ const setOpen = (next: boolean) => {
 }
 
 const rootRef = useTemplateRef<HTMLElement>('root')
-const surfaceRef = useTemplateRef<HTMLElement>('surface')
+// motion.div 是组件：模板 ref 拿到的是组件实例，真正的 DOM 元素在 $el 上
+const surfaceInstance = useTemplateRef<ComponentPublicInstance>('surface')
+const surfaceRef = computed<HTMLElement | null>(
+  () => (surfaceInstance.value?.$el as HTMLElement | undefined) ?? null
+)
 
 const {
   phase,

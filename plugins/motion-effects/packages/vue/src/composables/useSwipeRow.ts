@@ -105,21 +105,18 @@ export function useSwipeRow(options: UseSwipeRowOptions) {
   const spread = useMotionValue(0)
   const landed = useMotionValue(0)
 
-  const exposed = useTransform(x, value => sign.value * value)
+  // 读到了 computed 的派生值必须用函数形式：useTransform(input, fn) 只在输入的 MotionValue 变化时重算，
+  // 不追踪 Vue 响应式，direction / actions / actionWidth 变了也会停在旧值
+  const exposed = useTransform(() => sign.value * x.get())
   const surfaceXf = useTransform(x, value => `translateX(${value}px)`)
   const railXf = useTransform(
-    exposed,
-    value => `translateX(${-sign.value * Math.max(0, drawerWidth.value - value)}px)`
+    () => `translateX(${-sign.value * Math.max(0, drawerWidth.value - exposed.get())}px)`
   )
-  const shift = useTransform<number, number>(
-    [exposed, spread],
-    ([value, progress]) => progress * Math.max(0, value - actionWidth.value)
-  )
-  const blockXf = useTransform(shift, value => `translateX(${sign.value * value}px)`)
-  const glyphXf = useTransform<number, string>(
-    [shift, landed],
-    ([value, landedValue]) =>
-      `translateX(${-sign.value * landedValue * (value - (w.current - actionWidth.value) / 2)}px)`
+  const shift = useTransform(() => spread.get() * Math.max(0, exposed.get() - actionWidth.value))
+  const blockXf = useTransform(() => `translateX(${sign.value * shift.get()}px)`)
+  const glyphXf = useTransform(
+    () =>
+      `translateX(${-sign.value * landed.get() * (shift.get() - (w.current - actionWidth.value) / 2)}px)`
   )
 
   const commitPoint = () =>
@@ -386,17 +383,25 @@ export function useSwipeRow(options: UseSwipeRowOptions) {
     }
   }
 
-  watch(open, next => {
+  const syncOpen = (next: boolean, width = drawerWidth.value) => {
     if (phase.value !== 'idle' || grip) return
-    const target = next ? drawerWidth.value : 0
+    const target = next ? width : 0
     if (heading === target) return
     if (Math.abs(sign.value * x.get() - target) > 0.5) settle(target)
+  }
+
+  watch([open, drawerWidth, sign], ([next, width, direction], previous) => {
+    // 方向变了，之前记下的目标位置不再对应现实，按实际位置重新判断
+    if (previous && previous[2] !== direction) heading = null
+    syncOpen(next, width)
   })
 
   onMounted(() => {
     const element = options.root.value
     if (!element) return
     w.current = element.offsetWidth || w.current
+    // watch 默认不会立即执行：受控 open 的初始值要在挂载时同步一次
+    syncOpen(open.value)
     if (typeof ResizeObserver === 'undefined') return
     observer = new ResizeObserver(entries => {
       const width = entries[0]?.contentRect.width

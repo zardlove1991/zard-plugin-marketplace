@@ -145,6 +145,26 @@ describe('HoldButton', () => {
     wrapper.unmount()
   })
 
+  it('does not render icon containers when no icon slots are given', () => {
+    const wrapper = mountButton()
+    // 空的 .hold-button__icon 会占掉文案前的 8px gap，让文案偏离按钮中心
+    expect(wrapper.findAll('.hold-button__icon')).toHaveLength(0)
+    wrapper.unmount()
+  })
+
+  it('renders the icon slots in every label copy', () => {
+    const wrapper = mountButton(
+      {},
+      { icon: '<i data-icon>star</i>', 'done-icon': '<i data-done>check</i>' }
+    )
+    // 文案共渲染三份：底层、填充层、波峰层
+    const icons = wrapper.findAll('.hold-button__icon')
+    expect(icons).toHaveLength(6)
+    expect(icons.filter(icon => icon.find('[data-icon]').exists())).toHaveLength(3)
+    expect(icons.filter(icon => icon.find('[data-done]').exists())).toHaveLength(3)
+    wrapper.unmount()
+  })
+
   it('does not emit after unmount', async () => {
     const wrapper = mountButton()
     firePointer(wrapper.element, 'pointerdown')
