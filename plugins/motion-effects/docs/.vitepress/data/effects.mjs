@@ -103,9 +103,9 @@ export const EFFECTS = [
   {
     id: 'swipe-row', name: 'SwipeRow', zh: '滑动操作行', cat: '操作与反馈', vue: 'mid', vueReady: true, height: 620,
     desc: '移动端滑动操作行：左滑删除 / 归档，整行滑到底可提交，带阻力与回弹。',
-    deps: ['motion-v', 'Hugeicons', 'Tailwind / demo CSS'], demo: 'swipe-row.html', source: 'react/components/ui/SwipeRow.jsx',
+    deps: ['motion-v', '@vueuse/core', 'Hugeicons', 'Tailwind / demo CSS'], demo: 'swipe-row.html', source: 'react/components/ui/SwipeRow.jsx',
     props: ['actions', 'direction', 'commitAt', 'fullSwipe', 'onCommit', 'haptic'],
-    note: '无独立 CSS，样式在 JSX 的 Tailwind 任意值类里；不用 Tailwind 时复用 demo 的 .sr-* CSS。桌面端要有可见操作入口；touch-action: pan-y 保垂直滚动。'
+    note: 'React 源码无独立 CSS，样式在 JSX 的 Tailwind 任意值类里；不用 Tailwind 时复用 demo 的 .sr-* CSS（Vue 实装自带 CSS，不需要 Tailwind）。桌面端要有可见操作入口；touch-action: pan-y 保垂直滚动。'
   },
   {
     id: 'tilted-card', name: 'TiltedCard', zh: '3D 倾斜卡片', cat: '卡片与容器', vue: 'mid', height: 620,

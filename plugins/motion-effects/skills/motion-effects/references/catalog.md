@@ -50,17 +50,19 @@
 
 | 组件 | Vue 源码 | 测试 |
 |---|---|---|
-| `HoldButton` | `packages/vue/src/components/HoldButton.vue` | `packages/vue/tests/hold-button.spec.ts` |
-| `SwipeRow` | `packages/vue/src/components/SwipeRow.vue` | `packages/vue/tests/swipe-row.spec.ts` |
-| `SpecularButton` | `packages/vue/src/components/SpecularButton.vue` | `packages/vue/tests/specular-button.spec.ts` |
+| `HoldButton` | `../../packages/vue/src/components/HoldButton.vue` | `../../packages/vue/tests/hold-button.spec.ts` |
+| `SwipeRow` | `../../packages/vue/src/components/SwipeRow.vue` | `../../packages/vue/tests/swipe-row.spec.ts` |
+| `SpecularButton` | `../../packages/vue/src/components/SpecularButton.vue` | `../../packages/vue/tests/specular-button.spec.ts` |
 
 其余 17 个仍以 React 源码 + vanilla 演示为真源，按需按 `vue-porting.md` 移植。`GlassSurface` 因 SVG + WebGL 双路径，放在下一批。
+
+> Vue 实装自带 CSS，不依赖 Tailwind；需要安装的依赖见下面「依赖安装」。
 
 ## 依赖安装（Vue 3 项目，pnpm）
 
 ```bash
 # 按需安装，不要全量装
-pnpm add motion-v                 # FlipCard / RubberSegment / SwipeRow
+pnpm add motion-v @vueuse/core    # FlipCard / RubberSegment / SwipeRow；@vueuse/core 是 motion-v 的 peer
 pnpm add @hugeicons/vue @hugeicons/core-free-icons   # AnimatedList / MagicBento / ReflectiveCard / SwipeRow
 pnpm add three                   # PaperCrumple
 pnpm add clsx tailwind-merge     # liquid-glass-logo-reveal 的 cn()
@@ -72,7 +74,7 @@ React 项目对应：`motion` + `@hugeicons/react`。Tailwind **不是必装**�
 **样式形态分三类**：
 
 - **CSS 文件**（12 个）：源码旁有同名 `.css`，直接一起复制。
-- **Tailwind**（`GridMotion`、`SwipeRow`）：没有独立 CSS，样式写死在 JSX 的任意值类里；Vue 项目不用 Tailwind 时，直接复用对应 demo 里的等价 CSS（`grid-motion.html` / `swipe-row.html`），不要逐条翻译任意值类。
+- **Tailwind**（`GridMotion`、`SwipeRow`）：React 源码没有独立 CSS，样式写死在 JSX 的任意值类里；Vue 项目不用 Tailwind 时，直接复用对应 demo 里的等价 CSS（`grid-motion.html` / `swipe-row.html`），不要逐条翻译任意值类。`SwipeRow` 的 Vue 实装已带提取好的 `SwipeRow.css`。
 - **内联**（6 个 TSX）：样式在组件文件的 `<style>` / style 对象里，随源码一起搬；`liquid-glass-logo-reveal` 的容器另有 5 个 Tailwind 工具类，可手写成普通 CSS。
 
 ---
@@ -120,10 +122,10 @@ React 项目对应：`motion` + `@hugeicons/react`。Tailwind **不是必装**�
 ## 6. HoldButton · 长按确认
 
 - **源码**：`HoldButton.jsx` + `HoldButton.css`；**演示**：`hold-button.html`
-- **Vue 实装**：`packages/vue/src/components/HoldButton.vue`（已测试）
+- **Vue 实装**：`../../packages/vue/src/components/HoldButton.vue`（已测试）
 - **适用**：删除、支付、重启、危险操作；比二次确认弹窗更顺手。
 - **关键 API**：`children`（默认文案）、`doneLabel`、`icon`、`doneIcon`、`backgroundColor`、`fillColor`、`textColor`、`fillTextColor`、`size`、`radius`、`fillDirection`、`holdTime`、`releaseTime`、`pressScale`、`wave`、`waveAmplitude`、`glow`、`resetAfter`、`disabled`、`onHold`、`onTap`。
-- **移植要点**：核心是 `pointerdown` 起计时、`pointermove` 出界取消、键盘 Space/Enter 长按、`Escape` 取消；Vue 用 `ref` 存 timer/phase，卸载清理。进度条用 CSS 变量逐帧写，不要 `setState` 每帧。
+- **移植要点**：核心是 `pointerdown` 起计时、`pointermove` 出界取消、键盘 Space/Enter 长按、`Escape` 取消；Vue 里 phase 用 `shallowRef`，timer 与逐帧进度放普通对象，卸载清理。进度条用 CSS 变量逐帧写，不要 `setState` 每帧。
 - **注意**：长按时长建议 1.2–2.5s；必须阻止右键菜单与文本选择；触屏与鼠标都要测；`onHold` 触发后给可见的成功态。
 
 ## 7. MagicBento · 功能磁贴
@@ -169,19 +171,19 @@ React 项目对应：`motion` + `@hugeicons/react`。Tailwind **不是必装**�
 ## 12. SpecularButton · 高光按钮
 
 - **源码**：`SpecularButton.jsx` + `SpecularButton.css`；**演示**：`specular-button.html`
-- **Vue 实装**：`packages/vue/src/components/SpecularButton.vue`（已测试，WebGL 生命周期完整移植）
+- **Vue 实装**：`../../packages/vue/src/components/SpecularButton.vue`（已测试，含 WebGL 上下文丢失 / 恢复）
 - **适用**：落地页主 CTA、深色界面里的重点按钮、订阅/购买。
 - **关键 API**：`children`（插槽）、`size`、`radius`、`tint`、`tintOpacity`、`blur`、`textColor`、`lineColor`、`baseColor`、`intensity`、`idleIntensity`、`shineSize`、`shineFade`、`thickness`、`glow`、`speed`、`followMouse`、`proximity`、`autoAnimate`、`disabled`、`onClick`、`type`。
-- **移植要点**：WebGL2 高光 shader 原样保留；Vue 里 `button` 根节点 + `canvas` 子节点，事件透传 `$attrs`；卸载时删 program/buffer 并停 rAF。
+- **移植要点**：WebGL2 高光 shader 原样保留；Vue 里 `button` 根节点 + `canvas` 子节点，事件透传 `$attrs`；卸载时删 program/buffer 并停 rAF；上下文恢复后重建 program / buffer / VAO（`webglcontextlost` 里调了 `preventDefault` 就必须做）。
 - **注意**：`autoAnimate` 适合无鼠标场景；WebGL 不可用时 CSS 边框/渐变要能兜底；按钮的可点击区域与 `disabled` 语义留在真实 `<button>` 上。
 
 ## 13. SwipeRow · 滑动操作行
 
 - **源码**：`SwipeRow.jsx`；**演示**：`swipe-row.html`
-- **Vue 实装**：`packages/vue/src/components/SwipeRow.vue`（已测试，`motion-v` + 手势 + 键盘）
+- **Vue 实装**：`../../packages/vue/src/components/SwipeRow.vue`（已测试，`motion-v` + 手势 + 键盘）
 - **适用**：移动端消息/订单/文件列表的左滑删除、归档、置顶。
 - **关键 API**：`children`（插槽）、`actions`（`{ id, label, icon, dismiss?, onSelect? }`）、`actionColor`、`drawerColor`、`rowColor`、`textColor`、`height`、`radius`、`actionWidth`、`direction`（`left` = 向左滑、操作区在右侧；`right` 反之）、`snapBounce`、`resistance`、`collapseMs`、`commitAt`、`fullSwipe`、`disabled`、`open`（受控）、`onOpenChange`、`onAction`、`onCommit`、`closeOnAction`、`haptic`、`label`。
-- **移植要点**：**没有独立 CSS**，样式在 JSX 的 Tailwind 任意值类里；Vue 项目不用 Tailwind 时，直接复用 `assets/demos/swipe-row.html` 的 `.sr-*` 规则（与组件等价），不要逐条翻译。逻辑用 `motion-v` + 指针事件；`open` 用 `defineModel`。`haptic` 是 `navigator.vibrate`，无则静默。键盘 `Delete`/`Backspace` 与 `Escape` 要保留。
+- **移植要点**：React 源码没有独立 CSS，样式在 JSX 的 Tailwind 任意值类里；Vue 实装已带从 demo 提取的 `SwipeRow.css`，从 React 源码重新移植时复用 `assets/demos/swipe-row.html` 的 `.sr-*` 规则（与组件等价），不要逐条翻译。逻辑用 `motion-v` + 指针事件；`open` 用 `defineModel`，挂载时同步初始值。`haptic` 是 `navigator.vibrate`，无则静默。键盘 `Delete`/`Backspace` 与 `Escape` 要保留。
 - **注意**：`onCommit` 是整行滑到底的提交；组件会折叠该行，**从列表数据中移除由父级负责**。点击 action 时先触发 `onAction(action)`；`dismiss: true`（或首个 action）走提交路径——折叠行 → `collapseMs` 后 `onCommit(action)` → `action.onSelect()`；其余 action 立即 `action.onSelect()`，再由 `closeOnAction` 决定是否收起。桌面端提供可见的操作入口，不要只靠滑动；滑出后点击行内其他链接要先关闭；`touch-action: pan-y` 保垂直滚动。
 
 ## 14. TiltedCard · 3D 倾斜卡片

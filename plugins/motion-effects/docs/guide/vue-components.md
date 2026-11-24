@@ -66,8 +66,8 @@ const actions: SwipeAction[] = [
 完整的 props / slots / emits 见
 [packages/vue/README.md](https://github.com/zardlove1991/zard-plugin-marketplace/blob/main/plugins/motion-effects/packages/vue/README.md)。
 
-- `SwipeRow` 支持 `v-model:open`；删除行数据由父级在 `commit` 中完成。
-- `SpecularButton` 无 WebGL2 时退回 CSS；上下文丢失后停止渲染，按钮仍可用。
+- `SwipeRow` 支持 `v-model:open`；删除行数据由父级在 `commit` 中完成。运行中修改 `actions` / `actionWidth` / `direction` 会自动重新归位。
+- `SpecularButton` 无 WebGL2 时退回 CSS；上下文丢失时暂停渲染，浏览器恢复后自动重建。
 - 三个组件都做了 SSR 安全处理，浏览器 API 只在 `onMounted` 或用户事件中访问。
 - 当前是 workspace 私有包，未发布 npm；外部项目可复制 `packages/vue/src` 或等待发布。
 
