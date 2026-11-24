@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
-import { HoldButton, SpecularButton, SwipeRow } from '@motion-effects/vue'
+import { withBase } from 'vitepress'
+import { HoldButton, SpecularButton, SwipeRow, TerminalReplay } from '@motion-effects/vue'
 import type { SwipeAction } from '@motion-effects/vue'
 
 const props = defineProps<{ id: string }>()
@@ -8,6 +9,7 @@ const props = defineProps<{ id: string }>()
 const holdCount = ref(0)
 const tapCount = ref(0)
 const clickCount = ref(0)
+const completeCount = ref(0)
 const lastAction = ref('')
 
 const actions: SwipeAction[] = [
@@ -56,11 +58,21 @@ const snippets = {
 </SwipeRow>`,
   'specular-button': `<SpecularButton auto-animate @click="onClick">
   Get Started
-</SpecularButton>`
+</SpecularButton>`,
+  'terminal-replay': `<TerminalReplay @complete="onComplete" />`,
+  'scroll-video-hero': `<ScrollLockedVideoHero
+  video-src="/hero.mp4"
+  title="THE CITY OPENS"
+  :scrub-distance="3200"
+/>`
 } as const
 
 const snippet = computed(() => snippets[props.id as keyof typeof snippets] ?? '')
 const isLive = computed(() => props.id in snippets)
+
+// 滚动锁定 Hero 在挂载期间锁住所在页面的滚动，所以放进只渲染它自己的独立页面，再用 iframe 加载
+const FRAMED_IDS = new Set(['scroll-video-hero'])
+const isFramed = computed(() => FRAMED_IDS.has(props.id))
 </script>
 
 <template>
@@ -68,7 +80,11 @@ const isLive = computed(() => props.id in snippets)
     <header class="me-live__head">
       <p class="me-eyebrow">VUE 3 实装</p>
       <h2>直接使用真实组件</h2>
-      <p>
+      <p v-if="isFramed">
+        这个组件挂载期间会锁定页面滚动，所以下面的预览放在 iframe 里；iframe 里跑的仍是直接从
+        <code>@motion-effects/vue</code> 导入的真实组件。
+      </p>
+      <p v-else>
         下面的预览不是 iframe，而是从
         <code>@motion-effects/vue</code> 直接导入的组件；样式、手势与键盘行为都来自同一份 Vue 源码。
       </p>
@@ -126,6 +142,25 @@ const isLive = computed(() => props.id in snippets)
         </SpecularButton>
         <p class="me-live__status">
           clicked {{ clickCount }} 次
+        </p>
+      </template>
+
+      <template v-else-if="id === 'terminal-replay'">
+        <TerminalReplay @complete="completeCount += 1" />
+        <p class="me-live__status">
+          complete {{ completeCount }} 次 · 点击可跳过当前步骤，播完后点击重播
+        </p>
+      </template>
+
+      <template v-else-if="id === 'scroll-video-hero'">
+        <iframe
+          class="me-live__frame"
+          :src="withBase('/live/scroll-video-hero.html')"
+          title="滚动锁定视频 Vue 实装"
+          loading="lazy"
+        />
+        <p class="me-live__status">
+          在上面滚动，视频会跟着前进或后退；iframe 外的页面不会被锁住
         </p>
       </template>
     </div>

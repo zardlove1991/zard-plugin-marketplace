@@ -136,11 +136,11 @@ export const EFFECTS = [
     note: '音效需要用户手势后才能播放；移动端留 env(safe-area-inset-bottom)。'
   },
   {
-    id: 'scroll-video-hero', name: 'ScrollVideoHero', zh: '滚动锁定视频', cat: '导航与页面', vue: 'easy', height: 640,
+    id: 'scroll-video-hero', name: 'ScrollVideoHero', zh: '滚动锁定视频', cat: '导航与页面', vue: 'easy', vueReady: true, height: 640,
     desc: '滚动锁定视频 Hero：滚动进度驱动视频 scrub，标题 / 提示随进度淡出。',
     deps: [], demo: 'index-video-hero.html', source: 'react/components/ui/scroll-locked-video-hero.tsx',
     props: ['videoSrc', 'title', 'tagline', 'scrubDistance', 'signature'],
-    note: 'iOS 需 playsInline + muted；准备 poster 与 reduced-motion 静态首帧；视频走 CDN 分段。演示使用远程视频，离线时只有 poster。'
+    note: 'iOS 需 playsInline + muted；准备 poster 与 reduced-motion 静态首帧；视频走 CDN 分段。演示使用远程视频，离线时只有 poster。Vue 实装在挂载期间会锁定页面滚动且不会自行解锁，只适合放在独立页面的首屏，或用 iframe 承载。'
   },
   {
     id: 'signature', name: 'Signature', zh: '手写签名', cat: '列表与内容', vue: 'mid', height: 720,
@@ -150,11 +150,11 @@ export const EFFECTS = [
     note: '签名数据默认不上传；触屏 touch-action:none；导出由业务方明确触发。'
   },
   {
-    id: 'terminal-replay', name: 'TerminalReplay', zh: '终端回放', cat: '列表与内容', vue: 'easy', height: 560,
+    id: 'terminal-replay', name: 'TerminalReplay', zh: '终端回放', cat: '列表与内容', vue: 'easy', vueReady: true, height: 560,
     desc: '终端会话逐字回放：命令、输出、spinner、进度条、暂停与清屏，支持循环。',
     deps: [], demo: 'terminal-replay.html', source: 'react/components/ui/terminal-replay.tsx',
     props: ['script', 'theme', 'typingSpeed', 'loop', 'copyable', 'interactive'],
-    note: '卸载时清所有 timer；等宽字体与行高锁死，避免回放抖动。'
+    note: '卸载时清所有 timer；等宽字体与行高锁死，避免回放抖动。Vue 实装挂载即开始播放，autoplay=false 只是关闭离屏暂停；需要手动重播时通过 ref 调用 play()。'
   }
 ]
 

@@ -43,6 +43,9 @@
 - 测试放 `packages/vue/tests/<name>.spec.ts`（黑盒：props / 事件 / 键盘 / 指针）
 - 在 `docs/.vitepress/data/effects.mjs` 对应条目加 `vueReady: true`
 - 在 `VueLivePreview.vue` 加该 id 的真实组件预览与代码片段
+- 新组件按 Vue 习惯设计：不加 `className` prop（`class` 自动透传），受控状态只走 `v-model`
+- 会劫持全局输入的组件（例如锁定 `body` 滚动）不要内联进文档页：在 `docs/live/<id>.md` 建一个 `layout: false` 的页面只渲染该组件，`VueLivePreview.vue` 里用 iframe 加载（参考 `scroll-video-hero`）
+- 与 React 原件有行为差异时，写进 `packages/vue/README.md` 的「与 React 原件的差异」
 
 ## 更新已有特效
 

@@ -19,7 +19,7 @@ description: Use when 在 Vue 3（或 React）项目中需要接入高级交互�
 | `references/vue-porting.md` | React → Vue 3 完整映射、SFC 骨架、WebGL/three 生命周期、常见坑 |
 | `references/production-checklist.md` | 性能、无障碍、SSR、降级、隐私、交付验收清单 |
 | `assets/react/components/ui/` | React 源码（JSX/TSX；部分带同名 CSS，少数用 Tailwind/内联样式）——移植的**唯一真源** |
-| `../../packages/vue/` | 已移植的 Vue 3 组件：`HoldButton` / `SwipeRow` / `SpecularButton`（含 Vitest） |
+| `../../packages/vue/` | 已移植的 Vue 3 组件：`HoldButton` / `SwipeRow` / `SpecularButton` / `TerminalReplay` / `ScrollLockedVideoHero`（含 Vitest） |
 | `assets/react/lib/utils.ts` | `cn()` 工具（仅 logo reveal 需要） |
 | `assets/demos/*.html` | 20 个独立演示（vanilla），用于对照与原型 |
 | `assets/gallery.html` | 可运行的特效 gallery（筛选/搜索/iframe 预览/API 速查） |
@@ -27,7 +27,7 @@ description: Use when 在 Vue 3（或 React）项目中需要接入高级交互�
 ## 工作流
 
 1. **选型**：先读 `references/catalog.md` 的「场景速查」与总表，按场景、依赖、Vue 难度选 **1–2 个**特效；不要为了丰富而堆特效。
-2. **定轨道**：Vue 3 且是已实装三件套（`HoldButton` / `SwipeRow` / `SpecularButton`）→ 复制 `../../packages/vue/src/`（依赖清单见 `references/vue-porting.md` §1；props / 事件 / 插槽与 CSS 引入方式见 `../../packages/vue/README.md`）；其它 Vue 3 特效 → 读 `references/vue-porting.md` 移植；React → 直接拷 `assets/react/components/ui/` 对应文件；静态页 → 只引 `assets/demos/<id>.html`。
+2. **定轨道**：Vue 3 且是已实装的五个（`HoldButton` / `SwipeRow` / `SpecularButton` / `TerminalReplay` / `ScrollLockedVideoHero`）→ 复制 `../../packages/vue/src/`（依赖清单见 `references/vue-porting.md` §1；props / 事件 / 插槽与 CSS 引入方式见 `../../packages/vue/README.md`）；其它 Vue 3 特效 → 读 `references/vue-porting.md` 移植；React → 直接拷 `assets/react/components/ui/` 对应文件；静态页 → 只引 `assets/demos/<id>.html`。
 3. **读全材料**：读该特效的 `.jsx/.tsx`、同名 `.css`（若有）与对应 demo，理解 DOM 结构、常量、事件与降级路径。**不要只读 catalog 就动手。**
 4. **复制而非跨仓引用**：把源码复制进目标项目的 `components/ui/` 或项目约定目录，再改造；不要从本 skill 目录 `import`。
 5. **移植/改造**：保留 CSS 与动画常量；Vue 里 CSS 用**全局引入**（见 vue-porting §7），逐帧状态不要走响应式；props/事件/插槽按 §2–§6 映射。
@@ -56,6 +56,7 @@ description: Use when 在 Vue 3（或 React）项目中需要接入高级交互�
 - **降级**：WebGL2 不可用、`prefers-reduced-motion`、触屏、低端机都要有明确行为，不能白屏或卡死。
 - **性能预算**：同屏 GPU 重特效 ≤ 2；`three` 与 WebGL 大组件按需加载；移动端降 DPR/粒子/几何细分。
 - **如实汇报**：没测 Safari、没测无 WebGL 就写明，不得声称"已验证"。
+- **劫持全局输入的特效**（锁定 `body` 滚动、在 `window` 上拦截滚轮 / 触摸，如 `ScrollLockedVideoHero`）只能放在独占的文档里：独立页面，或用 iframe 加载。不要内嵌进还有其它内容的页面。
 
 ## 常见失败模式
 

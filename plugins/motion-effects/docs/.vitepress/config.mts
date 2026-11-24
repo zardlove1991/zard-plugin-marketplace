@@ -27,7 +27,9 @@ export default defineConfig({
   srcExclude: ['README.md', 'public/**'],
   lastUpdated: true,
   sitemap: {
-    hostname: 'https://zardlove1991.github.io/zard-plugin-marketplace/'
+    hostname: 'https://zardlove1991.github.io/zard-plugin-marketplace/',
+    // 供 iframe 加载的裸页面，不进站点地图
+    transformItems: items => items.filter(item => !/^\/?live\//.test(item.url))
   },
   head: [
     ['meta', { name: 'theme-color', content: '#09090c' }],

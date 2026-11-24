@@ -53,8 +53,12 @@
 | `HoldButton` | `../../packages/vue/src/components/HoldButton.vue` | `../../packages/vue/tests/hold-button.spec.ts` |
 | `SwipeRow` | `../../packages/vue/src/components/SwipeRow.vue` | `../../packages/vue/tests/swipe-row.spec.ts` |
 | `SpecularButton` | `../../packages/vue/src/components/SpecularButton.vue` | `../../packages/vue/tests/specular-button.spec.ts` |
+| `TerminalReplay` | `../../packages/vue/src/components/TerminalReplay.vue` | `../../packages/vue/tests/terminal-replay.spec.ts` |
+| `ScrollLockedVideoHero` | `../../packages/vue/src/components/ScrollLockedVideoHero.vue` | `../../packages/vue/tests/scroll-locked-video-hero.spec.ts` |
 
-其余 17 个仍以 React 源码 + vanilla 演示为真源，按需按 `vue-porting.md` 移植。`GlassSurface` 因 SVG + WebGL 双路径，放在下一批。
+其余 15 个仍以 React 源码 + vanilla 演示为真源，按需按 `vue-porting.md` 移植。`GlassSurface` 因 SVG + WebGL 双路径，放在下一批。
+
+后两个（`TerminalReplay`、`ScrollLockedVideoHero`）与 React 原件有几处有意的行为差异，见 `../../packages/vue/README.md` 的「与 React 原件的差异」。
 
 > Vue 实装自带 CSS，不依赖 Tailwind；需要安装的依赖见下面「依赖安装」。
 
@@ -221,10 +225,11 @@ React 项目对应：`motion` + `@hugeicons/react`。Tailwind **不是必装**�
 ## 18. scroll-locked-video-hero · 滚动锁定视频 Hero
 
 - **源码**：`scroll-locked-video-hero.tsx`；**演示**：`index-video-hero.html`
+- **Vue 实装**：`../../packages/vue/src/components/ScrollLockedVideoHero.vue`（已测试；会锁定页面滚动，文档站的 live 预览放在 iframe 里）
 - **适用**：品牌首屏、产品发布页、沉浸式滚动叙事。
 - **关键 API**：`videoSrc`、`title`、`scrollHint`、`tagline`、`signature`（`{ name, url }` 或 `false`）、`scrubDistance`（滚满整段视频的像素距离，默认 3200）、`className`、`style`。
-- **移植要点**：核心是 `scroll` 进度 → `video.currentTime` 的 scrub，外加标题/提示的淡出；Vue 用 `onMounted` 绑定 passive scroll + rAF，卸载移除。视频 `muted`、`playsInline`、`preload="auto"` 保留。
-- **注意**：移动端 iOS 需要 `playsInline` 且可能不允许精确 seek，准备 poster/降级；视频体积大，建议 H.264 + CDN 分段；`scrubDistance` 要按视频时长调；`prefers-reduced-motion` 下改为静态首帧。
+- **移植要点**：挂载时把 `body` 设成 `position: fixed` 锁住页面，`window` 上的 `wheel` / `touchmove`（非 passive，另在元素上用捕获阶段再绑一次）只用来累计进度；rAF 里按每帧 18% 的缓动把进度 seek 到 `video.currentTime`，同时更新标题 / 提示 / 进度线；卸载时移除监听并恢复 `body`。视频 `muted`、`playsInline`、`preload="auto"` 保留。Vue 实装把 `scrubDistance` 做成惰性读取，改它不会重置状态。
+- **注意**：**挂载期间页面无法滚动，而且不会自行解锁**，不要内嵌进还有其它内容的页面。移动端 iOS 需要 `playsInline` 且可能不允许精确 seek，准备 poster/降级；视频体积大，建议 H.264 + CDN 分段；`scrubDistance` 要按视频时长调；`prefers-reduced-motion` 下不做动画，直接停在 92% 处的一帧。
 
 ## 19. signature · 手写签名
 
@@ -237,7 +242,8 @@ React 项目对应：`motion` + `@hugeicons/react`。Tailwind **不是必装**�
 ## 20. terminal-replay · 终端回放
 
 - **源码**：`terminal-replay.tsx`；**演示**：`terminal-replay.html`
+- **Vue 实装**：`../../packages/vue/src/components/TerminalReplay.vue`（已测试）
 - **适用**：安装教程、CLI 产品演示、开发者文档、CI 日志展示。
 - **关键 API**：`script`（`command`/`output`/`spinner`/`progress`/`pause`/`clear` 步骤）、`title`、`prompt`、`directory`、`chrome`、`frame`、`dots`、`theme`、`accentColor`、`windowColor`、`textColor`、`fontFamily`、`fontSize`、`lineHeight`、`height`、`radius`、`typingSpeed`、`variance`、`lineDelay`、`startDelay`、`hold`、`loop`、`autoplay`、`cursor`、`copyable`、`interactive`、`onComplete`。
-- **移植要点**：纯定时器 + 状态机；Vue 用 `onMounted` 启动、`onBeforeUnmount` 清所有 timer，`autoplay=false` 时提供外部 `play()`。步骤数据可直接复用 `PROJECT_SETUP_SCRIPT` 的结构。
-- **注意**：`loop` 与 `onComplete` 不要同时依赖；`copyable` 要处理 `navigator.clipboard` 失败；等宽字体与行高要锁死，避免回放时抖动。
+- **移植要点**：纯定时器 + 状态机；Vue 用 `onMounted` 启动、`onBeforeUnmount` 清所有 timer 与 IntersectionObserver。挂载即开始播放，`autoplay=false` 只是关闭离屏暂停（与 prop 的名字不符，上游如此）；手动重播通过 ref 调 `play()`。步骤数据可直接复用 `PROJECT_SETUP_SCRIPT` 的结构。
+- **注意**：`loop` 与 `onComplete` 不要同时依赖；`copyable` 要处理 `navigator.clipboard` 失败；等宽字体与行高要锁死，避免回放时抖动。行内标签的闭合写作 `[/]`；上游 React 源码的正则要求 `[/success]`，所以标签在 React 版里不会被解析、是原样打印的。

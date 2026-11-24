@@ -59,6 +59,7 @@ pnpm add clsx tailwind-merge
 | `value` + `onChange` 受控 | `defineModel()`（Vue 3.4+）或 `props.value` + `emit('update:value')` |
 | `onClick` / `onHold` / `onAction` | `defineEmits<{ click: [...]; hold: []; action: [id: string] }>()` |
 | `className` / `style` 透传 | 单根组件默认自动透传 `class` / `style` / 事件，不用写；`inheritAttrs: false` 或多根节点时才手动 `v-bind="$attrs"` |
+| 行内样式对象 `style={{ height: 38 }}` | `:style="{ height: '38px' }"`。React 会给数字补 `px`，Vue 不会：数字对非无单位属性是无效值，会被丢弃。只有 `lineHeight`、`opacity`、`fontWeight`、`zIndex` 这类无单位属性可以直接传数字 |
 | Context | `provide()` / `inject()` |
 | `dangerouslySetInnerHTML` | `v-html`（仅可信内容） |
 
@@ -378,6 +379,11 @@ const shown = computed(() => model.value ?? inner.value)
 | 用 `vi.useFakeTimers()` 测 motion 动画 | motion 在 import 时就捕获了 `requestAnimationFrame`，假定时器推不动它的帧 | 用真实帧：`await new Promise(requestAnimationFrame)`；收敛靠循环等到样式连续几帧不变，现成实现见 `../../packages/vue/tests/helpers/frames.ts` 和 `swipe-row.spec.ts` 的 `settleStyle` |
 | `<motion.div>` 的 `style` 写成字符串 | 挂载即报 `Failed to set an indexed property [0] on 'CSSStyleDeclaration'` | motion 的 `style` 只接受对象，静态样式也写 `:style="{ width: '120px' }"` |
 | 用 `immediate: true` 模拟 `useEffect` 的首次执行 | 首次调用在挂载前，模板 ref 是 `null` | 首次调用放进 `onMounted`（§2） |
+| 给 `:style` 传了不带单位的数字 | `height: 38`、`fontSize: 13` 被当成无效值丢弃，元素没有尺寸或字号 | 写成 `'38px'`、`'13px'`；只有无单位属性可以传数字（§2） |
+| 把 React effect 的依赖数组直译成 `watch` 一组 props | 每次改 prop 都重建监听、重置闭包里的内部状态，功能可能就此失效 | 能惰性读取的用 getter（`() => props.x`）在用到的地方读；确实需要重建时才 `watch` |
+| 断言 `el.style.xxx`，但样式写在 SFC 的 `<style>` 里 | jsdom 不应用样式表，读到空字符串 | 节点环境只断言内联样式和结构，视觉效果用真实浏览器验证 |
+| 发现上游 React 源码有 bug | 正则与自己的数据不匹配、effect 依赖导致重跑等；照抄等于把 bug 也移植过来 | 对照演示和源码确认意图，在 Vue 版修掉，并记入包 README 的「与 React 原件的差异」 |
+| 把会锁定 `body` 滚动的特效直接内嵌进页面 | 整个页面滚不动，而且不会自行解锁 | 放进独占的文档：独立页面，或用 iframe 加载一个 `layout: false` 的页面（参考 `ScrollLockedVideoHero` 在文档站里的接法） |
 
 ## 14. 保真验收
 
