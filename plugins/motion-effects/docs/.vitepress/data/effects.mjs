@@ -1,5 +1,5 @@
 /**
- * 21 个特效的站点数据。
+ * 23 个特效的站点数据。
  * 与 references/catalog.md 保持一致；新增/修改特效时同时更新这里。
  * 也供 scripts/sync-assets.mjs 做构建期文件校验。
  */
@@ -162,6 +162,27 @@ export const EFFECTS = [
     deps: [], demo: 'peak-chart.html', source: 'react/components/ui/peak-chart.tsx',
     props: ['data', 'value', 'v-model:period', 'accent', 'width', 'loop'],
     note: '零新增依赖（纯 canvas 2d + rAF）；width 决定全部尺寸（540:696），改 width 会重播揭示；圆点静息在 peakX + 8；无 2d 上下文时静态显示终态。'
+  },
+  {
+    id: 'glassy-dashboard', name: 'GlassyDashboard', zh: '玻璃质感数据看板', cat: '卡片与容器', vue: 'hard', vueReady: true, height: 900,
+    desc: '玻璃质感分析工作区：四个视图、样例记录、图表揭示、数字滚动、明暗主题与本地 CSV 导出。',
+    deps: ['gsap', '@gsap/react', 'lucide-react', '@fontsource-variable/manrope'], demo: 'glassy-dashboard.html', source: 'react/components/ui/glassy-dashboard.tsx',
+    props: ['backgroundImage', 'backgroundCredit', 'workspaceName', 'panelFrost', 'initialTheme'],
+    note: '样式是组件内的 dashboardStyles 模板字符串，不依赖 Tailwind；panelFrost 夹在 0–36px；背景为 Unsplash 远程图，离线时只有底色；数据全是浏览器内样例，CSV 本地生成不上传；prefers-reduced-motion 直接落终态。Vue 实装依赖 gsap / @lucide/vue / @fontsource-variable/manrope，浏览器 API 只在 onMounted 后访问。'
+  },
+  {
+    id: 'splash-cursor', name: 'SplashCursor', zh: '流体墨迹光标', cat: '氛围与装饰', vue: 'hard', vueReady: true, height: 620,
+    desc: 'WebGL2 流体墨迹光标：跟随鼠标留下带涡流的拖尾，点击爆散飞溅，支持彩虹渐变与明暗主题。',
+    deps: [], demo: 'splash-cursor.html', source: 'react/components/ui/SplashCursor.tsx',
+    props: ['rainbow', 'size', 'force', 'swirl', 'trail', 'glow', 'quality', 'clickSplash', 'theme'],
+    note: '零第三方依赖（纯 WebGL2 + 原生 pointer 事件），离线可跑；WebGL2 不支持时显示降级提示；同页最多一个实例；弱机把 quality 降到 low；theme=light 是吸收型墨迹，配浅色背景；prefers-reduced-motion 下不启动。Vue 实装引擎在 useSplashCursor.ts，逐帧状态不进响应式。'
+  },
+  {
+    id: 'shredder', name: 'Shredder', zh: '碎纸机', cat: '操作与反馈', vue: 'hard', vueReady: true, height: 620,
+    desc: '可拖拽的碎纸机：把行拖到滚轮口，夹住后切为多条纸带卷曲飘落淡出；支持重排、循环、自动播放与键盘 shred。',
+    deps: [], demo: 'shredder.html', source: 'react/components/ui/Shredder.tsx',
+    props: ['items', 'renderItem', 'onShred', 'onReorder', 'width', 'height', 'inset', 'gap', 'slitHeight', 'fallHeight', 'feedSpeed', 'bite', 'autoFeed', 'stripWidth', 'curl', 'autoAnimate', 'loop', 'loopAfterDelete', 'dragTilt', 'lift', 'slitColor', 'color', 'disabled'],
+    note: '零第三方依赖；行内容先快照为 canvas 纹理（内联图片 / SVG 可切，跨域图片需 CORS），再用 2D canvas 逐条绘制纸带；拖拽 / 裁剪 / 下落全走原生 pointer 与 rAF。onShred 触发后需自行从列表移除该项，除非开启 loop / loopAfterDelete / autoAnimate；prefers-reduced-motion 下落更短。Vue 实装用插槽替代 renderItem，引擎在 useShredder.ts，逐帧状态不进响应式。'
   }
 ]
 

@@ -359,6 +359,15 @@ html.dark {
     #101014;
 }
 
+/* GlassyDashboard 是整屏工作区，用独立页面 + 更高的 iframe 承载 */
+.me-live__frame.gd-live-frame { block-size: 860px; }
+
+/* SplashCursor 需要整屏视口跟随光标，用独立页面承载 */
+.me-live__frame.sc-live-frame { block-size: 620px; }
+
+/* 碎纸机需要固定宽度的父容器，用独立页面承载 */
+.me-live__frame.sh-live-frame { block-size: 680px; }
+
 .me-live__rows {
   display: flex;
   flex-direction: column;

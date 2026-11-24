@@ -24,12 +24,16 @@
 | `@hugeicons/core-free-icons` | 同名包 | 图标数据通用 |
 | `three` | `three` | 原样 |
 | `clsx` + `tailwind-merge`（`cn`） | 项目自己的 class 合并工具，或模板字符串 | 只有 `liquid-glass-logo-reveal` 用 |
+| `gsap` + `@gsap/react`（`useGSAP`） | `gsap`（`gsap.context()` 手动管理生命周期） | `GlassyDashboard`：Vue 侧不需要 `@gsap/react`，时间线收进 `gsap.context`，切页 `revert`、卸载 `dispose` |
+| `lucide-react` | `@lucide/vue` | `GlassyDashboard`：数据层存图标名字符串，渲染时统一映射到组件，不要把组件放进 `ref` / `reactive` |
+| `@fontsource-variable/manrope` | 同名包 | `GlassyDashboard`：SFC 里 `import '@fontsource-variable/manrope'` |
 
 ```bash
 pnpm add motion-v @vueuse/core
 pnpm add @hugeicons/vue @hugeicons/core-free-icons
 pnpm add three
 pnpm add clsx tailwind-merge
+pnpm add gsap @lucide/vue @fontsource-variable/manrope   # GlassyDashboard
 ```
 
 **样式形态先确认**（详见 catalog 总表）：

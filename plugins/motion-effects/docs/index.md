@@ -3,7 +3,7 @@ layout: home
 
 hero:
   name: Motion Effects
-  text: 20 个高保真交互动效
+  text: 24 个高保真交互动效
   tagline: Vue 3 优先 · 可运行预览 · React 源码 + 移植手册
   actions:
     - theme: brand

@@ -1,32 +1,32 @@
 # motion-effects
 
-20 个高保真交互动效的接入技能。**Vue 3 优先**，同时保留 React 原件与可直接运行的 HTML 演示。
+24 个高保真交互动效的接入技能。**Vue 3 优先**，同时保留 React 原件与可直接运行的 HTML 演示。
 
 ## 包含什么
 
 | 目录 | 内容 |
 |---|---|
 | `skills/motion-effects/SKILL.md` | 技能入口：选型 → 移植 → 验收的工作流与硬规则 |
-| `skills/motion-effects/references/catalog.md` | 20 个特效的场景、依赖、Vue 难度、关键 API、移植要点 |
+| `skills/motion-effects/references/catalog.md` | 24 个特效的场景、依赖、Vue 难度、关键 API、移植要点 |
 | `skills/motion-effects/references/vue-porting.md` | React → Vue 3 映射、SFC 骨架、WebGL / three 生命周期、常见坑 |
 | `skills/motion-effects/references/production-checklist.md` | 性能、无障碍、SSR、降级、隐私、交付验收清单 |
 | `skills/motion-effects/assets/gallery.html` | 可运行的 gallery：筛选 / 搜索 / iframe 预览 / API 速查 |
-| `skills/motion-effects/assets/demos/` | 20 个独立 HTML 演示（vanilla，无构建） |
+| `skills/motion-effects/assets/demos/` | 24 个独立 HTML 演示（vanilla，无构建） |
 | `skills/motion-effects/assets/react/` | React 源码（JSX/TSX + CSS）与 `SETUP.md` |
 | `docs/` | VitePress 预览站：特效详情、搜索、分类、源码链接；CI 部署到 GitHub Pages |
-| `packages/vue/` | Vue 3 实装：`HoldButton` / `SwipeRow` / `SpecularButton` / `TerminalReplay` / `ScrollLockedVideoHero` + Vitest |
+| `packages/vue/` | Vue 3 实装：`HoldButton` / `SwipeRow` / `SpecularButton` / `TerminalReplay` / `ScrollLockedVideoHero` / `PeakChart` / `GlassyDashboard` / `SplashCursor` + Vitest |
 
 ## 特效清单
 
 导航与页面：`PillNav`、`liquid-glass-navbar`、`scroll-locked-video-hero`
 
-卡片与容器：`FlipCard`、`TiltedCard`、`ReflectiveCard`、`GlassSurface`、`glass-folder-cards`、`MagicBento`
+卡片与容器：`FlipCard`、`TiltedCard`、`ReflectiveCard`、`GlassSurface`、`glass-folder-cards`、`MagicBento`、`GlassyDashboard`
 
 操作与反馈：`HoldButton`、`SpecularButton`、`SwipeRow`、`RubberSegment`
 
 列表与内容：`AnimatedList`、`signature`、`terminal-replay`
 
-氛围与装饰：`GhostCursor`、`liquid-glass-logo-reveal`、`PaperCrumple`、`GridMotion`
+氛围与装饰：`GhostCursor`、`SplashCursor`、`liquid-glass-logo-reveal`、`PaperCrumple`、`GridMotion`
 
 ## 在线预览（VitePress + GitHub Pages）
 
@@ -49,13 +49,16 @@ pnpm dev          # 构建前自动同步 demos/source 到 public/
 
 ## Vue 3 组件（0.1）
 
-已有 5 个完成移植并有 Vitest 覆盖：
+已有 8 个完成移植并有 Vitest 覆盖：
 
 - `HoldButton`：长按确认
 - `SwipeRow`：滑动操作行
 - `SpecularButton`：WebGL 高光按钮
 - `TerminalReplay`：终端会话逐字回放
 - `ScrollLockedVideoHero`：滚动锁定视频 Hero
+- `PeakChart`：canvas 手绘辉光数据卡片
+- `GlassyDashboard`：玻璃质感数据看板（四视图 / 图表揭示 / CSV 导出）
+- `SplashCursor`：WebGL2 流体墨迹光标（跟手拖尾 / 点击飞溅 / 彩虹渐变）
 
 ```ts
 import { HoldButton, SpecularButton, SwipeRow, TerminalReplay } from '@motion-effects/vue'

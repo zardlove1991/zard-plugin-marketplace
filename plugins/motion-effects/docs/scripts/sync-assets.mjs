@@ -1,11 +1,11 @@
 #!/usr/bin/env node
 /**
  * 构建前同步：把特效源码/演示复制到 VitePress 的 public/。
- * - assets/demos      -> public/demos      （20 个可运行演示 + 依赖资产）
+ * - assets/demos      -> public/demos      （24 个可运行演示 + 依赖资产）
  * - assets/react      -> public/source/react（源码可在线查看）
  * - assets/gallery.html -> public/gallery.html（单页 Gallery，保留）
  *
- * 同时校验 20 个特效的 demo/source 存在，以及 demo 里引用的本地资产齐全。
+ * 同时校验 24 个特效的 demo/source 存在，以及 demo 里引用的本地资产齐全。
  * 任一缺失直接 exit 1，避免 CI 部署出半成品站点。
  */
 import fs from 'node:fs'

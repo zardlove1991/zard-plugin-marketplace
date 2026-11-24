@@ -34,7 +34,7 @@ function indexOf(effect) {
   <section class="me-index">
     <header class="me-index__head">
       <p class="me-eyebrow">EFFECT LIBRARY</p>
-      <h1>20 个特效</h1>
+      <h1>{{ EFFECTS.length }} 个特效</h1>
       <p class="me-desc">
         每个特效都有可运行演示、React 源码、Vue 3 移植难度与关键 API。点开任意一张卡片进入预览。
       </p>

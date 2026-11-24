@@ -95,14 +95,42 @@ const snippets = {
   :decimals="1"
   accent="#2ec99a"
   :width="300"
-/>`
+/>`,
+  'glassy-dashboard': `<GlassyDashboard
+  workspace-name="ATLAS"
+  :panel-frost="12"
+  initial-theme="light"
+/>`,
+  'splash-cursor': `<SplashCursor
+  rainbow
+  :size="1"
+  :force="1"
+  :swirl="3"
+  :trail="1"
+  click-splash
+/>`,
+  shredder: `<Shredder
+  :items="files"
+  :width="340"
+  :height="460"
+  :feed-speed="180"
+  :bite="18"
+  :strip-width="10"
+  :curl="1"
+  @shred="onShred"
+  @reorder="onReorder"
+>
+  <template #item="{ item }">
+    <div class="row">{{ item.name }}</div>
+  </template>
+</Shredder>`
 } as const
 
 const snippet = computed(() => snippets[props.id as keyof typeof snippets] ?? '')
 const isLive = computed(() => props.id in snippets)
 
 // 滚动锁定 Hero 在挂载期间锁住所在页面的滚动，所以放进只渲染它自己的独立页面，再用 iframe 加载
-const FRAMED_IDS = new Set(['scroll-video-hero'])
+const FRAMED_IDS = new Set(['scroll-video-hero', 'glassy-dashboard', 'splash-cursor', 'shredder'])
 const isFramed = computed(() => FRAMED_IDS.has(props.id))
 </script>
 
@@ -112,7 +140,13 @@ const isFramed = computed(() => FRAMED_IDS.has(props.id))
       <p class="me-eyebrow">VUE 3 实装</p>
       <h2>直接使用真实组件</h2>
       <p v-if="isFramed">
-        这个组件挂载期间会锁定页面滚动，所以下面的预览放在 iframe 里；iframe 里跑的仍是直接从
+        {{ id === 'scroll-video-hero'
+          ? '这个组件挂载期间会锁定页面滚动，所以下面的预览放在 iframe 里；'
+          : id === 'splash-cursor'
+            ? '这个组件铺满整个视口跟随光标，为了不遮住文档内容，下面的预览放在独立页面里；'
+            : id === 'shredder'
+              ? '碎纸机需要一个固定宽度的父容器，为了不被文档侧栏挤压，下面的预览放在独立页面里；'
+              : '这是一个整屏工作区，为了不被文档侧栏挤压，下面的预览放在独立页面里；' }}iframe 里跑的仍是直接从
         <code>@motion-effects/vue</code> 导入的真实组件。
       </p>
       <p v-else>
@@ -203,6 +237,42 @@ const isFramed = computed(() => FRAMED_IDS.has(props.id))
         </div>
         <p class="me-live__status">
           切换右侧卡片的周期，曲线会 morph；hover 曲线查看读数
+        </p>
+      </template>
+
+      <template v-else-if="id === 'glassy-dashboard'">
+        <iframe
+          class="me-live__frame gd-live-frame"
+          :src="withBase('/live/glassy-dashboard.html')"
+          title="玻璃质感数据看板 Vue 实装"
+          loading="lazy"
+        />
+        <p class="me-live__status">
+          在独立页面里运行完整看板：四视图 / 周期切换 / 明暗主题 / 图表 hover / 本地 CSV 导出；数据都是浏览器内样例
+        </p>
+      </template>
+
+      <template v-else-if="id === 'splash-cursor'">
+        <iframe
+          class="me-live__frame sc-live-frame"
+          :src="withBase('/live/splash-cursor.html')"
+          title="流体墨迹光标 Vue 实装"
+          loading="lazy"
+        />
+        <p class="me-live__status">
+          在 iframe 里移动鼠标留下流体墨迹，点击产生飞溅；整个效果跑在 WebGL2 上，零第三方依赖
+        </p>
+      </template>
+
+      <template v-else-if="id === 'shredder'">
+        <iframe
+          class="me-live__frame sh-live-frame"
+          :src="withBase('/live/shredder.html')"
+          title="碎纸机 Vue 实装"
+          loading="lazy"
+        />
+        <p class="me-live__status">
+          在 iframe 里拖动行到滚轮口体验碎片飘落；拖到列表其它位置可重排，聚焦后按 Delete / Backspace 也能 shred
         </p>
       </template>
 

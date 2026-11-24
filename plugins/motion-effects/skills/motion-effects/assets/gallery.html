@@ -440,7 +440,7 @@
     <div class="brand">
       <span class="dot"></span>
       <b>Motion Effects</b>
-      <span>21 个特效 · Vue 3 优先 · 生产接入</span>
+      <span>24 个特效 · Vue 3 优先 · 生产接入</span>
     </div>
     <div class="header-note">
       <span>↑ ↓ 切换 · / 搜索</span>
@@ -638,6 +638,27 @@ const EFFECTS = [
     deps: [], demo: 'peak-chart.html', source: 'react/components/ui/peak-chart.tsx',
     props: ['data', 'value', 'period', 'accent', 'width', 'loop'],
     note: '零新增依赖（纯 canvas 2d + rAF）；width 决定全部尺寸（540:696），改 width 会重播揭示；无 2d 上下文时静态显示终态。'
+  },
+  {
+    id: 'glassy-dashboard', name: 'GlassyDashboard', zh: '玻璃质感数据看板', cat: '卡片与容器', vue: 'hard',
+    desc: '玻璃质感分析工作区：四个视图、样例记录、图表揭示、数字滚动、明暗主题与本地 CSV 导出。',
+    deps: ['gsap', '@gsap/react', 'lucide-react', '@fontsource-variable/manrope'], demo: 'glassy-dashboard.html', source: 'react/components/ui/glassy-dashboard.tsx',
+    props: ['backgroundImage', 'backgroundCredit', 'workspaceName', 'panelFrost', 'initialTheme'],
+    note: '样式在组件内的 dashboardStyles 中，不依赖 Tailwind；背景为 Unsplash 远程图；数据全是样例，CSV 本地生成；prefers-reduced-motion 直接落终态。Vue 实装依赖 gsap / @lucide/vue / @fontsource-variable/manrope。'
+  },
+  {
+    id: 'splash-cursor', name: 'SplashCursor', zh: '流体墨迹光标', cat: '氛围与装饰', vue: 'hard',
+    desc: 'WebGL2 流体墨迹光标：跟随鼠标留下带涡流的拖尾，点击爆散飞溅，支持彩虹渐变与明暗主题。',
+    deps: [], demo: 'splash-cursor.html', source: 'react/components/ui/SplashCursor.tsx',
+    props: ['rainbow', 'size', 'force', 'swirl', 'trail', 'glow', 'quality', 'clickSplash', 'theme'],
+    note: '零第三方依赖（纯 WebGL2 + 原生 pointer 事件）；WebGL2 不支持时显示降级提示；同页最多一个实例；弱机把 quality 降到 low；theme=light 是吸收型墨迹，配浅色背景。'
+  },
+  {
+    id: 'shredder', name: 'Shredder', zh: '碎纸机', cat: '操作与反馈', vue: 'hard',
+    desc: '可拖拽碎纸机：把行拖到滚轮口，夹住后切成条并卷曲飘落；支持重排、循环与自动播放。',
+    deps: [], demo: 'shredder.html', source: 'react/components/ui/Shredder.tsx',
+    props: ['items', 'renderItem', 'onShred', 'onReorder', 'width', 'height', 'feedSpeed', 'bite', 'stripWidth', 'curl', 'autoAnimate', 'loop', 'loopAfterDelete', 'disabled'],
+    note: '零第三方依赖；行内容先快照为 canvas 纹理（内联图片/SVG 可切，跨域图片需 CORS），再逐条绘制纸带；onShred 后需自行移除列表项，除非开启 loop/loopAfterDelete/autoAnimate。'
   }
 ];
 

@@ -1,4 +1,4 @@
-# 特效目录（21 个）
+# 特效目录（24 个）
 
 > 路径均相对 `skills/motion-effects/`。
 > **Vue 难度**：`易` ≈ 1–2 小时直译；`中` ≈ 半天，需处理 ref / 生命周期 / motion-v；`难` ≈ 1–2 天，含 WebGL / three.js / canvas 大组件。
@@ -10,11 +10,12 @@
 |---|---|---|
 | 营销页首屏 / 滚动叙事 | `scroll-locked-video-hero` | `liquid-glass-logo-reveal`、`GridMotion` |
 | 移动端列表操作 | `SwipeRow` | `RubberSegment`、`HoldButton` |
-| 数据 / 功能展示 | `MagicBento` | `peak-chart`、`AnimatedList`、`TiltedCard` |
-| 玻璃拟态面板 | `GlassSurface` | `glass-folder-cards`、`liquid-glass-navbar` |
+| 数据 / 功能展示 | `MagicBento` | `peak-chart`、`glassy-dashboard`、`AnimatedList`、`TiltedCard` |
+| 玻璃拟态面板 | `GlassSurface` | `glass-folder-cards`、`liquid-glass-navbar`、`glassy-dashboard` |
 | 身份卡 / 票券 / 3D 翻面 | `ReflectiveCard` | `FlipCard` |
 | 导航 | `PillNav` | `liquid-glass-navbar` |
-| 氛围装饰 | `GhostCursor` | `PaperCrumple`、`GridMotion` |
+| 氛围装饰 | `GhostCursor` | `SplashCursor`、`PaperCrumple`、`GridMotion` |
+| 拖拽碎纸 / 列表重排 | `Shredder` | `SwipeRow` |
 | 内容演示 | `terminal-replay` | `signature` |
 | 图片墙 / 自动滚动网格 | `GridMotion` | — |
 | 品牌 Logo 揭示 | `liquid-glass-logo-reveal` | — |
@@ -44,6 +45,9 @@
 | 19 | `signature` | 列表与内容 | 手写签名：播放/手写/导出 SVG | 无 | 内联 | 中 |
 | 20 | `terminal-replay` | 列表与内容 | 终端会话逐字回放 | 无 | 内联 | 易 |
 | 21 | `peak-chart` | 卡片与容器 | canvas 手绘辉光数据卡：曲线描绘 / 峰值脉冲 / 数字滚动 / 周期切换 | 无 | 内联 | 难 |
+| 22 | `glassy-dashboard` | 卡片与容器 | 玻璃质感数据看板：四视图 / 图表揭示 / 数字滚动 / 明暗主题 / CSV 导出 | `gsap`、`@gsap/react`、`lucide-react`、`@fontsource-variable/manrope` | 内联 | 难 |
+| 23 | `SplashCursor` | 氛围与装饰 | WebGL2 流体墨迹光标：跟手拖尾 / 点击飞溅 / 彩虹渐变 / 明暗主题 | 无 | 内联 | 难 |
+| 24 | `Shredder` | 操作与反馈 | 可拖拽碎纸机：切条卷曲飘落 / 重排 / 循环 / 自动播放 / 键盘 shred | 无 | 内联 | 难 |
 
 ## Vue 实装进度（0.1）
 
@@ -57,10 +61,13 @@
 | `TerminalReplay` | `../../packages/vue/src/components/TerminalReplay.vue` | `../../packages/vue/tests/terminal-replay.spec.ts` |
 | `ScrollLockedVideoHero` | `../../packages/vue/src/components/ScrollLockedVideoHero.vue` | `../../packages/vue/tests/scroll-locked-video-hero.spec.ts` |
 | `PeakChart` | `../../packages/vue/src/components/PeakChart.vue` | `../../packages/vue/tests/peak-chart.spec.ts` |
+| `GlassyDashboard` | `../../packages/vue/src/components/GlassyDashboard.vue` | `../../packages/vue/tests/glassy-dashboard.spec.ts` |
+| `SplashCursor` | `../../packages/vue/src/components/SplashCursor.vue` | `../../packages/vue/tests/splash-cursor.spec.ts` |
+| `Shredder` | `../../packages/vue/src/components/Shredder.vue` | `../../packages/vue/tests/shredder.spec.ts` |
 
 其余 15 个仍以 React 源码 + vanilla 演示为真源，按需按 `vue-porting.md` 移植。`GlassSurface` 因 SVG + WebGL 双路径，放在下一批。
 
-后三个（`TerminalReplay`、`ScrollLockedVideoHero`、`PeakChart`）与 React 原件有几处有意的行为差异，见 `../../packages/vue/README.md` 的「与 React 原件的差异」。
+后六个（`TerminalReplay`、`ScrollLockedVideoHero`、`PeakChart`、`GlassyDashboard`、`SplashCursor`、`Shredder`）与 React 原件有几处有意的行为差异，见 `../../packages/vue/README.md` 的「与 React 原件的差异」。
 
 > Vue 实装自带 CSS，不依赖 Tailwind；需要安装的依赖见下面「依赖安装」。
 
@@ -72,16 +79,19 @@ pnpm add motion-v @vueuse/core    # FlipCard / RubberSegment / SwipeRow；@vueus
 pnpm add @hugeicons/vue @hugeicons/core-free-icons   # AnimatedList / MagicBento / ReflectiveCard / SwipeRow
 pnpm add three                   # PaperCrumple
 pnpm add clsx tailwind-merge     # liquid-glass-logo-reveal 的 cn()
+pnpm add gsap @gsap/react lucide-react @fontsource-variable/manrope   # glassy-dashboard（React 原件）
+pnpm add gsap @lucide/vue @fontsource-variable/manrope                # glassy-dashboard 的 Vue 3 实装
+# splash-cursor 零第三方依赖（纯 WebGL2 + 原生 pointer 事件），React / Vue 都不用额外安装
 # GridMotion / SwipeRow 的原生样式用 Tailwind；不装 Tailwind 时复用 demo CSS（见下）
 ```
 
-React 项目对应：`motion` + `@hugeicons/react`。Tailwind **不是必装**：只有 `GridMotion` / `SwipeRow` 的原生样式依赖它；Vue 项目不装 Tailwind 时，按下面「Tailwind」一条的替代路径（复用 demo CSS）处理即可。
+React 项目对应：`motion` + `@hugeicons/react`；`glassy-dashboard` 另需 `gsap`、`@gsap/react`、`lucide-react`、`@fontsource-variable/manrope`。Tailwind **不是必装**：只有 `GridMotion` / `SwipeRow` 的原生样式依赖它；Vue 项目不装 Tailwind 时，按下面「Tailwind」一条的替代路径（复用 demo CSS）处理即可。
 
 **样式形态分三类**：
 
 - **CSS 文件**（12 个）：源码旁有同名 `.css`，直接一起复制。
 - **Tailwind**（`GridMotion`、`SwipeRow`）：React 源码没有独立 CSS，样式写死在 JSX 的任意值类里；Vue 项目不用 Tailwind 时，直接复用对应 demo 里的等价 CSS（`grid-motion.html` / `swipe-row.html`），不要逐条翻译任意值类。`SwipeRow` 的 Vue 实装已带提取好的 `SwipeRow.css`。
-- **内联**（6 个 TSX）：样式在组件文件的 `<style>` / style 对象里，随源码一起搬；`liquid-glass-logo-reveal` 的容器另有 5 个 Tailwind 工具类，可手写成普通 CSS。
+- **内联**（TSX）：样式在组件文件的 `<style>` / style 对象里，随源码一起搬；`liquid-glass-logo-reveal` 的容器另有 5 个 Tailwind 工具类，可手写成普通 CSS；`glassy-dashboard` 把整份 `dashboardStyles` 以 `<style>{dashboardStyles}</style>` 注入，不依赖 Tailwind。
 
 ---
 
@@ -258,3 +268,30 @@ React 项目对应：`motion` + `@hugeicons/react`。Tailwind **不是必装**�
 - **关键 API**：`data`、`labels`、`value`、`valueSuffix`、`decimals`、`title`、`caption`、`updatedText`、`trend`（`up`/`down`/`none`）、`periods`、`period`（受控 → Vue 用 `v-model:period`）、`defaultPeriod`、`onPeriodChange`、`accent`、`width`、`loop`、`backdrop`、`formatValue`、`font`。
 - **移植要点**：纯 canvas 2d + rAF，零第三方依赖。辉光场是逐像素程序化绘制（`buildField`：蓝色底 + 高斯阴影 + 三层内 rim + 颗粒），静态层只建一次缓存，不要每帧重画；曲线是 Steffen 单调三次插值，保证最高数据点就是曲线顶点；时间轴常量（`T_DRAW` / `T_NUM` / `T_REST` 等）与缓动不要改。Vue 实装把引擎抽进 `usePeakChart.ts`，逐帧状态用普通对象直写 DOM；`period` 用 `defineModel`；`accent` 偏离参考蓝 `#4f8ef7` 时对 canvas 做 `hue-rotate` + `saturate`。
 - **注意**：`width` 决定全部尺寸（高度 = width × 696/540），运行中改 `width` 会重建画布并重播揭示（上游语义）；圆点静息在 `peakX + 8`（`DOT_DX`），hover 读数取圆点处的值；hover 期间静息窗口暂停时钟；`loop` > 0 按秒循环（最小 6s）；`prefers-reduced-motion` 直接停终态；无 2d 上下文时静态显示终态数字（Vue 版对上游 `grainTile()` 抛错加了守卫）。
+
+## 22. glassy-dashboard · 玻璃质感数据看板
+
+- **源码**：`glassy-dashboard.tsx`（用法示例 `glassy-dashboard-demo.tsx`）；**演示**：`glassy-dashboard.html`
+- **Vue 实装**：`../../packages/vue/src/components/GlassyDashboard.vue`（已测试；数据与格式化在 `useGlassyDashboard.ts`，GSAP 时间线在 `useGlassyDashboardMotion.ts`）
+- **适用**：SaaS 运营控制台、数据看板演示、玻璃拟态设计系统示例；需要"四视图切换 + 图表揭示 + 数字滚动 + 明暗主题 + 本地 CSV 导出"的完整工作区。
+- **关键 API**：`backgroundImage`、`backgroundCredit`、`workspaceName`、`panelFrost`（0–36px，主玻璃模糊半径）、`initialTheme`（`light`/`dark`）。内部状态：当前视图、周期（7/30/90 天）、明暗主题、弹窗与工单状态；视图切换走 hash 路由，back/forward 可恢复。
+- **移植要点**：`useGSAP` + gsap 时间线驱动入场：`[data-gd-enter]` 交错上浮、柱条 `scaleY`、曲线 `clipPath` 揭示、环形 `stroke-dasharray`、进度条 `scaleX`、数字计数；`prefers-reduced-motion` 下直接落到终态。CSS 是组件内的 `dashboardStyles` 模板字符串，整套 `.gd-*` 命名空间随组件搬，Tailwind 不是依赖。图标用 `lucide-react`；演示版改成本地 vendored 的 `lucide.min.js` + `gsap.min.js`，并把 CSS / 数据从 React 源码逐字提取，观感常量不改。
+- **注意**：背景图为 Unsplash 远程图片（离线时只有底色，需自备素材时传 `backgroundImage`）；所有数据都是组件内样例，数据时区/口径不要当真实业务值；导出 CSV 在浏览器本地生成，不上传；`panelFrost` 超范围会被夹到 0–36px；`prefers-reduced-transparency` / `forced-colors` 下玻璃会退化为实色。Vue 版把 GSAP 时间线收进 `gsap.context`，切页前 `revert`、卸载时清理；逐帧数字走普通对象直写 DOM，不进响应式；浏览器 API 只在 `onMounted` 后访问。
+
+## 23. SplashCursor · 流体墨迹光标
+
+- **源码**：`SplashCursor.tsx`（TypeScript + Tailwind 变体，含所有 WebGL shader）；**演示**：`splash-cursor.html`
+- **Vue 实装**：`../../packages/vue/src/components/SplashCursor.vue`（已测试；WebGL 引擎在 `../../packages/vue/src/composables/useSplashCursor.ts`）
+- **适用**：深色落地页、作品集、发布会页面的全局光标氛围；跟随鼠标留下流体墨迹拖尾，点击时爆散出飞溅。
+- **关键 API**：`colors`（默认 `['#4f8cff', '#2dd4bf', '#ffd166']`）、`rainbow`（默认 `true`，按全色环循环）、`colorSpeed`（默认 1，0 = 单笔一色）、`intensity`（默认 1，墨量）、`size`（默认 1，笔触 / 飞溅宽度）、`force`（默认 1，推力）、`swirl`（默认 3，涡流强度）、`trail`（默认 1，墨迹留存时间）、`momentum`（默认 1，停手后的惯性）、`shading`（默认 1，涟漪深度阴影）、`glow`（默认 0，亮部柔光）、`quality`（`low`/`medium`/`high`，默认 `high`）、`clickSplash`（默认 `true`）、`intro`（默认 `true`，挂载时划过屏幕一笔）、`contained`（默认 `false`，只填充父元素并只在其中响应）、`theme`（`dark`/`light`，默认 `dark`）、`zIndex`（默认 50）、`className`、`style`。
+- **移植要点**：整段 WebGL2 流体模拟原样保留 — FBO 双缓冲、advection / divergence / pressure / curl shaders、bloom 链、上下文丢失 / 恢复处理、pointer + touch 跟踪。`quality` 决定 sim/dye 分辨率与迭代次数（16–20 次），弱机降到 `low`。Vue 把引擎抽进 `useSplashCursor.ts`：`onMounted` 建 context，`onBeforeUnmount` 删 program / buffer / texture / FBO 并 `cancelAnimationFrame`；逐帧状态放普通对象，不进响应式；`prefers-reduced-motion` 下直接不启动并渲染静态兜底。容器固定定位、`pointer-events: none`，只在 `contained` 时变 `absolute` 并限制在父元素内。
+- **注意**：**WebGL2 必需**，不支持时组件显示降级提示（不会崩）；同一页面最多一个实例；移动端 / 触屏建议关掉或降 `quality`；`theme: light` 是"吸收型"墨迹，要配浅色背景才对味；演示与 React 原件都是纯 WebGL，**零第三方依赖**，离线也能跑。日志里 GPU 软件渲染回退警告（SwiftShader）在 headless 环境属正常，以真机为准。
+
+## 24. Shredder · 碎纸机
+
+- **源码**：`Shredder.tsx`（TypeScript + Tailwind 变体）；**演示**：`shredder.html`
+- **Vue 实装**：`../../packages/vue/src/components/Shredder.vue`（已测试；引擎在 `../../packages/vue/src/composables/useShredder.ts`）
+- **适用**：文件管理 / 收件箱演示、销毁确认的可视化、带拖拽重排的交互玩具；把任意行拖到滚轮口，夹住后切成纸带卷曲飘落。
+- **关键 API**：`items`（每行需唯一 `id`）、`renderItem`（React）/ 插槽（Vue，渲染被切的快照）、`onShred`（行通过滚轮时触发）、`onReorder`（行被放到别处时回传新顺序）、`width`（340）、`height`（460）、`inset`（14）、`gap`（10）、`slitHeight`（4）、`fallHeight`（140）、`feedSpeed`（180px/s）、`bite`（18px）、`autoFeed`（true）、`stripWidth`（10px）、`curl`（1）、`autoAnimate`（false）、`loop`（false）、`loopAfterDelete`（false）、`dragTilt`（6°）、`lift`（1.02）、`slitColor`（`#3f3f46`）、`color`（`#f5f5f5`）、`disabled`、`className`。
+- **移植要点**：行内容先用 `XMLSerializer` + `foreignObject` 快照成 canvas 纹理，再按 `stripWidth` 等分列，每列用 2D canvas 逐帧绘制卷曲 / 波动 / 下落 / 淡出；拖拽用 pointer 事件 + 弹簧缓动，命中滚轮口后进入 feed 状态。`autoAnimate` 自下而上自动播放再带回；`loop` / `loopAfterDelete` 需要保留列表项。Vue 版把 React hook 状态改成普通对象（逐帧状态不进响应式），`onMounted` 建引擎、`onBeforeUnmount` 移除监听 / observer 并 `cancelAnimationFrame`；插槽替代 `renderItem`，通过 DOM 快照读取。
+- **注意**：**零第三方依赖**，离线可跑；`onShred` 触发后需自行从列表移除该项，除非开启 `loop` / `loopAfterDelete` / `autoAnimate`，否则列表会被"切空"；内联图片 / SVG 能切，**跨域图片需要 CORS** 否则快照被污染；`prefers-reduced-motion` 下落更短；演示机台父容器需给显式宽度，否则组件 `min(var(--sh-w),100%)` 在 auto 宽度父级里会塌陷成窄条（React 原件同样语义）。

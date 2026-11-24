@@ -1,6 +1,6 @@
 # motion-effects docs
 
-20 个特效的 VitePress 预览站，自动部署到 GitHub Pages。
+24 个特效的 VitePress 预览站，自动部署到 GitHub Pages。
 
 ## 本地
 
@@ -37,7 +37,7 @@ pnpm typecheck
 docs/
 ├── .vitepress/
 │   ├── config.mts          # 站点配置 / 侧栏 / base
-│   ├── data/effects.mjs    # 20 个特效的共享数据
+│   ├── data/effects.mjs    # 24 个特效的共享数据
 │   └── theme/              # 自定义主题与组件
 ├── effects/
 │   ├── index.md            # 特效总览（EffectGrid）

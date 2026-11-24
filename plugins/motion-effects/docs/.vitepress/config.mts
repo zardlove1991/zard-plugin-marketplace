@@ -20,7 +20,7 @@ const referenceRoot = `${repo}/blob/main/plugins/motion-effects/skills/motion-ef
 export default defineConfig({
   lang: 'zh-CN',
   title: 'Motion Effects',
-  description: '20 个高保真交互动效：Vue 3 预览、源码与接入文档',
+  description: `${EFFECTS.length} 个高保真交互动效：Vue 3 预览、源码与接入文档`,
   base,
   appearance: 'force-dark',
   cleanUrls: false,
@@ -89,7 +89,7 @@ export default defineConfig({
     ],
     footer: {
       message: 'Vue 3 优先 · 从 React 源码与 vanilla 演示出发做保真移植',
-      copyright: 'Motion Effects · 20 effects'
+      copyright: `Motion Effects · ${EFFECTS.length} effects`
     }
   },
   transformPageData(pageData) {

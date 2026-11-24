@@ -1,6 +1,6 @@
 # 接入指南
 
-这个站点是 `motion-effects` 技能的**可视化预览与接入文档**。20 个特效都有：
+这个站点是 `motion-effects` 技能的**可视化预览与接入文档**。24 个特效都有：
 
 - 可运行的独立演示（iframe，原生 HTML/CSS/JS，无构建依赖）
 - React 源码（JSX/TSX，部分带 CSS）
