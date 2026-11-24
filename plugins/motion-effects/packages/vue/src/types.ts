@@ -38,3 +38,5 @@ export interface ScrollLockedVideoSignature {
   name: string
   url: string
 }
+
+export type PeakChartTrend = 'up' | 'down' | 'none'
