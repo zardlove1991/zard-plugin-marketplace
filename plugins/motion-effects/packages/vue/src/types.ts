@@ -19,3 +19,22 @@ export interface SwipeAction {
 }
 
 export type SpecularButtonSize = 'sm' | 'md' | 'lg'
+
+export type TerminalStep =
+  | { type: 'command'; text: string; directory?: string }
+  | { type: 'output'; lines: string[]; delay?: number }
+  | {
+      type: 'spinner'
+      text: string
+      duration?: number
+      done?: string
+      status?: 'success' | 'error' | 'warning'
+    }
+  | { type: 'progress'; text: string; duration?: number; done?: string }
+  | { type: 'pause'; duration?: number }
+  | { type: 'clear' }
+
+export interface ScrollLockedVideoSignature {
+  name: string
+  url: string
+}
