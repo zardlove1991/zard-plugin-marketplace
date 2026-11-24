@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import { withBase } from 'vitepress'
-import { HoldButton, SpecularButton, SwipeRow, TerminalReplay } from '@motion-effects/vue'
+import { HoldButton, PeakChart, SpecularButton, SwipeRow, TerminalReplay } from '@motion-effects/vue'
 import type { SwipeAction } from '@motion-effects/vue'
 
 const props = defineProps<{ id: string }>()
@@ -45,6 +45,27 @@ function onAction(action: SwipeAction, row: Row) {
   lastAction.value = `${action.label} · ${row.title}`
 }
 
+// PeakChart 第二张卡的演示数据（与 assets/demos/peak-chart.html 一致）
+const PEAK_USERS: Record<string, { data: number[]; labels: string[]; value: number }> = {
+  Weekly: {
+    data: [8.1, 8.6, 9.4, 9.1, 10.8, 12.4, 11.9],
+    labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+    value: 12.4
+  },
+  Monthly: {
+    data: [5.2, 5.6, 5.4, 6.1, 6.9, 6.6, 7.4, 8.2, 7.9, 8.8, 9.6, 9.2, 10.4, 11.8, 12.8, 12.1],
+    labels: Array.from({ length: 16 }, (_, i) => `Day ${i * 2 + 1}`),
+    value: 12.8
+  },
+  Yearly: {
+    data: [2.1, 2.4, 3.2, 3.0, 4.1, 4.8, 5.6, 6.3, 7.9, 9.4, 11.2, 12.8],
+    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+    value: 12.8
+  }
+}
+const peakPeriod = ref('Monthly')
+const peakUsers = computed(() => PEAK_USERS[peakPeriod.value])
+
 const snippets = {
   'hold-button': `<HoldButton
   fill-color="#c8ff4d"
@@ -64,6 +85,16 @@ const snippets = {
   video-src="/hero.mp4"
   title="THE CITY OPENS"
   :scrub-distance="3200"
+/>`,
+  'peak-chart': `<PeakChart
+  v-model:period="period"
+  :data="users[period].data"
+  :labels="users[period].labels"
+  :value="users[period].value"
+  value-suffix="k"
+  :decimals="1"
+  accent="#2ec99a"
+  :width="300"
 />`
 } as const
 
@@ -149,6 +180,29 @@ const isFramed = computed(() => FRAMED_IDS.has(props.id))
         <TerminalReplay @complete="completeCount += 1" />
         <p class="me-live__status">
           complete {{ completeCount }} 次 · 点击可跳过当前步骤，播完后点击重播
+        </p>
+      </template>
+
+      <template v-else-if="id === 'peak-chart'">
+        <div style="display: flex; flex-wrap: wrap; gap: 32px; align-items: center; justify-content: center">
+          <PeakChart :width="300" />
+          <PeakChart
+            v-model:period="peakPeriod"
+            :data="peakUsers.data"
+            :labels="peakUsers.labels"
+            :value="peakUsers.value"
+            value-suffix="k"
+            :decimals="1"
+            title="Active users"
+            caption="New peak this period"
+            updated-text="Live"
+            accent="#2ec99a"
+            :width="300"
+            :format-value="(v: number) => `${v.toFixed(1)}k`"
+          />
+        </div>
+        <p class="me-live__status">
+          切换右侧卡片的周期，曲线会 morph；hover 曲线查看读数
         </p>
       </template>
 

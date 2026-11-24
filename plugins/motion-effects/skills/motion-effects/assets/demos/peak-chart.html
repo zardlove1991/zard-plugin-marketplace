@@ -1,0 +1,782 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Peak Chart</title>
+<style>
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    min-height: 100svh;
+    background: #f5f5f5;
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  }
+  .panel {
+    position: absolute;
+    inset: clamp(10px, 2.6vmin, 26px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    border-radius: clamp(18px, 4.5vmin, 34px);
+    border: 1px solid rgba(140, 170, 230, 0.1);
+    background-color: #08101a;
+    box-shadow: 0 24px 60px -24px rgba(0, 0, 0, 0.45);
+  }
+  .pc-root { display: inline-block; }
+  .pc-card { position: relative; flex: none; color: #fff; user-select: none; -webkit-user-select: none; }
+  .pc-card canvas { position: absolute; left: 0; top: 0; display: block; pointer-events: none; }
+  .pc-hover { position: absolute; left: 0; width: 100%; touch-action: pan-y; cursor: crosshair; }
+  .pc-card p { position: absolute; margin: 0; white-space: nowrap; line-height: 1; }
+  .pc-pill {
+    position: absolute; border: 0; display: flex; align-items: flex-start;
+    background: rgba(255,255,255,0.13); cursor: pointer; color: #b9cdf2; outline-offset: 2px;
+  }
+  .pc-pill:focus-visible, .pc-menu button:focus-visible { outline: 2px solid rgba(160,195,255,0.8); }
+  .pc-pill span { position: relative; display: block; white-space: nowrap; line-height: 1; }
+  .pc-pill svg { flex: none; overflow: visible; transition: transform .2s ease; }
+  .pc-menu {
+    position: absolute; z-index: 3; background: rgba(20,34,64,0.55);
+    border: 1px solid rgba(255,255,255,0.12);
+    box-shadow: 0 18px 40px -12px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.08);
+    backdrop-filter: blur(18px) saturate(150%); -webkit-backdrop-filter: blur(18px) saturate(150%);
+    transform-origin: top right;
+    transition: opacity .18s ease, transform .22s cubic-bezier(.2,.9,.3,1.2), visibility .22s;
+  }
+  .pc-menu button {
+    display: flex; align-items: center; justify-content: space-between; width: 100%;
+    border: 0; background: transparent; cursor: pointer; text-align: left;
+  }
+  .pc-readout {
+    position: absolute; left: 0; top: 0; opacity: 0; pointer-events: none; z-index: 2;
+    display: flex; align-items: baseline; white-space: nowrap;
+    background: rgba(18,36,72,0.55); border: 1px solid rgba(160,195,255,0.18);
+    backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+  }
+  .pc-num { position: absolute; left: 0; right: 0; display: flex; justify-content: center; opacity: 0; }
+  .pc-num [data-part="value"] { position: relative; line-height: 1; white-space: nowrap; }
+  .pc-sizer { position: relative; display: inline-block; font-variant-numeric: tabular-nums; }
+  .pc-digits { position: absolute; right: 0; top: 0; }
+  .pc-arrow { position: absolute; left: 100%; overflow: visible; transform-origin: 0% 100%; opacity: 0; }
+</style>
+</head>
+<body>
+<section class="panel" id="panel">
+  <div class="pc-root" id="card-a"></div>
+  <div class="pc-root" id="card-b"></div>
+</section>
+
+<script>
+/* Peak Chart — vanilla 复刻（与 React 源码常量一致）。
+   两张卡片同一个组件：默认参考蓝转化卡 + 自定义绿色活跃用户卡，周期切换驱动数据 morph。 */
+
+/* Card geometry, in card units (the card is 540 units wide, 696 tall). */
+const CW = 540, CH = 696, CR = 56, HN = CH / CW, RN = CR / CW
+const BX = 0.32 * CW, BY = 0.16 * CW
+
+const FIELD_FILL = "#1678ff"
+const FIELD_SHADES = [
+  { shape: [0.4748, 0.8152, 0.7509, 0.8801, 0.7026], color: "#000000", opacity: 1.0000 },
+  { shape: [0.3741, 0.2723, 0.7371, 0.3009, 0.1168], color: "#020000", opacity: 1.0000 },
+  { shape: [0.7846, 0.0251, 0.3833, 0.1301, -0.5566], color: "#2e85ff", opacity: 0.4756 },
+  { shape: [0.6206, -0.2018, 0.1282, 0.5909, 0.2754], color: "#3584ff", opacity: 0.3146 },
+  { shape: [0.6000, 1.2391, 0.8270, 0.2111, -1.6357], color: "#000d1e", opacity: 1.0000 },
+  { shape: [0.0964, 0.5388, 1000.0000, 0.1285, 0.5421], color: "#000005", opacity: 0.2298 },
+]
+const FIELD_RIMS = [
+  { shape: [0.1207, -0.0365, 0.0492], color: "#2667ff", opacity: 1.0000 },
+  { shape: [0.0667, -0.0166, 0.0176], color: "#467dff", opacity: 1.0000 },
+  { shape: [0.0370, -0.0134, 0.0154], color: "#c2ffff", opacity: 0.8091 },
+]
+const HALO = { cx: 0.4996, cy: 0.6438, sx: 0.2498, sy: 0.2433, opacity: 0.845, color: "#0e50ff" }
+const BREATH_GAIN = 0.42, GRAIN = 1.7
+
+const PLOT_X0 = 20.29, PLOT_X1 = 503.69, PLOT_TOP = 158.49, PLOT_BOTTOM = 385.28
+const LINE_W = 7.1, LINE_COLOR = "#6496e2", LINE_FALLOFF = 108, LINE_POWER = 1.44, LINE_CENTER = 12
+const DOT_R = 13, DOT_DX = 8, DOT_DY = 2.6
+const GRID_DX = 40.64, GRID_DY = 40.07, GRID_Y0 = 468.7, GRID_COLOR = "#5a87e1", GRID_ALPHA = 0.23
+
+const T_GRID = 0.9, T_DRAW0 = 0.25, T_DRAW = 2.1, T_NUM0 = 1.0, T_NUM = 1.7
+const T_ARROW = 2.65, T_REST = 3.3, T_BREATH = 4.6, T_MORPH = 0.75
+
+const BASE_ACCENT = "#4f8ef7"
+const DOT_TOP = "#2680ff", DOT_MID = "#75aafa", DOT_BOTTOM = "#d0e4fd", DOT_GLOW = "#287dff", PULSE_COLOR = "#78afff"
+
+const MONTH_DATA = [60, 75, 91, 110, 120, 122, 116, 106, 96, 89, 88, 95, 112, 150, 339, 384, 400, 388, 318, 240, 182, 146, 126, 117, 115, 117, 121, 127, 134, 143]
+const SERIES = {
+  Weekly: { data: [128, 152, 141, 226, 384, 262, 214], labels: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"] },
+  Monthly: { data: MONTH_DATA, labels: MONTH_DATA.map((_, i) => `Day ${i + 1}`) },
+  Yearly: { data: [92, 108, 104, 146, 171, 158, 214, 246, 231, 397, 322, 288], labels: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"] },
+}
+
+/* ---------- maths ---------- */
+const clamp01 = x => (x < 0 ? 0 : x > 1 ? 1 : x)
+const smooth = x => { const t = clamp01(x); return t * t * (3 - 2 * t) }
+const easeInOut = x => { const t = clamp01(x); return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2 }
+const easeOut = x => 1 - Math.pow(1 - clamp01(x), 3)
+const backOut = x => { const t = clamp01(x); const c = 1.9; return 1 + (c + 1) * Math.pow(t - 1, 3) + c * Math.pow(t - 1, 2) }
+function erf(x) {
+  const s = x < 0 ? -1 : 1, a = Math.abs(x), t = 1 / (1 + 0.3275911 * a)
+  const y = 1 - ((((1.061405429 * t - 1.453152027) * t + 1.421413741) * t - 0.284496736) * t + 0.254829592) * t * Math.exp(-a * a)
+  return s * y
+}
+const phi = x => 0.5 * (1 + erf(x / Math.SQRT2))
+function sdf(u, v) {
+  const qx = Math.abs(u - 0.5) - (0.5 - RN), qy = Math.abs(v - HN / 2) - (HN / 2 - RN)
+  const ox = Math.max(qx, 0), oy = Math.max(qy, 0)
+  return Math.sqrt(ox * ox + oy * oy) + Math.min(Math.max(qx, qy), 0) - RN
+}
+function rng(seed) {
+  let s = seed >>> 0
+  return () => {
+    s = (s + 0x6d2b79f5) >>> 0
+    let t = s
+    t = Math.imul(t ^ (t >>> 15), t | 1)
+    t ^= t + Math.imul(t ^ (t >>> 7), t | 61)
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296
+  }
+}
+function rgbOf(color) {
+  const c = color.trim()
+  const hex = c.match(/^#([0-9a-f]{6}|[0-9a-f]{3})(?![0-9a-f])/i)
+  if (hex) {
+    const h = hex[1].length === 3 ? hex[1].split("").map(d => d + d).join("") : hex[1]
+    return [parseInt(h.slice(0, 2), 16), parseInt(h.slice(2, 4), 16), parseInt(h.slice(4, 6), 16)]
+  }
+  const m = c.match(/^rgba?\(\s*([\d.]+)[\s,]+([\d.]+)[\s,]+([\d.]+)/i)
+  return m ? [+m[1], +m[2], +m[3]] : [0, 0, 0]
+}
+const rgba = (color, a) => `rgba(${rgbOf(color).join(",")},${a.toFixed(4)})`
+function hslOf(color) {
+  if (!/^\s*(#|rgb)/i.test(color)) return null
+  const [r, g, b] = rgbOf(color).map(v => v / 255)
+  const mx = Math.max(r, g, b), mn = Math.min(r, g, b), l = (mx + mn) / 2, d = mx - mn
+  if (d === 0) return [0, 0]
+  const sat = d / (1 - Math.abs(2 * l - 1))
+  const h = mx === r ? ((g - b) / d) % 6 : mx === g ? (b - r) / d + 2 : (r - g) / d + 4
+  return [(h * 60 + 360) % 360, sat]
+}
+
+/* ---------- static layers ---------- */
+function makeCanvas(w, h) {
+  const c = document.createElement("canvas")
+  c.width = Math.max(1, Math.round(w)); c.height = Math.max(1, Math.round(h))
+  return c
+}
+function buildField(px, seed) {
+  const w = Math.round(px), h = Math.round(px * HN)
+  const rest = makeCanvas(w, h), lift = makeCanvas(w, h)
+  const c1 = rest.getContext("2d"), c2 = lift.getContext("2d")
+  const i1 = c1.createImageData(w, h), i2 = c2.createImageData(w, h)
+  const d1 = i1.data, d2 = i2.data, rand = rng(seed), fill = rgbOf(FIELD_FILL)
+  const shades = FIELD_SHADES.map(({ shape: [cx, cy, sx, sy, th], color, opacity }) => ({
+    cx, cy, isx: 1 / Math.abs(sx), isy: 1 / Math.abs(sy), c: Math.cos(th), s: Math.sin(th), rgb: rgbOf(color), a: opacity,
+  }))
+  const rims = FIELD_RIMS.map(({ shape: [off, sp, sg], color, opacity }) => ({ off, sp, sg, rgb: rgbOf(color), a: opacity }))
+  const k2 = 1 + BREATH_GAIN
+  for (let j = 0; j < h; j++) {
+    const v = (j + 0.5) / w
+    for (let i = 0; i < w; i++) {
+      const u = (i + 0.5) / w
+      let r = fill[0], g = fill[1], b = fill[2]
+      for (const o of shades) {
+        const du = u - o.cx, dv = v - o.cy
+        const x = (o.c * du + o.s * dv) * o.isx, y = (-o.s * du + o.c * dv) * o.isy
+        const m = o.a * Math.exp(-0.5 * (x * x + y * y))
+        r += m * (o.rgb[0] - r); g += m * (o.rgb[1] - g); b += m * (o.rgb[2] - b)
+      }
+      let r2 = r, g2 = g, b2 = b
+      for (const o of rims) {
+        const vs = v + o.off
+        const dx = Math.min(u, 1 - u), dy = Math.min(vs, HN - vs)
+        const ratio = Math.min(1, phi((-sdf(u, vs) - o.sp) / o.sg) / Math.max(1e-9, phi((Math.min(dx, dy) - o.sp) / o.sg)))
+        const k = 1 - phi((dx - o.sp) / o.sg) * phi((dy - o.sp) / o.sg) * ratio
+        const m = o.a * k
+        r += m * (o.rgb[0] - r); g += m * (o.rgb[1] - g); b += m * (o.rgb[2] - b)
+        const m2 = Math.min(1, m * k2)
+        r2 += m2 * (o.rgb[0] - r2); g2 += m2 * (o.rgb[1] - g2); b2 += m2 * (o.rgb[2] - b2)
+      }
+      const n = (rand() + rand() + rand() - 1.5) * 2 * GRAIN
+      const p = (j * w + i) * 4
+      d1[p] = r + n; d1[p + 1] = g + n; d1[p + 2] = b + n; d1[p + 3] = 255
+      d2[p] = r2 + n; d2[p + 1] = g2 + n; d2[p + 2] = b2 + n; d2[p + 3] = 255
+    }
+  }
+  c1.putImageData(i1, 0, 0); c2.putImageData(i2, 0, 0)
+  return { rest, lift }
+}
+function buildHalo(px) {
+  const s = 0.25
+  const w = Math.max(8, Math.round((CW + 2 * BX) * px * s / CW)), h = Math.max(8, Math.round((CH + 2 * BY) * px * s / CW))
+  const c = makeCanvas(w, h), ctx = c.getContext("2d"), img = ctx.createImageData(w, h)
+  const [hr, hg, hb] = rgbOf(HALO.color)
+  for (let j = 0; j < h; j++) {
+    const v = ((j + 0.5) / h * (CH + 2 * BY) - BY) / CW
+    for (let i = 0; i < w; i++) {
+      const u = ((i + 0.5) / w * (CW + 2 * BX) - BX) / CW
+      const a = (u - HALO.cx) / HALO.sx, e = (v - HALO.cy) / HALO.sy
+      const k = Math.exp(-0.5 * (a * a + e * e)) * HALO.opacity
+      const p = (j * w + i) * 4
+      img.data[p] = hr; img.data[p + 1] = hg; img.data[p + 2] = hb; img.data[p + 3] = Math.min(255, k * 255)
+    }
+  }
+  ctx.putImageData(img, 0, 0)
+  return c
+}
+function buildGrid(px) {
+  const w = Math.round(px), h = Math.round(px * HN)
+  const c = makeCanvas(w, h), ctx = c.getContext("2d"), s = px / CW
+  ctx.scale(s, s)
+  ctx.strokeStyle = GRID_COLOR; ctx.lineWidth = 1; ctx.beginPath()
+  for (let k = -6; k <= 6; k++) { const x = CW / 2 + GRID_DX * k; ctx.moveTo(x, 250); ctx.lineTo(x, CH) }
+  for (let k = -6; k <= 6; k++) { const y = GRID_Y0 + GRID_DY * k; if (y < 250 || y > CH) continue; ctx.moveTo(0, y); ctx.lineTo(CW, y) }
+  ctx.stroke()
+  const mw = 64, mh = Math.round(64 * HN)
+  const m = makeCanvas(mw, mh), mc = m.getContext("2d"), img = mc.createImageData(mw, mh)
+  for (let j = 0; j < mh; j++) {
+    const y = (j + 0.5) / mh * CH, my = smooth((y - 350) / 230)
+    for (let i = 0; i < mw; i++) {
+      const x = (i + 0.5) / mw * CW
+      const mx = Math.exp(-0.5 * Math.pow((x - CW / 2) / 92, 2))
+      img.data[(j * mw + i) * 4 + 3] = Math.round(255 * GRID_ALPHA * mx * my)
+    }
+  }
+  mc.putImageData(img, 0, 0)
+  ctx.setTransform(1, 0, 0, 1, 0, 0)
+  ctx.globalCompositeOperation = "destination-in"
+  ctx.imageSmoothingEnabled = true
+  ctx.drawImage(m, 0, 0, w, h)
+  return c
+}
+
+/* ---------- curve ---------- */
+function buildCurve(data) {
+  const vals = data.length >= 2 ? data : data.length === 1 ? [data[0], data[0]] : [0, 0]
+  const n = vals.length
+  let lo = Infinity, hi = -Infinity, pk = 0
+  for (let i = 0; i < n; i++) { if (vals[i] < lo) lo = vals[i]; if (vals[i] > hi) { hi = vals[i]; pk = i } }
+  const span = hi - lo || 1
+  const yv = vals.map(v => (hi === lo ? (PLOT_TOP + PLOT_BOTTOM) / 2 : PLOT_TOP + (1 - (v - lo) / span) * (PLOT_BOTTOM - PLOT_TOP)))
+  const h = (PLOT_X1 - PLOT_X0) / (n - 1)
+  const sl = []
+  for (let i = 0; i < n - 1; i++) sl.push((yv[i + 1] - yv[i]) / h)
+  const m = [sl[0]]
+  for (let i = 1; i < n - 1; i++) { const a = sl[i - 1], b = sl[i]; m.push((Math.sign(a) + Math.sign(b)) * Math.min(Math.abs(a), Math.abs(b), 0.25 * Math.abs(a + b))) }
+  m.push(sl[n - 2])
+  const ys = new Float32Array(CW + 1)
+  for (let x = 0; x <= CW; x++) {
+    let y
+    if (x <= PLOT_X0) y = yv[0] + (x - PLOT_X0) * m[0]
+    else if (x >= PLOT_X1) y = yv[n - 1] + (x - PLOT_X1) * m[n - 1]
+    else {
+      const t = (x - PLOT_X0) / h, i = Math.min(n - 2, Math.floor(t)), f = t - i, f2 = f * f, f3 = f2 * f
+      y = (2 * f3 - 3 * f2 + 1) * yv[i] + (f3 - 2 * f2 + f) * h * m[i] + (-2 * f3 + 3 * f2) * yv[i + 1] + (f3 - f2) * h * m[i + 1]
+    }
+    ys[x] = y
+  }
+  return { ys, peakX: PLOT_X0 + pk * h, lo, hi, n }
+}
+function curveY(ys, x) {
+  const xc = Math.max(0, Math.min(CW, x)), i = Math.min(CW - 1, Math.floor(xc)), f = xc - i
+  return ys[i] * (1 - f) + ys[i + 1] * f
+}
+const lineAlpha = d => Math.exp(-Math.pow(Math.abs(d) / LINE_FALLOFF, LINE_POWER))
+
+/* ---------- timeline ---------- */
+function inverseEase(target) {
+  let lo = 0, hi = 1
+  for (let i = 0; i < 24; i++) { const m = (lo + hi) / 2; if (easeInOut(m) < target) lo = m; else hi = m }
+  return (lo + hi) / 2
+}
+function frameAt(t, loop) {
+  const f = {
+    grid: smooth(t / T_GRID), draw: easeInOut((t - T_DRAW0) / T_DRAW), erase: 0,
+    dotS: backOut((t - T_DRAW0) / 0.4), dotA: smooth((t - T_DRAW0) / 0.2),
+    num: easeOut((t - T_NUM0) / T_NUM), numA: smooth((t - T_NUM0) / 0.45), numY: 1 - easeOut((t - T_NUM0) / 0.7),
+    arrow: backOut((t - T_ARROW) / 0.45), arrowA: smooth((t - T_ARROW) / 0.18), breath: 0,
+  }
+  if (loop > 0) {
+    const L = loop
+    const out = (a, d) => 1 - smooth((t - (L - a)) / d)
+    f.erase = easeInOut((t - (L - 1.4)) / 1.15)
+    const dk = out(1.05, 0.45); f.dotA *= dk; f.dotS *= 0.6 + 0.4 * dk
+    const nk = out(1.3, 0.55); f.numA *= nk; f.arrowA *= nk; f.numY -= (1 - nk) * 0.7
+    f.grid *= out(1.1, 0.85)
+    const s = (((t - (L - 2.2)) % L) + L) % L
+    f.breath = s < T_BREATH ? Math.pow(Math.sin((Math.PI * s) / T_BREATH), 2) : 0
+  } else if (t > T_REST) {
+    f.breath = 0.6 * Math.pow(Math.sin((Math.PI * (t - T_REST)) / 7), 2)
+  }
+  return f
+}
+
+/* ---------- component factory ---------- */
+const FONT = 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif'
+
+function createPeakChart(host, opts) {
+  const o = Object.assign({
+    value: 400, valueSuffix: "%", decimals: 0, title: "Conversion rate",
+    caption: "Increase vs last month", updatedText: "Data updated 2h ago", trend: "up",
+    periods: ["Weekly", "Monthly", "Yearly"], defaultPeriod: "Monthly",
+    accent: BASE_ACCENT, width: 420, loop: 0, font: FONT,
+  }, opts)
+  let current = o.period ?? o.defaultPeriod
+  let open = false
+
+  host.innerHTML = `
+    <div class="pc-card" data-peak-chart>
+      <canvas aria-hidden="true"></canvas>
+      <div class="pc-hover"></div>
+      <p data-part="updated"></p>
+      <button type="button" class="pc-pill" aria-haspopup="listbox" aria-expanded="false">
+        <span data-part="period"></span>
+        <svg viewBox="0 0 12 7" aria-hidden="true"><path d="M0.8 0.8 L6 6 L11.2 0.8" fill="none" stroke="#9fb7e0" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round" vector-effect="non-scaling-stroke"/></svg>
+      </button>
+      <div class="pc-menu" role="listbox" aria-label="Period"></div>
+      <div class="pc-readout" aria-hidden="true"><span class="pc-readout__value"></span><span class="pc-readout__label"></span></div>
+      <p data-part="title"></p>
+      <div class="pc-num"><div data-part="value">
+        <span class="pc-sizer"><span style="visibility:hidden"></span><span class="pc-digits"></span></span>
+        <span data-part="suffix"></span>
+        <svg class="pc-arrow" viewBox="0 0 8 8" aria-hidden="true"><path d="M0.6 7.4 L7.2 0.8 M2 0.6 L7.4 0.6 L7.4 6" fill="none" stroke-width="1.1" stroke-linecap="round" stroke-linejoin="round" vector-effect="non-scaling-stroke"/></svg>
+      </div></div>
+      <p data-part="caption"></p>
+    </div>`
+  const card = host.querySelector(".pc-card")
+  const canvas = host.querySelector("canvas")
+  const hover = host.querySelector(".pc-hover")
+  const updated = host.querySelector('[data-part="updated"]')
+  const pill = host.querySelector(".pc-pill")
+  const pillText = host.querySelector('[data-part="period"]')
+  const chevron = host.querySelector(".pc-pill svg")
+  const menu = host.querySelector(".pc-menu")
+  const read = host.querySelector(".pc-readout")
+  const readVal = host.querySelector(".pc-readout__value")
+  const readLab = host.querySelector(".pc-readout__label")
+  const title = host.querySelector('[data-part="title"]')
+  const num = host.querySelector(".pc-num")
+  const valueBox = host.querySelector('[data-part="value"]')
+  const sizer = host.querySelector(".pc-sizer")
+  const hiddenDigits = host.querySelector(".pc-sizer span:first-child")
+  const digits = host.querySelector(".pc-digits")
+  const suffix = host.querySelector('[data-part="suffix"]')
+  const arrow = host.querySelector(".pc-arrow")
+  const arrowPath = host.querySelector(".pc-arrow path")
+  const caption = host.querySelector('[data-part="caption"]')
+
+  const seriesOf = () => o.data ?? SERIES[current]?.data ?? MONTH_DATA
+  const labelsOf = () => {
+    const builtIn = SERIES[current]
+    return o.labels ?? (builtIn && builtIn.data.length === seriesOf().length ? builtIn.labels : undefined)
+  }
+
+  /* layout：所有随 width 缩放的样式 */
+  let u = o.width / CW
+  const px = n => `${(n * u).toFixed(3)}px`
+  const textBase = el => {
+    el.style.position = "absolute"; el.style.whiteSpace = "nowrap"; el.style.fontFamily = o.font
+    el.style.fontStretch = "110%"; el.style.fontWeight = "300"; el.style.margin = "0"; el.style.lineHeight = "1"
+  }
+  function layout() {
+    u = o.width / CW
+    card.style.width = `${o.width}px`; card.style.height = `${o.width * HN}px`
+    card.style.borderRadius = px(CR); card.style.fontFamily = o.font
+    hover.style.top = px(96); hover.style.height = px(330)
+    textBase(updated)
+    updated.style.left = px(45.6); updated.style.top = px(43.6); updated.style.fontSize = px(18.6)
+    updated.style.fontStretch = "107.7%"; updated.style.fontWeight = "200"; updated.style.color = "#99a3b6"
+    updated.textContent = o.updatedText
+    pill.style.right = px(46); pill.style.top = px(35); pill.style.height = px(37)
+    pill.style.borderRadius = px(18.5); pill.style.padding = `0 ${px(19.8)} 0 ${px(19.4)}`
+    pill.style.gap = px(6.72); pill.style.fontFamily = o.font
+    textBase(pillText)
+    pillText.style.position = "relative"; pillText.style.display = "block"
+    pillText.style.marginTop = px(10.6); pillText.style.fontSize = px(17.2)
+    pillText.style.fontStretch = "115%"; pillText.style.fontWeight = "200"; pillText.style.color = "#acc1e7"
+    pillText.textContent = current
+    chevron.style.marginTop = px(15.9); chevron.style.width = px(12); chevron.style.height = px(7)
+    menu.style.right = px(46); menu.style.top = px(80); menu.style.minWidth = px(150)
+    menu.style.padding = px(6); menu.style.borderRadius = px(16)
+    read.style.gap = px(7); read.style.padding = `${px(7)} ${px(11)}`; read.style.borderRadius = px(11)
+    read.style.fontFamily = o.font; read.style.fontStretch = "116%"
+    readVal.style.fontSize = px(16); readVal.style.fontWeight = "600"; readVal.style.color = "#fff"
+    readLab.style.fontSize = px(12.5); readLab.style.color = "#9fb0cc"
+    textBase(title)
+    title.style.left = "0"; title.style.right = "0"; title.style.textAlign = "center"
+    title.style.top = px(441.4); title.style.fontSize = px(20.2); title.style.fontStretch = "115%"
+    title.style.fontWeight = "200"; title.style.color = "#9298a5"; title.textContent = o.title
+    num.style.top = px(469)
+    valueBox.style.fontFamily = o.font; valueBox.style.fontWeight = "500"; valueBox.style.fontSize = px(89.2)
+    valueBox.style.letterSpacing = px(-0.5); valueBox.style.marginLeft = px(-8.5)
+    sizer.style.fontStretch = "106%"
+    suffix.style.display = "inline-block"; suffix.style.fontStretch = "76%"
+    suffix.style.marginLeft = px(1.5); suffix.style.marginRight = px(-4)
+    suffix.style.transform = "scaleX(0.93)"; suffix.style.transformOrigin = "0 50%"
+    suffix.textContent = o.valueSuffix
+    arrow.style.marginLeft = px(5.5); arrow.style.top = px(16.4); arrow.style.width = px(7); arrow.style.height = px(7)
+    arrow.style.rotate = o.trend === "down" ? "90deg" : ""
+    arrow.style.display = o.trend === "none" ? "none" : ""
+    arrowPath.setAttribute("stroke", o.trend === "down" ? "#f08a8a" : "#93cfa2")
+    textBase(caption)
+    caption.style.left = "0"; caption.style.right = "0"; caption.style.textAlign = "center"
+    caption.style.top = px(560.9); caption.style.fontSize = px(11.6); caption.style.fontStretch = "108%"
+    caption.style.fontWeight = "250"; caption.style.color = "#9299a8"; caption.textContent = o.caption
+    const finalDigits = o.value.toLocaleString("en-US", { minimumFractionDigits: o.decimals, maximumFractionDigits: o.decimals })
+    hiddenDigits.textContent = finalDigits
+    digits.textContent = finalDigits
+    // accent tint
+    const a = hslOf(o.accent), b = hslOf(BASE_ACCENT)
+    let tint = ""
+    if (a && b) {
+      let d = a[0] - b[0]
+      if (d > 180) d -= 360
+      if (d < -180) d += 360
+      const k = b[1] > 0 ? a[1] / b[1] : 1
+      if (!(Math.abs(d) < 0.5 && Math.abs(k - 1) < 0.02)) tint = `hue-rotate(${d.toFixed(1)}deg) saturate(${k.toFixed(3)})`
+    }
+    canvas.style.filter = tint
+    renderMenu()
+  }
+
+  /* dropdown */
+  function renderMenu() {
+    menu.innerHTML = ""
+    for (const p of o.periods) {
+      const btn = document.createElement("button")
+      btn.type = "button"; btn.setAttribute("role", "option")
+      btn.setAttribute("aria-selected", String(p === current))
+      btn.style.height = px(36); btn.style.padding = `0 ${px(12)}`; btn.style.borderRadius = px(10)
+      btn.style.background = p === current ? "rgba(255,255,255,0.09)" : "transparent"
+      btn.style.color = p === current ? "#e6eeff" : "#aebcd6"
+      btn.style.fontFamily = o.font; btn.style.fontStretch = "116%"; btn.style.fontSize = px(15.5)
+      btn.textContent = p
+      if (p === current) {
+        const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg")
+        svg.setAttribute("viewBox", "0 0 12 9"); svg.setAttribute("aria-hidden", "true")
+        svg.style.width = px(12); svg.style.height = px(9)
+        const path = document.createElementNS("http://www.w3.org/2000/svg", "path")
+        path.setAttribute("d", "M1 4.6 L4.4 8 L11 1")
+        path.setAttribute("fill", "none"); path.setAttribute("stroke", "#9fc0ff")
+        path.setAttribute("stroke-width", "1.6"); path.setAttribute("stroke-linecap", "round")
+        path.setAttribute("stroke-linejoin", "round"); path.setAttribute("vector-effect", "non-scaling-stroke")
+        svg.appendChild(path); btn.appendChild(svg)
+      }
+      btn.addEventListener("click", () => choose(p))
+      btn.addEventListener("pointerenter", () => { if (p !== current) btn.style.background = "rgba(255,255,255,0.06)" })
+      btn.addEventListener("pointerleave", () => { if (p !== current) btn.style.background = "transparent" })
+      menu.appendChild(btn)
+    }
+  }
+  function setOpen(v) {
+    open = v
+    pill.setAttribute("aria-expanded", String(v))
+    chevron.style.transform = v ? "rotate(180deg)" : "none"
+    menu.style.opacity = v ? "1" : "0"
+    menu.style.transform = v ? "none" : `translateY(${px(-6)}) scale(0.96)`
+    menu.style.visibility = v ? "visible" : "hidden"
+  }
+  function choose(p) {
+    setOpen(false)
+    if (p === current) return
+    current = p
+    pillText.textContent = current
+    renderMenu()
+    if (o.onPeriodChange) o.onPeriodChange(p)
+    else setData(seriesOf(), labelsOf())
+  }
+  pill.addEventListener("click", () => setOpen(!open))
+  const onDown = e => { if (open && !menu.contains(e.target) && !pill.contains(e.target)) setOpen(false) }
+  const onKey = e => { if (e.key === "Escape" && open) { setOpen(false); pill.focus() } }
+  window.addEventListener("pointerdown", onDown)
+  window.addEventListener("keydown", onKey)
+
+  /* engine state */
+  const L = {
+    curve: buildCurve(seriesOf()), from: null, morph: 1,
+    value: o.value, shownValue: 0, valueFrom: 0, valueT: 1,
+    hover: null, hoverX: 0, hoverMix: 0, kick: () => {},
+  }
+  let teardown = () => {}
+
+  function setData(data, labels) {
+    o.data = data; o.labels = labels
+    const next = buildCurve(seriesOf())
+    const t = easeInOut(L.morph)
+    if (L.from && L.morph < 1) {
+      const ys = new Float32Array(CW + 1)
+      for (let x = 0; x <= CW; x++) ys[x] = L.from.ys[x] + (L.curve.ys[x] - L.from.ys[x]) * t
+      L.from = { ...L.curve, ys, peakX: L.from.peakX + (L.curve.peakX - L.from.peakX) * t }
+    } else L.from = L.curve
+    L.curve = next; L.morph = 0; L.kick()
+  }
+  function setValue(v) {
+    if (L.value === v) return
+    o.value = v
+    L.valueFrom = L.shownValue; L.value = v; L.valueT = 0; L.kick()
+    const finalDigits = v.toLocaleString("en-US", { minimumFractionDigits: o.decimals, maximumFractionDigits: o.decimals })
+    hiddenDigits.textContent = finalDigits
+  }
+
+  function setup() {
+    const ctx = canvas.getContext("2d")
+    if (!ctx) { num.style.opacity = "1"; arrow.style.opacity = "1"; return () => {} }
+    const width = o.width
+    const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches
+    const dpr = Math.min(2, Math.max(1, window.devicePixelRatio || 1))
+    const bxc = Math.ceil(BX * u), byc = Math.ceil(BY * u)
+    const bx = bxc * dpr, by = byc * dpr
+    canvas.width = Math.ceil(CW * u * dpr + 2 * bx)
+    canvas.height = Math.ceil(CH * u * dpr + 2 * by)
+    canvas.style.left = `${-bxc}px`; canvas.style.top = `${-byc}px`
+    canvas.style.width = `${canvas.width / dpr}px`; canvas.style.height = `${canvas.height / dpr}px`
+    const fieldPx = Math.min(width * dpr, Math.max(width, 700))
+    const { rest: field, lift: bright } = buildField(fieldPx, 11)
+    const grid = buildGrid(width * dpr)
+    const halo = buildHalo(width)
+    const tLand = frac => T_DRAW0 + T_DRAW * inverseEase(frac)
+
+    let clock = reduce ? T_REST + 0.01 : 0
+    let started = reduce
+    let visible = true
+    let raf = 0
+    let last = performance.now()
+
+    const roundRect = () => {
+      ctx.beginPath()
+      ctx.moveTo(CR, 0)
+      ctx.arcTo(CW, 0, CW, CH, CR); ctx.arcTo(CW, CH, 0, CH, CR)
+      ctx.arcTo(0, CH, 0, 0, CR); ctx.arcTo(0, 0, CW, 0, CR)
+      ctx.closePath()
+    }
+
+    const draw = dt => {
+      const loopS = o.loop > 0 ? Math.max(6, o.loop) : 0
+      const hovering = L.hover !== null
+      if (started && !reduce) {
+        const tl = loopS ? clock % loopS : clock
+        const frozen = hovering && tl >= T_REST && (!loopS || tl < loopS - 2.2)
+        if (!frozen) clock += dt
+      }
+      const t = loopS ? clock % loopS : clock
+      const F = started ? frameAt(t, loopS) : frameAt(0, 0)
+      if (reduce) F.breath = 0
+
+      if (L.morph < 1) L.morph = reduce ? 1 : Math.min(1, L.morph + dt / T_MORPH)
+      const mk = easeInOut(L.morph)
+      const C = L.curve
+      const ys = L.from && L.morph < 1 ? new Float32Array(CW + 1) : C.ys
+      if (ys !== C.ys && L.from) for (let x = 0; x <= CW; x++) ys[x] = L.from.ys[x] + (C.ys[x] - L.from.ys[x]) * mk
+      const peakX = L.from && L.morph < 1 ? L.from.peakX + (C.peakX - L.from.peakX) * mk : C.peakX
+      const lo = L.from && L.morph < 1 ? L.from.lo + (C.lo - L.from.lo) * mk : C.lo
+      const hi = L.from && L.morph < 1 ? L.from.hi + (C.hi - L.from.hi) * mk : C.hi
+
+      const landed = t >= tLand((peakX + DOT_DX) / CW) && F.erase <= 0 && F.dotA > 0.99
+      const wantHover = hovering && (landed || reduce)
+      if (L.hover !== null) L.hoverX = reduce ? L.hover : L.hoverX + (L.hover - L.hoverX) * (1 - Math.exp(-dt * 14))
+      L.hoverMix = reduce ? (wantHover ? 1 : 0) : L.hoverMix + ((wantHover ? 1 : 0) - L.hoverMix) * (1 - Math.exp(-dt * 10))
+
+      if (L.valueT < 1) L.valueT = reduce ? 1 : Math.min(1, L.valueT + dt / 0.9)
+      const target = L.valueFrom + (L.value - L.valueFrom) * easeOut(L.valueT)
+      const shown = target * F.num
+      L.shownValue = shown
+      const txt = shown.toLocaleString("en-US", { minimumFractionDigits: o.decimals, maximumFractionDigits: o.decimals })
+      if (digits.textContent !== txt) digits.textContent = txt
+      num.style.opacity = String(F.numA)
+      num.style.transform = `translateY(${(F.numY * 5 * u).toFixed(2)}px)`
+      const blur = Math.abs(F.numY) * 6 * u
+      num.style.filter = blur > 0.05 ? `blur(${blur.toFixed(2)}px)` : ""
+      arrow.style.opacity = String(F.arrowA)
+      arrow.style.transform = `scale(${Math.max(0, F.arrow).toFixed(3)})`
+
+      ctx.setTransform(1, 0, 0, 1, 0, 0)
+      ctx.clearRect(0, 0, canvas.width, canvas.height)
+      const s = dpr * u
+      ctx.setTransform(s, 0, 0, s, bx, by)
+      ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = "high"
+      ctx.drawImage(halo, -BX, -BY, CW + 2 * BX, CH + 2 * BY)
+      ctx.save(); roundRect(); ctx.clip()
+      ctx.drawImage(field, 0, 0, CW, CH)
+      if (F.breath > 0.001) { ctx.globalAlpha = F.breath; ctx.drawImage(bright, 0, 0, CW, CH) }
+      if (F.grid > 0.001) { ctx.globalAlpha = F.grid; ctx.drawImage(grid, 0, 0, CW, CH) }
+      ctx.globalAlpha = 1
+
+      const x0 = F.erase * CW, x1 = F.draw * CW
+      if (x1 - x0 > 0.5) {
+        const g = ctx.createLinearGradient(0, 0, CW, 0)
+        const head = 0.95 * (1 - smooth((F.draw - 0.8) / 0.2))
+        for (let i = 0; i <= 54; i++) {
+          const x = (i / 54) * CW
+          let a = lineAlpha(x - peakX - LINE_CENTER)
+          if (head > 0.001 && x <= x1 + 10) a = Math.max(a, head * Math.exp(-Math.max(0, x1 - x) / 70))
+          if (F.erase > 0) a *= smooth((x - x0) / 60)
+          g.addColorStop(i / 54, rgba(LINE_COLOR, a))
+        }
+        ctx.strokeStyle = g; ctx.lineWidth = LINE_W; ctx.lineCap = "round"; ctx.lineJoin = "round"
+        ctx.beginPath()
+        const a = Math.floor(x0)
+        ctx.moveTo(x0, curveY(ys, x0))
+        for (let x = a + 1; x < x1; x++) ctx.lineTo(x, ys[x])
+        ctx.lineTo(x1, curveY(ys, x1))
+        ctx.stroke()
+      }
+
+      if (F.dotA > 0.001) {
+        const restX = peakX + DOT_DX
+        const baseX = Math.min(x1, restX)
+        const dx = baseX + (L.hoverX - baseX) * L.hoverMix
+        const dy = curveY(ys, dx) + DOT_DY * (1 - L.hoverMix) * clamp01(baseX / restX)
+        const sinceLand = t - tLand(restX / CW)
+        const pulse = sinceLand > 0 && sinceLand < 1.1 && !reduce ? sinceLand / 1.1 : -1
+        ctx.globalAlpha = F.dotA
+        ctx.translate(dx, dy); ctx.scale(F.dotS, F.dotS)
+        const boost = pulse >= 0 ? Math.sin(Math.PI * Math.min(1, pulse * 1.6)) : 0
+        const hg = ctx.createRadialGradient(0, 0, 0, 0, 0, 30)
+        const ha = a => rgba(DOT_GLOW, Math.min(1, a * (1 + 0.9 * boost)))
+        hg.addColorStop(0, ha(0.47)); hg.addColorStop(15 / 30, ha(0.47)); hg.addColorStop(17 / 30, ha(0.41))
+        hg.addColorStop(19 / 30, ha(0.31)); hg.addColorStop(21 / 30, ha(0.17)); hg.addColorStop(23 / 30, ha(0.1))
+        hg.addColorStop(25 / 30, ha(0.06)); hg.addColorStop(27 / 30, ha(0.03)); hg.addColorStop(1, ha(0))
+        ctx.fillStyle = hg
+        ctx.beginPath(); ctx.arc(0, 0, 30, 0, Math.PI * 2); ctx.fill()
+        if (pulse >= 0) {
+          const r = DOT_R + 26 * easeOut(pulse)
+          ctx.strokeStyle = rgba(PULSE_COLOR, 0.55 * (1 - pulse) * (1 - pulse))
+          ctx.lineWidth = 2.2 * (1 - pulse) + 0.6
+          ctx.beginPath(); ctx.arc(0, 0, r, 0, Math.PI * 2); ctx.stroke()
+        }
+        const bg = ctx.createLinearGradient(0, -DOT_R, 0, DOT_R)
+        bg.addColorStop(0, DOT_TOP); bg.addColorStop(0.45, DOT_MID); bg.addColorStop(1, DOT_BOTTOM)
+        ctx.fillStyle = bg
+        ctx.beginPath(); ctx.arc(0, 0, DOT_R, 0, Math.PI * 2); ctx.fill()
+        ctx.setTransform(s, 0, 0, s, bx, by)
+        ctx.globalAlpha = 1
+
+        read.style.opacity = L.hoverMix.toFixed(3)
+        read.style.transform = `translate(${(dx * u).toFixed(1)}px, ${((dy - 26) * u).toFixed(1)}px) translate(-50%, -100%) scale(${(0.92 + 0.08 * L.hoverMix).toFixed(3)})`
+        if (L.hoverMix > 0.01) {
+          const v = lo + ((PLOT_BOTTOM - curveY(ys, dx)) / (PLOT_BOTTOM - PLOT_TOP)) * (hi - lo)
+          const vtxt = o.formatValue ? o.formatValue(v) : `${Math.round(v).toLocaleString("en-US")}${o.valueSuffix}`
+          if (readVal.textContent !== vtxt) readVal.textContent = vtxt
+          const n = C.n
+          const idx = Math.round(((Math.max(PLOT_X0, Math.min(PLOT_X1, dx)) - PLOT_X0) / (PLOT_X1 - PLOT_X0)) * (n - 1))
+          const lab = labelsOf()?.[idx] ?? ""
+          if (readLab.textContent !== lab) readLab.textContent = lab
+          readLab.style.display = lab ? "" : "none"
+        }
+      }
+      ctx.restore()
+    }
+
+    const busy = () => {
+      if (!started) return false
+      if (reduce) return L.morph < 1 || Math.abs(L.hoverMix - (L.hover !== null ? 1 : 0)) > 0.001
+      return true
+    }
+    const tick = () => {
+      raf = 0
+      const now = performance.now()
+      const dt = Math.min(0.1, Math.max(0, (now - last) / 1000))
+      last = now
+      draw(dt)
+      if (visible && !document.hidden && busy()) raf = requestAnimationFrame(tick)
+    }
+    const kick = () => {
+      if (!raf && visible && !document.hidden) { last = performance.now(); raf = requestAnimationFrame(tick) }
+    }
+    L.kick = kick
+    draw(0)
+    const io = new IntersectionObserver(([e]) => {
+      visible = e.isIntersecting
+      if (visible) { started = true; kick() }
+      else if (raf) { cancelAnimationFrame(raf); raf = 0 }
+    })
+    io.observe(card)
+    const onVis = () => { if (!document.hidden) kick() }
+    document.addEventListener("visibilitychange", onVis)
+    return () => {
+      io.disconnect()
+      document.removeEventListener("visibilitychange", onVis)
+      if (raf) cancelAnimationFrame(raf)
+      L.kick = () => {}
+    }
+  }
+
+  /* hover */
+  const onMove = e => {
+    const r = card.getBoundingClientRect()
+    const x = ((e.clientX - r.left) / r.width) * CW
+    const nx = Math.max(PLOT_X0, Math.min(PLOT_X1, x))
+    if (L.hover === null && L.hoverMix < 0.02) L.hoverX = nx
+    L.hover = nx
+    L.kick()
+  }
+  const onLeave = () => { L.hover = null; L.kick() }
+  hover.addEventListener("pointermove", onMove)
+  hover.addEventListener("pointerdown", onMove)
+  hover.addEventListener("pointerleave", onLeave)
+  hover.addEventListener("pointercancel", onLeave)
+
+  layout()
+  setOpen(false)
+  teardown = setup()
+
+  return {
+    setWidth(w) { o.width = w; layout(); teardown(); teardown = setup() },
+    setData,
+    setValue,
+    setPeriod(p) { current = p; pillText.textContent = p; renderMenu(); setData(seriesOf(), labelsOf()) },
+    destroy() {
+      teardown()
+      window.removeEventListener("pointerdown", onDown)
+      window.removeEventListener("keydown", onKey)
+    },
+  }
+}
+
+/* ---------- demo：两张卡片 ---------- */
+const USERS = {
+  Weekly: { data: [8.1, 8.6, 9.4, 9.1, 10.8, 12.4, 11.9], labels: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"], value: 12.4 },
+  Monthly: { data: [5.2, 5.6, 5.4, 6.1, 6.9, 6.6, 7.4, 8.2, 7.9, 8.8, 9.6, 9.2, 10.4, 11.8, 12.8, 12.1], labels: Array.from({ length: 16 }, (_, i) => `Day ${i * 2 + 1}`), value: 12.8 },
+  Yearly: { data: [2.1, 2.4, 3.2, 3.0, 4.1, 4.8, 5.6, 6.3, 7.9, 9.4, 11.2, 12.8], labels: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"], value: 12.8 },
+}
+
+const chartA = createPeakChart(document.getElementById("card-a"), {})
+let usersPeriod = "Monthly"
+const chartB = createPeakChart(document.getElementById("card-b"), {
+  accent: "#2ec99a",
+  data: USERS[usersPeriod].data,
+  labels: USERS[usersPeriod].labels,
+  value: USERS[usersPeriod].value,
+  valueSuffix: "k",
+  decimals: 1,
+  title: "Active users",
+  caption: "New peak this period",
+  updatedText: "Live",
+  period: usersPeriod,
+  formatValue: v => `${v.toFixed(1)}k`,
+  onPeriodChange(p) {
+    usersPeriod = p
+    chartB.setData(USERS[p].data, USERS[p].labels)
+    chartB.setValue(USERS[p].value)
+  },
+})
+
+/* 尺寸：宽屏并排、窄屏堆叠，卡片不超出面板（同 demo.tsx 的 measure） */
+const panel = document.getElementById("panel")
+function fit() {
+  const vw = window.innerWidth, vh = window.innerHeight
+  const tall = vh > vw * 1.2
+  const width = tall
+    ? Math.min(vw - 96, (vh - 110) / 2 / 1.289)
+    : Math.min((vw - 150) / 2, (vh - 70) / 1.289, 400)
+  const w = Math.max(160, Math.round(width))
+  panel.style.flexDirection = tall ? "column" : "row"
+  panel.style.gap = `${Math.round(w * (tall ? 0.1 : 0.16))}px`
+  chartA.setWidth(w)
+  chartB.setWidth(w)
+}
+fit()
+window.addEventListener("resize", fit)
+</script>
+</body>
+</html>

@@ -440,7 +440,7 @@
     <div class="brand">
       <span class="dot"></span>
       <b>Motion Effects</b>
-      <span>20 个特效 · Vue 3 优先 · 生产接入</span>
+      <span>21 个特效 · Vue 3 优先 · 生产接入</span>
     </div>
     <div class="header-note">
       <span>↑ ↓ 切换 · / 搜索</span>
@@ -631,6 +631,13 @@ const EFFECTS = [
     deps: [], demo: 'terminal-replay.html', source: 'react/components/ui/terminal-replay.tsx',
     props: ['script', 'theme', 'typingSpeed', 'loop', 'copyable', 'interactive'],
     note: '卸载时清所有 timer；等宽字体与行高锁死，避免回放抖动。'
+  },
+  {
+    id: 'peak-chart', name: 'PeakChart', zh: '峰值辉光卡片', cat: '卡片与容器', vue: 'hard',
+    desc: 'canvas 手绘辉光数据卡片：曲线描绘、峰值脉冲、数字滚动、周期下拉切换与 hover 读数，数据变化曲线 morph。',
+    deps: [], demo: 'peak-chart.html', source: 'react/components/ui/peak-chart.tsx',
+    props: ['data', 'value', 'period', 'accent', 'width', 'loop'],
+    note: '零新增依赖（纯 canvas 2d + rAF）；width 决定全部尺寸（540:696），改 width 会重播揭示；无 2d 上下文时静态显示终态。'
   }
 ];
 

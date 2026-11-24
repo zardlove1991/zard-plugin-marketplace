@@ -1,5 +1,5 @@
 /**
- * 20 个特效的站点数据。
+ * 21 个特效的站点数据。
  * 与 references/catalog.md 保持一致；新增/修改特效时同时更新这里。
  * 也供 scripts/sync-assets.mjs 做构建期文件校验。
  */
@@ -155,6 +155,13 @@ export const EFFECTS = [
     deps: [], demo: 'terminal-replay.html', source: 'react/components/ui/terminal-replay.tsx',
     props: ['script', 'theme', 'typingSpeed', 'loop', 'copyable', 'interactive'],
     note: '卸载时清所有 timer；等宽字体与行高锁死，避免回放抖动。Vue 实装挂载即开始播放，autoplay=false 只是关闭离屏暂停；需要手动重播时通过 ref 调用 play()。'
+  },
+  {
+    id: 'peak-chart', name: 'PeakChart', zh: '峰值辉光卡片', cat: '卡片与容器', vue: 'hard', vueReady: true, height: 760,
+    desc: 'canvas 手绘辉光数据卡片：曲线描绘、峰值脉冲、数字滚动、周期下拉切换与 hover 读数，数据变化曲线 morph。',
+    deps: [], demo: 'peak-chart.html', source: 'react/components/ui/peak-chart.tsx',
+    props: ['data', 'value', 'v-model:period', 'accent', 'width', 'loop'],
+    note: '零新增依赖（纯 canvas 2d + rAF）；width 决定全部尺寸（540:696），改 width 会重播揭示；圆点静息在 peakX + 8；无 2d 上下文时静态显示终态。'
   }
 ]
 

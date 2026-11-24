@@ -1,4 +1,4 @@
-# 特效目录（20 个）
+# 特效目录（21 个）
 
 > 路径均相对 `skills/motion-effects/`。
 > **Vue 难度**：`易` ≈ 1–2 小时直译；`中` ≈ 半天，需处理 ref / 生命周期 / motion-v；`难` ≈ 1–2 天，含 WebGL / three.js / canvas 大组件。
@@ -10,7 +10,7 @@
 |---|---|---|
 | 营销页首屏 / 滚动叙事 | `scroll-locked-video-hero` | `liquid-glass-logo-reveal`、`GridMotion` |
 | 移动端列表操作 | `SwipeRow` | `RubberSegment`、`HoldButton` |
-| 数据 / 功能展示 | `MagicBento` | `AnimatedList`、`TiltedCard` |
+| 数据 / 功能展示 | `MagicBento` | `peak-chart`、`AnimatedList`、`TiltedCard` |
 | 玻璃拟态面板 | `GlassSurface` | `glass-folder-cards`、`liquid-glass-navbar` |
 | 身份卡 / 票券 / 3D 翻面 | `ReflectiveCard` | `FlipCard` |
 | 导航 | `PillNav` | `liquid-glass-navbar` |
@@ -43,6 +43,7 @@
 | 18 | `scroll-locked-video-hero` | 导航与页面 | 滚动锁定视频 Hero | 无 | 内联 | 易 |
 | 19 | `signature` | 列表与内容 | 手写签名：播放/手写/导出 SVG | 无 | 内联 | 中 |
 | 20 | `terminal-replay` | 列表与内容 | 终端会话逐字回放 | 无 | 内联 | 易 |
+| 21 | `peak-chart` | 卡片与容器 | canvas 手绘辉光数据卡：曲线描绘 / 峰值脉冲 / 数字滚动 / 周期切换 | 无 | 内联 | 难 |
 
 ## Vue 实装进度（0.1）
 
@@ -55,10 +56,11 @@
 | `SpecularButton` | `../../packages/vue/src/components/SpecularButton.vue` | `../../packages/vue/tests/specular-button.spec.ts` |
 | `TerminalReplay` | `../../packages/vue/src/components/TerminalReplay.vue` | `../../packages/vue/tests/terminal-replay.spec.ts` |
 | `ScrollLockedVideoHero` | `../../packages/vue/src/components/ScrollLockedVideoHero.vue` | `../../packages/vue/tests/scroll-locked-video-hero.spec.ts` |
+| `PeakChart` | `../../packages/vue/src/components/PeakChart.vue` | `../../packages/vue/tests/peak-chart.spec.ts` |
 
 其余 15 个仍以 React 源码 + vanilla 演示为真源，按需按 `vue-porting.md` 移植。`GlassSurface` 因 SVG + WebGL 双路径，放在下一批。
 
-后两个（`TerminalReplay`、`ScrollLockedVideoHero`）与 React 原件有几处有意的行为差异，见 `../../packages/vue/README.md` 的「与 React 原件的差异」。
+后三个（`TerminalReplay`、`ScrollLockedVideoHero`、`PeakChart`）与 React 原件有几处有意的行为差异，见 `../../packages/vue/README.md` 的「与 React 原件的差异」。
 
 > Vue 实装自带 CSS，不依赖 Tailwind；需要安装的依赖见下面「依赖安装」。
 
@@ -247,3 +249,12 @@ React 项目对应：`motion` + `@hugeicons/react`。Tailwind **不是必装**�
 - **关键 API**：`script`（`command`/`output`/`spinner`/`progress`/`pause`/`clear` 步骤）、`title`、`prompt`、`directory`、`chrome`、`frame`、`dots`、`theme`、`accentColor`、`windowColor`、`textColor`、`fontFamily`、`fontSize`、`lineHeight`、`height`、`radius`、`typingSpeed`、`variance`、`lineDelay`、`startDelay`、`hold`、`loop`、`autoplay`、`cursor`、`copyable`、`interactive`、`onComplete`。
 - **移植要点**：纯定时器 + 状态机；Vue 用 `onMounted` 启动、`onBeforeUnmount` 清所有 timer 与 IntersectionObserver。挂载即开始播放，`autoplay=false` 只是关闭离屏暂停（与 prop 的名字不符，上游如此）；手动重播通过 ref 调 `play()`。步骤数据可直接复用 `PROJECT_SETUP_SCRIPT` 的结构。
 - **注意**：`loop` 与 `onComplete` 不要同时依赖；`copyable` 要处理 `navigator.clipboard` 失败；等宽字体与行高要锁死，避免回放时抖动。行内标签的闭合写作 `[/]`；上游 React 源码的正则要求 `[/success]`，所以标签在 React 版里不会被解析、是原样打印的。
+
+## 21. peak-chart · 峰值辉光卡片
+
+- **源码**：`peak-chart.tsx`；**演示**：`peak-chart.html`
+- **Vue 实装**：`../../packages/vue/src/components/PeakChart.vue`（已测试；引擎在 `../../packages/vue/src/composables/usePeakChart.ts`）
+- **适用**：转化率 / 活跃用户等指标卡、深色数据看板、营销页数据亮点；需要"曲线描绘 + 峰值脉冲 + 数字滚动"的揭示动效。
+- **关键 API**：`data`、`labels`、`value`、`valueSuffix`、`decimals`、`title`、`caption`、`updatedText`、`trend`（`up`/`down`/`none`）、`periods`、`period`（受控 → Vue 用 `v-model:period`）、`defaultPeriod`、`onPeriodChange`、`accent`、`width`、`loop`、`backdrop`、`formatValue`、`font`。
+- **移植要点**：纯 canvas 2d + rAF，零第三方依赖。辉光场是逐像素程序化绘制（`buildField`：蓝色底 + 高斯阴影 + 三层内 rim + 颗粒），静态层只建一次缓存，不要每帧重画；曲线是 Steffen 单调三次插值，保证最高数据点就是曲线顶点；时间轴常量（`T_DRAW` / `T_NUM` / `T_REST` 等）与缓动不要改。Vue 实装把引擎抽进 `usePeakChart.ts`，逐帧状态用普通对象直写 DOM；`period` 用 `defineModel`；`accent` 偏离参考蓝 `#4f8ef7` 时对 canvas 做 `hue-rotate` + `saturate`。
+- **注意**：`width` 决定全部尺寸（高度 = width × 696/540），运行中改 `width` 会重建画布并重播揭示（上游语义）；圆点静息在 `peakX + 8`（`DOT_DX`），hover 读数取圆点处的值；hover 期间静息窗口暂停时钟；`loop` > 0 按秒循环（最小 6s）；`prefers-reduced-motion` 直接停终态；无 2d 上下文时静态显示终态数字（Vue 版对上游 `grainTile()` 抛错加了守卫）。

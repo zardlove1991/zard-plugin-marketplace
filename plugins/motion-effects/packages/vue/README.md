@@ -1,6 +1,6 @@
 # @motion-effects/vue
 
-`motion-effects` 的 Vue 3 实装包（0.1）。当前包含 5 个已完成移植并有 Vitest 覆盖的组件：
+`motion-effects` 的 Vue 3 实装包（0.1）。当前包含 6 个已完成移植并有 Vitest 覆盖的组件：
 
 | 组件 | 说明 | 依赖 |
 |---|---|---|
@@ -9,10 +9,11 @@
 | `SpecularButton` | WebGL2 高光描边按钮 | 无 |
 | `TerminalReplay` | 终端会话逐字回放，可跳过、可循环 | 无 |
 | `ScrollLockedVideoHero` | 滚动锁定视频 Hero，滚动进度驱动视频 | 无 |
+| `PeakChart` | canvas 手绘辉光数据卡片：曲线描绘 / 峰值脉冲 / 数字滚动 / 周期切换 | 无 |
 
 其余 15 个特效仍以 React 源码 + vanilla 演示为真源，按需按 `references/vue-porting.md` 移植。
 
-> `TerminalReplay` 和 `ScrollLockedVideoHero` 按 Vue 习惯设计：没有 `className` prop，`class` / `style` 自动透传到根元素；受控状态只走 `v-model`，不另发 `xxx-change` 事件。前三个组件仍保留 React 式的 `className` 与 `open-change`。
+> `TerminalReplay`、`ScrollLockedVideoHero` 和 `PeakChart` 按 Vue 习惯设计：没有 `className` prop，`class` / `style` 自动透传到根元素；受控状态只走 `v-model`，不另发 `xxx-change` 事件。前三个组件仍保留 React 式的 `className` 与 `open-change`。
 
 ## 使用
 
@@ -52,7 +53,28 @@ const actions: SwipeAction[] = [
 <ScrollLockedVideoHero video-src="/hero.mp4" title="THE CITY OPENS" :scrub-distance="3200" />
 ```
 
-CSS 随 SFC 自动引入，不需要单独 import CSS 文件。根类名前缀分别为 `.hold-button`、`.sr-root`、`.specular-button`、`.tr-root`、`.slvh`。
+`PeakChart` 不传 `data` 时按当前周期使用内置演示数据（随包导出 `PEAK_CHART_SERIES` / `MONTH_DATA`）；传 `v-model:period` 即受控，在父级换 `data` 即可让曲线 morph：
+
+```vue
+<script setup lang="ts">
+import { ref } from 'vue'
+import { PeakChart, PEAK_CHART_SERIES } from '@motion-effects/vue'
+
+const period = ref('Monthly')
+</script>
+
+<template>
+  <PeakChart
+    v-model:period="period"
+    :data="PEAK_CHART_SERIES[period].data"
+    :labels="PEAK_CHART_SERIES[period].labels"
+    accent="#2ec99a"
+    :width="360"
+  />
+</template>
+```
+
+CSS 随 SFC 自动引入，不需要单独 import CSS 文件。根类名前缀分别为 `.hold-button`、`.sr-root`、`.specular-button`、`.tr-root`、`.slvh`、`.pc-root`。
 
 ## 组件契约
 
@@ -91,15 +113,27 @@ CSS 随 SFC 自动引入，不需要单独 import CSS 文件。根类名前缀�
 - 滚轮和触摸只用来在正反两个方向上推拉视频。`prefers-reduced-motion` 下不做动画，直接停在接近结尾的一帧
 - **挂载期间页面无法滚动，而且不会自行解锁**（上游实现如此）。只放在独占一页的首屏，或用 iframe 承载
 
+### PeakChart
+
+- props：`data`、`labels`、`value`、`valueSuffix`、`decimals`、`title`、`caption`、`updatedText`、`trend`（`up` / `down` / `none`）、`periods`、`defaultPeriod`、`accent`、`width`、`loop`、`backdrop`、`formatValue`、`font`
+- `v-model:period` 受控周期；非受控时用 `defaultPeriod` 起步，选择后组件自持。只发 `update:period`，不另发 `period-change`
+- 不传 `data` 时按当前周期取 `PEAK_CHART_SERIES` 的内置数据；`data` 变化曲线 morph，`value` 变化数字重新滚动
+- `accent` 偏离参考蓝（`#4f8ef7`）时，画布整体做色相 / 饱和度偏移；`width` 决定一切尺寸（高度 = width × 696/540）
+- `loop` > 0 时按秒循环揭示；0 表示滚入视口播一次后静息呼吸。hover 期间静息窗口会暂停时钟
+- 周期下拉保留 `listbox` / `option` 语义、Escape 关闭并回焦、外部按下关闭
+- 无 canvas 2d 上下文时静态显示终态数字与文案，不白屏
+
 ## 与 React 原件的差异
 
-前三个组件是 1:1 直译。后两个在移植时处理了上游的几处问题，行为上有意不同：
+前三个组件是 1:1 直译。后三个在移植时处理了上游的几处问题或按 Vue 习惯调整，行为上有意不同：
 
 - `TerminalReplay` 的行内标签：上游的正则要求闭合标签带名字（`[/success]`），而它的数据全用 `[/]`，所以标签从来没有被解析过，是原样打印的。这里两种闭合都认。
 - `TerminalReplay` 跳过 spinner / progress 步骤时立即结束；上游会原地空转到该步骤的时长走完。
 - `TerminalReplay` 在 `script` 或回放参数变化时不会自动重播（上游在 `autoplay` 下会因此重播）。需要重播时调用 `play()`，或者修改组件的 `key`。
 - `TerminalReplay` 在 hold 期间重播后，紧接着的跳过点击照常生效。上游里旧一轮遗留的计时器到点时会把新一轮的唤醒入口清掉，让那一次点击失效。
 - `ScrollLockedVideoHero` 运行中修改 `scrubDistance` 会直接生效；上游会让副作用重跑，视频时长归零，从此不再跟随滚动。
+- `PeakChart` 没有 `className` / `style` prop（自动透传），受控周期只走 `v-model:period`，不保留 `onPeriodChange`。
+- `PeakChart` 在无 canvas 2d 上下文的环境（jsdom 等）里静态显示终态：上游的 `grainTile()` 会直接抛错，这里加了守卫；数字区域也不会停在 opacity 0。
 
 ## 测试
 
@@ -116,4 +150,5 @@ pnpm check       # test + typecheck
 - `HoldButton` 在卸载时清理 timer / rAF / ResizeObserver。
 - `ScrollLockedVideoHero` 没有 poster：视频数据加载前显示深色背景和标题。
 - `TerminalReplay` 的无障碍文案、复制按钮标题和默认脚本沿用上游的写法，没有做本地化。
-- 五个组件都做了 SSR 安全处理：浏览器 API 只在 `onMounted` 或用户事件中访问。
+- `PeakChart` 运行中修改 `width` 会重建画布并重播揭示动画（上游 effect 依赖 `[width, u]` 的语义）；`fontStretch` 的实际效果随平台字体支持变化。
+- 六个组件都做了 SSR 安全处理：浏览器 API 只在 `onMounted` 或用户事件中访问。
