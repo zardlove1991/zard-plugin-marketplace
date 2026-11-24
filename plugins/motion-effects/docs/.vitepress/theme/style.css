@@ -699,3 +699,49 @@ html.dark {
     margin: 2px 0 0;
   }
 }
+
+/* SpotlightCard 内联预览：卡片内容排版（深色卡固定浅色文字，避免随文档主题翻转） */
+.me-live__spotlight {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  justify-content: center;
+}
+
+.me-live__spotlight-card {
+  inline-size: 250px;
+  color: #f5f5f5;
+}
+
+.me-live__spotlight-card .me-live__spotlight-avatar {
+  display: grid;
+  place-items: center;
+  inline-size: 42px;
+  block-size: 42px;
+  border-radius: 999px;
+  background: linear-gradient(135deg, rgba(122, 168, 255, 0.9), rgba(255, 255, 255, 0.14));
+  color: #0b0d14;
+  font-weight: 700;
+}
+
+.me-live__spotlight-name {
+  margin: 14px 0 2px;
+  font-size: 17px;
+}
+
+.me-live__spotlight-role {
+  margin: 0 0 16px;
+  font-size: 13px;
+  opacity: 0.7;
+}
+
+.me-live__spotlight-cta {
+  padding: 8px 15px;
+  border: 1px solid rgba(245, 245, 245, 0.6);
+  border-radius: 999px;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+}

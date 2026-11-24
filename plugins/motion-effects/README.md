@@ -1,17 +1,17 @@
 # motion-effects
 
-24 个高保真交互动效的接入技能。**Vue 3 优先**，同时保留 React 原件与可直接运行的 HTML 演示。
+25 个高保真交互动效的接入技能。**Vue 3 优先**，同时保留 React 原件与可直接运行的 HTML 演示。
 
 ## 包含什么
 
 | 目录 | 内容 |
 |---|---|
 | `skills/motion-effects/SKILL.md` | 技能入口：选型 → 移植 → 验收的工作流与硬规则 |
-| `skills/motion-effects/references/catalog.md` | 24 个特效的场景、依赖、Vue 难度、关键 API、移植要点 |
+| `skills/motion-effects/references/catalog.md` | 25 个特效的场景、依赖、Vue 难度、关键 API、移植要点 |
 | `skills/motion-effects/references/vue-porting.md` | React → Vue 3 映射、SFC 骨架、WebGL / three 生命周期、常见坑 |
 | `skills/motion-effects/references/production-checklist.md` | 性能、无障碍、SSR、降级、隐私、交付验收清单 |
 | `skills/motion-effects/assets/gallery.html` | 可运行的 gallery：筛选 / 搜索 / iframe 预览 / API 速查 |
-| `skills/motion-effects/assets/demos/` | 24 个独立 HTML 演示（vanilla，无构建） |
+| `skills/motion-effects/assets/demos/` | 25 个独立 HTML 演示（vanilla，无构建） |
 | `skills/motion-effects/assets/react/` | React 源码（JSX/TSX + CSS）与 `SETUP.md` |
 | `docs/` | VitePress 预览站：特效详情、搜索、分类、源码链接；CI 部署到 GitHub Pages |
 | `packages/vue/` | Vue 3 实装：`HoldButton` / `SwipeRow` / `SpecularButton` / `TerminalReplay` / `ScrollLockedVideoHero` / `PeakChart` / `GlassyDashboard` / `SplashCursor` + Vitest |

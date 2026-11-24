@@ -183,6 +183,13 @@ export const EFFECTS = [
     deps: [], demo: 'shredder.html', source: 'react/components/ui/Shredder.tsx',
     props: ['items', 'renderItem', 'onShred', 'onReorder', 'width', 'height', 'inset', 'gap', 'slitHeight', 'fallHeight', 'feedSpeed', 'bite', 'autoFeed', 'stripWidth', 'curl', 'autoAnimate', 'loop', 'loopAfterDelete', 'dragTilt', 'lift', 'slitColor', 'color', 'disabled'],
     note: '零第三方依赖；行内容先快照为 canvas 纹理（内联图片 / SVG 可切，跨域图片需 CORS），再用 2D canvas 逐条绘制纸带；拖拽 / 裁剪 / 下落全走原生 pointer 与 rAF。onShred 触发后需自行从列表移除该项，除非开启 loop / loopAfterDelete / autoAnimate；prefers-reduced-motion 下落更短。Vue 实装用插槽替代 renderItem，引擎在 useShredder.ts，逐帧状态不进响应式。'
+  },
+  {
+    id: 'spotlight-card', name: 'SpotlightCard', zh: '光斑卡片', cat: '卡片与容器', vue: 'mid', vueReady: true, height: 560,
+    desc: '卡片光斑跟随指针：圆形 / 光束两种形态、边缘邻近发光、按压膨胀（flare）、环境漂移与胶片颗粒。',
+    deps: [], demo: 'spotlight-card.html', source: 'react/components/ui/SpotlightCard.jsx',
+    props: ['theme', 'spotlightColor', 'intensity', 'spotlightSize', 'softness', 'shape', 'borderGlow', 'proximity', 'smoothing', 'ambient', 'flare', 'grain', 'className'],
+    note: '零第三方依赖（纯 DOM + radial-gradient + rAF）；两枚绝对定位 span 承载光斑与边缘光，mask 画 1px 边框，另一枚叠加颗粒；proximity 让相邻卡片共享一团光；prefers-reduced-motion 下关闭平滑与环境漂移、按压不 flare。Vue 实装引擎在 useSpotlightCard.ts，逐帧状态不进响应式。'
   }
 ]
 

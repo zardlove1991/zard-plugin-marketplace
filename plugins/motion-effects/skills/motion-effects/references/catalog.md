@@ -1,4 +1,4 @@
-# 特效目录（24 个）
+# 特效目录（25 个）
 
 > 路径均相对 `skills/motion-effects/`。
 > **Vue 难度**：`易` ≈ 1–2 小时直译；`中` ≈ 半天，需处理 ref / 生命周期 / motion-v；`难` ≈ 1–2 天，含 WebGL / three.js / canvas 大组件。
@@ -16,6 +16,7 @@
 | 导航 | `PillNav` | `liquid-glass-navbar` |
 | 氛围装饰 | `GhostCursor` | `SplashCursor`、`PaperCrumple`、`GridMotion` |
 | 拖拽碎纸 / 列表重排 | `Shredder` | `SwipeRow` |
+| 卡片光斑 / 悬停高光 | `SpotlightCard` | `ReflectiveCard`、`GlassSurface` |
 | 内容演示 | `terminal-replay` | `signature` |
 | 图片墙 / 自动滚动网格 | `GridMotion` | — |
 | 品牌 Logo 揭示 | `liquid-glass-logo-reveal` | — |
@@ -48,6 +49,7 @@
 | 22 | `glassy-dashboard` | 卡片与容器 | 玻璃质感数据看板：四视图 / 图表揭示 / 数字滚动 / 明暗主题 / CSV 导出 | `gsap`、`@gsap/react`、`lucide-react`、`@fontsource-variable/manrope` | 内联 | 难 |
 | 23 | `SplashCursor` | 氛围与装饰 | WebGL2 流体墨迹光标：跟手拖尾 / 点击飞溅 / 彩虹渐变 / 明暗主题 | 无 | 内联 | 难 |
 | 24 | `Shredder` | 操作与反馈 | 可拖拽碎纸机：切条卷曲飘落 / 重排 / 循环 / 自动播放 / 键盘 shred | 无 | 内联 | 难 |
+| 25 | `SpotlightCard` | 卡片与容器 | 光斑卡片：跟随指针的柔光 / 边缘邻近发光 / 光束形态 / 按压 flare / 颗粒 | 无 | 内联 | 中 |
 
 ## Vue 实装进度（0.1）
 
@@ -64,10 +66,11 @@
 | `GlassyDashboard` | `../../packages/vue/src/components/GlassyDashboard.vue` | `../../packages/vue/tests/glassy-dashboard.spec.ts` |
 | `SplashCursor` | `../../packages/vue/src/components/SplashCursor.vue` | `../../packages/vue/tests/splash-cursor.spec.ts` |
 | `Shredder` | `../../packages/vue/src/components/Shredder.vue` | `../../packages/vue/tests/shredder.spec.ts` |
+| `SpotlightCard` | `../../packages/vue/src/components/SpotlightCard.vue` | `../../packages/vue/tests/spotlight-card.spec.ts` |
 
-其余 15 个仍以 React 源码 + vanilla 演示为真源，按需按 `vue-porting.md` 移植。`GlassSurface` 因 SVG + WebGL 双路径，放在下一批。
+其余 14 个仍以 React 源码 + vanilla 演示为真源，按需按 `vue-porting.md` 移植。`GlassSurface` 因 SVG + WebGL 双路径，放在下一批。
 
-后六个（`TerminalReplay`、`ScrollLockedVideoHero`、`PeakChart`、`GlassyDashboard`、`SplashCursor`、`Shredder`）与 React 原件有几处有意的行为差异，见 `../../packages/vue/README.md` 的「与 React 原件的差异」。
+后七个（`TerminalReplay`、`ScrollLockedVideoHero`、`PeakChart`、`GlassyDashboard`、`SplashCursor`、`Shredder`、`SpotlightCard`）与 React 原件有几处有意的行为差异，见 `../../packages/vue/README.md` 的「与 React 原件的差异」。
 
 > Vue 实装自带 CSS，不依赖 Tailwind；需要安装的依赖见下面「依赖安装」。
 
@@ -295,3 +298,12 @@ React 项目对应：`motion` + `@hugeicons/react`；`glassy-dashboard` 另需 `
 - **关键 API**：`items`（每行需唯一 `id`）、`renderItem`（React）/ 插槽（Vue，渲染被切的快照）、`onShred`（行通过滚轮时触发）、`onReorder`（行被放到别处时回传新顺序）、`width`（340）、`height`（460）、`inset`（14）、`gap`（10）、`slitHeight`（4）、`fallHeight`（140）、`feedSpeed`（180px/s）、`bite`（18px）、`autoFeed`（true）、`stripWidth`（10px）、`curl`（1）、`autoAnimate`（false）、`loop`（false）、`loopAfterDelete`（false）、`dragTilt`（6°）、`lift`（1.02）、`slitColor`（`#3f3f46`）、`color`（`#f5f5f5`）、`disabled`、`className`。
 - **移植要点**：行内容先用 `XMLSerializer` + `foreignObject` 快照成 canvas 纹理，再按 `stripWidth` 等分列，每列用 2D canvas 逐帧绘制卷曲 / 波动 / 下落 / 淡出；拖拽用 pointer 事件 + 弹簧缓动，命中滚轮口后进入 feed 状态。`autoAnimate` 自下而上自动播放再带回；`loop` / `loopAfterDelete` 需要保留列表项。Vue 版把 React hook 状态改成普通对象（逐帧状态不进响应式），`onMounted` 建引擎、`onBeforeUnmount` 移除监听 / observer 并 `cancelAnimationFrame`；插槽替代 `renderItem`，通过 DOM 快照读取。
 - **注意**：**零第三方依赖**，离线可跑；`onShred` 触发后需自行从列表移除该项，除非开启 `loop` / `loopAfterDelete` / `autoAnimate`，否则列表会被"切空"；内联图片 / SVG 能切，**跨域图片需要 CORS** 否则快照被污染；`prefers-reduced-motion` 下落更短；演示机台父容器需给显式宽度，否则组件 `min(var(--sh-w),100%)` 在 auto 宽度父级里会塌陷成窄条（React 原件同样语义）。
+
+## 25. SpotlightCard · 光斑卡片
+
+- **源码**：`SpotlightCard.jsx`（JavaScript + Tailwind 变体）；**演示**：`spotlight-card.html`
+- **Vue 实装**：`../../packages/vue/src/components/SpotlightCard.vue`（已测试；引擎在 `../../packages/vue/src/composables/useSpotlightCard.ts`）
+- **适用**：团队 / 人物卡片、定价卡、功能卡等任何希望"指针扫过时被照亮"的卡片；相邻卡片通过 `proximity` 共享一团光。
+- **关键 API**：`theme`（`dark`/`light`，默认 `dark`）、`spotlightColor`（任意 CSS 颜色，默认深色卡用白、浅色卡用近黑）、`intensity`（0–1，默认 0.15）、`spotlightSize`（px，默认 240）、`softness`（0–1，默认 0.7）、`shape`（`circle`/`beam`，默认 `circle`）、`borderGlow`（0–1，默认 0.6）、`proximity`（卡外多少 px 开始照到，默认 80）、`smoothing`（光斑落后指针的程度，默认 0.3）、`ambient`（无指针时缓慢漂移，默认 false）、`flare`（按住膨胀变亮，默认 true）、`grain`（0–1 胶片颗粒，默认 0）、`className`；其余 div 属性透传。可用 `--spotlight-card-surface` / `--spotlight-card-border` 覆盖表面与边框色。
+- **移植要点**：纯 DOM，无 canvas：两枚绝对定位 span 承载 `radial-gradient` 光斑与边缘光（颜色经 `color-mix` 生成 15 档渐隐），一枚 span 用 `mask-composite` 画 1px 边框，另一枚叠加 SVG 噪点颗粒。指针用窗口级 `pointermove` + `getBoundingClientRect` 换算到卡片局部坐标；`IntersectionObserver` 控制环境漂移是否运行。Vue 把引擎收进 `useSpotlightCard.ts`：`onMounted` 绑定监听 / observer，`onBeforeUnmount` 全部解绑并 `cancelAnimationFrame`；逐帧状态放普通对象，不进响应式。
+- **注意**：**零第三方依赖**，离线可跑；依赖 `color-mix` 与 `mask-composite`（现代浏览器均支持）；`proximity > 0` 时卡片在指针靠近但未进入时也会亮，相邻卡片会一起被照亮；`prefers-reduced-motion` 下关闭平滑 / environ 漂移、按压不 flare，光斑直接跟随；`grain` 用 `mix-blend-overlay`，在纯黑 / 纯白表面上颗粒会偏弱，需要明显颗粒时把 `grain` 调到 0.2 以上。

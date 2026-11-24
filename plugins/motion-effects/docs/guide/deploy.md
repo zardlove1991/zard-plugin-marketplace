@@ -18,7 +18,7 @@ pnpm dev          # 构建前会自动同步 demos/source 到 public/
 - `skills/motion-effects/assets/react` → `docs/public/source/react`
 - `skills/motion-effects/assets/gallery.html` → `docs/public/gallery.html`
 
-同时校验 24 个特效的 demo/source 以及 demo 内引用的本地资产，缺一个就失败。
+同时校验 25 个特效的 demo/source 以及 demo 内引用的本地资产，缺一个就失败。
 
 ## 构建
 

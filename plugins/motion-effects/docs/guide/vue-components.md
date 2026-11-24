@@ -1,6 +1,6 @@
 # Vue 组件（0.1）
 
-已有 9 个特效移植成 Vue 3 组件，并在每个详情页的「Vue 3 实装」区域直接渲染真实组件：
+已有 10 个特效移植成 Vue 3 组件，并在每个详情页的「Vue 3 实装」区域直接渲染真实组件：
 
 | 组件 | 详情页 | 测试 |
 |---|---|---|
@@ -13,13 +13,14 @@
 | `GlassyDashboard` | [玻璃质感数据看板](/effects/glassy-dashboard) | `packages/vue/tests/glassy-dashboard.spec.ts` |
 | `SplashCursor` | [流体墨迹光标](/effects/splash-cursor) | `packages/vue/tests/splash-cursor.spec.ts` |
 | `Shredder` | [碎纸机](/effects/shredder) | `packages/vue/tests/shredder.spec.ts` |
+| `SpotlightCard` | [光斑卡片](/effects/spotlight-card) | `packages/vue/tests/spotlight-card.spec.ts` |
 
 `ScrollLockedVideoHero` 会锁定所在页面的滚动，`GlassyDashboard` 是整屏工作区，`SplashCursor` 会铺满整个视口跟随光标，`Shredder` 需要一个固定宽度的父容器，四者的预览都放在 iframe 里；iframe 里跑的仍是同一个真实组件。
 
 ## 导入
 
 ```ts
-import { GlassyDashboard, HoldButton, PeakChart, ScrollLockedVideoHero, Shredder, SpecularButton, SplashCursor, SwipeRow, TerminalReplay } from '@motion-effects/vue'
+import { GlassyDashboard, HoldButton, PeakChart, ScrollLockedVideoHero, Shredder, SpecularButton, SpotlightCard, SplashCursor, SwipeRow, TerminalReplay } from '@motion-effects/vue'
 import type { SwipeAction } from '@motion-effects/vue'
 ```
 
@@ -172,6 +173,31 @@ const files = ref([
 
 把行拖到滚轮口即可切条、卷曲、飘落、淡出；拖到列表其它位置可重排，聚焦后按 Delete / Backspace 也能送入碎纸机。React 原件的 `renderItem` 在 Vue 里用 `#item` 作用域插槽替代（快照取自插槽渲染出的 DOM）。`shred` / `reorder` 只回传数据，增删由父组件完成；`loop` / `loopAfterDelete` / `autoAnimate` 打开时要把行一直留在列表里。零第三方依赖，但父容器必须给出固定宽度（否则组件 `min(var(--sh-w),100%)` 会塌陷）。
 
+### SpotlightCard
+
+```vue
+<script setup lang="ts">
+import { SpotlightCard } from '@motion-effects/vue'
+</script>
+
+<template>
+  <SpotlightCard
+    theme="dark"
+    spotlight-color="#7aa8ff"
+    :intensity="0.18"
+    :spotlight-size="260"
+    shape="circle"
+    :grain="0.14"
+  >
+    <h3>Ethan Harrison</h3>
+    <p>Product designer</p>
+    <button>Get in touch</button>
+  </SpotlightCard>
+</template>
+```
+
+指针扫过卡片时打出一团柔光，边缘在靠近时被照亮。`shape="beam"` 把光从顶边打下来；`proximity` 让指针还没进入卡片就开始照亮（相邻卡片共享一团光）；`ambient` 让无指针时缓慢漂移；`flare` 在按住时膨胀变亮；`grain` 叠加胶片颗粒。零第三方依赖，主题用 `theme` 或 `--spotlight-card-surface` / `--spotlight-card-border` 覆盖。
+
 ## 契约与限制
 
 完整的 props / slots / emits 见
@@ -184,8 +210,9 @@ const files = ref([
 - `GlassyDashboard` 依赖 `gsap` / `@lucide/vue` / `@fontsource-variable/manrope`；`panelFrost` 夹在 0–36px，视图走 hash 路由，数据全是浏览器内样例，CSV 本地生成不上传。
 - `SplashCursor` 无 WebGL2 时显示降级提示；同页最多一个实例；props 变化时整体重启引擎（装饰性组件），浏览器上下文丢失后自动重建。
 - `Shredder` 用 `#item` 插槽替代 `renderItem`；行快照对跨域图片敏感（需要 CORS）；`shred` 后需自行从 `items` 移除该项，除非开启循环类 props；props 变化会整体重建引擎。
-- 后六个与 React 原件有几处有意的行为差异，清单见上面那份 README 的「与 React 原件的差异」。
-- 九个组件都做了 SSR 安全处理，浏览器 API 只在 `onMounted` 或用户事件中访问。
+- `SpotlightCard` 用默认插槽放卡片内容；`class` / `style` 与其它 div 属性自动透传到根元素；`theme` 只切换表面 / 边框 / 阴影与光色，文字颜色仍由内容自己决定。
+- 后七个与 React 原件有几处有意的行为差异，清单见上面那份 README 的「与 React 原件的差异」。
+- 十个组件都做了 SSR 安全处理，浏览器 API 只在 `onMounted` 或用户事件中访问。
 - 当前是 workspace 私有包，未发布 npm；外部项目可复制 `packages/vue/src` 或等待发布。
 
 ## 本地测试

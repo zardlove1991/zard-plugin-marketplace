@@ -1,6 +1,6 @@
 # @motion-effects/vue
 
-`motion-effects` 的 Vue 3 实装包（0.1）。当前包含 9 个已完成移植并有 Vitest 覆盖的组件：
+`motion-effects` 的 Vue 3 实装包（0.1）。当前包含 10 个已完成移植并有 Vitest 覆盖的组件：
 
 | 组件 | 说明 | 依赖 |
 |---|---|---|
@@ -13,10 +13,11 @@
 | `GlassyDashboard` | 玻璃质感数据看板：四视图 / 图表揭示 / 数字滚动 / 明暗主题 / CSV 导出 | `gsap`、`@lucide/vue`、`@fontsource-variable/manrope` |
 | `SplashCursor` | WebGL2 流体墨迹光标：跟手拖尾 / 点击飞溅 / 彩虹渐变 / 明暗主题 | 无 |
 | `Shredder` | 可拖拽碎纸机：切条卷曲飘落 / 重排 / 循环 / 键盘 shred | 无 |
+| `SpotlightCard` | 光斑卡片：跟随指针的柔光 / 边缘邻近发光 / 光束形态 / 按压 flare | 无 |
 
-其余 12 个特效仍以 React 源码 + vanilla 演示为真源，按需按 `references/vue-porting.md` 移植。
+其余 11 个特效仍以 React 源码 + vanilla 演示为真源，按需按 `references/vue-porting.md` 移植。
 
-> `TerminalReplay`、`ScrollLockedVideoHero`、`PeakChart` 和 `GlassyDashboard` 按 Vue 习惯设计：没有 `className` prop，`class` / `style` 自动透传到根元素；受控状态只走 `v-model`，不另发 `xxx-change` 事件。前三个组件仍保留 React 式的 `className` 与 `open-change`；`SplashCursor` 保留了 React 原件的 `className` / `style` props；`Shredder` 保留 React 的 `className` prop，但用 `#item` 插槽替代 `renderItem`，事件改走 `shred` / `reorder`。
+> `TerminalReplay`、`ScrollLockedVideoHero`、`PeakChart` 和 `GlassyDashboard` 按 Vue 习惯设计：没有 `className` prop，`class` / `style` 自动透传到根元素；受控状态只走 `v-model`，不另发 `xxx-change` 事件。前三个组件仍保留 React 式的 `className` 与 `open-change`；`SplashCursor` 保留了 React 原件的 `className` / `style` props；`Shredder` 保留 React 的 `className` prop，但用 `#item` 插槽替代 `renderItem`，事件改走 `shred` / `reorder`；`SpotlightCard` 保留 `className` 与默认插槽，其余 div 属性自动透传。
 
 ## 使用
 
@@ -143,9 +144,16 @@ CSS 随 SFC 自动引入，不需要单独 import CSS 文件。根类名前缀�
 - 零第三方依赖；内联图片 / SVG 可切，跨域图片需要 CORS；父容器必须给固定宽度（组件宽度是 `min(var(--sh-w),100%)`）
 - 根类名前缀 `.sh-root`；props 变化整体重建引擎；`prefers-reduced-motion` 下键盘 shred 立即完成、下落更短
 
+### SpotlightCard
+
+- props：`theme`（`dark` / `light`）、`spotlightColor`、`intensity`、`spotlightSize`、`softness`、`shape`（`circle` / `beam`）、`borderGlow`、`proximity`、`smoothing`、`ambient`、`flare`、`grain`、`className`
+- 插槽：默认插槽放卡片内容；其余 div 属性（`class` / `style` / `id` / 事件等）自动透传到根元素
+- 零第三方依赖；依赖 `color-mix` 与 `mask-composite`；`proximity` 让相邻卡片共享一团光；`theme` 只切换表面 / 边框 / 阴影与光色，正文颜色仍由内容自己决定
+- 根类名前缀 `.spotlight-card`；props 变化时重建光斑设置并唤醒帧循环；`prefers-reduced-motion` 下关闭平滑 / 环境漂移、按压不 flare
+
 ## 与 React 原件的差异
 
-前三个组件是 1:1 直译。后五个在移植时处理了上游的几处问题或按 Vue 习惯调整，行为上有意不同（`SplashCursor` / `Shredder` 的引擎是 1:1 抽取，差异只在框架胶水与 DOM 归属）：
+前三个组件是 1:1 直译。后六个在移植时处理了上游的几处问题或按 Vue 习惯调整，行为上有意不同（`SplashCursor` / `Shredder` / `SpotlightCard` 的引擎是 1:1 抽取，差异只在框架胶水与 DOM 归属）：
 
 - `TerminalReplay` 的行内标签：上游的正则要求闭合标签带名字（`[/success]`），而它的数据全用 `[/]`，所以标签从来没有被解析过，是原样打印的。这里两种闭合都认。
 - `TerminalReplay` 跳过 spinner / progress 步骤时立即结束；上游会原地空转到该步骤的时长走完。
@@ -177,7 +185,8 @@ pnpm check       # test + typecheck
 - `ScrollLockedVideoHero` 没有 poster：视频数据加载前显示深色背景和标题。
 - `TerminalReplay` 的无障碍文案、复制按钮标题和默认脚本沿用上游的写法，没有做本地化。
 - `PeakChart` 运行中修改 `width` 会重建画布并重播揭示动画（上游 effect 依赖 `[width, u]` 的语义）；`fontStretch` 的实际效果随平台字体支持变化。
-- 九个组件都做了 SSR 安全处理：浏览器 API 只在 `onMounted` 或用户事件中访问。`GlassyDashboard` 的 `matchMedia` / `ResizeObserver` / `history` 也在挂载后才用；`SplashCursor` 的 `getContext` / `matchMedia`、`Shredder` 的 `ResizeObserver` / canvas 上下文同样只在挂载后访问。
+- 十个组件都做了 SSR 安全处理：浏览器 API 只在 `onMounted` 或用户事件中访问。`GlassyDashboard` 的 `matchMedia` / `ResizeObserver` / `history` 也在挂载后才用；`SplashCursor` 的 `getContext` / `matchMedia`、`Shredder` 的 `ResizeObserver` / canvas 上下文、`SpotlightCard` 的 `matchMedia` / `IntersectionObserver` 同样只在挂载后访问。
 - `GlassyDashboard` 的示例数据固定三个周期（7/30/90 天）与四视图；CSV 只在浏览器本地生成，不上传。背景图为 Unsplash 远程资源，离线时只有底色。
 - `SplashCursor` 需要 WebGL2 与浮点纹理扩展；不支持时只显示静态降级提示。弱机建议 `quality="low"`，主题切到 `light` 时要配浅色背景。
 - `Shredder` 的行快照依赖 `SVG foreignObject` + canvas，跨域图片会被污染；同页多实例时各自独立（引擎状态不共享）。
+- `SpotlightCard` 依赖 `color-mix` 与 `mask-composite`；`grain` 用 `mix-blend-overlay`，在纯黑 / 纯白表面上颗粒偏弱，需要明显颗粒时把 `grain` 调到 0.2 以上。

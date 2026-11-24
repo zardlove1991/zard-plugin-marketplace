@@ -440,7 +440,7 @@
     <div class="brand">
       <span class="dot"></span>
       <b>Motion Effects</b>
-      <span>24 个特效 · Vue 3 优先 · 生产接入</span>
+      <span>25 个特效 · Vue 3 优先 · 生产接入</span>
     </div>
     <div class="header-note">
       <span>↑ ↓ 切换 · / 搜索</span>
@@ -659,6 +659,13 @@ const EFFECTS = [
     deps: [], demo: 'shredder.html', source: 'react/components/ui/Shredder.tsx',
     props: ['items', 'renderItem', 'onShred', 'onReorder', 'width', 'height', 'feedSpeed', 'bite', 'stripWidth', 'curl', 'autoAnimate', 'loop', 'loopAfterDelete', 'disabled'],
     note: '零第三方依赖；行内容先快照为 canvas 纹理（内联图片/SVG 可切，跨域图片需 CORS），再逐条绘制纸带；onShred 后需自行移除列表项，除非开启 loop/loopAfterDelete/autoAnimate。'
+  },
+  {
+    id: 'spotlight-card', name: 'SpotlightCard', zh: '光斑卡片', cat: '卡片与容器', vue: 'mid',
+    desc: '卡片光斑跟随指针：圆形 / 光束两种形态、边缘邻近发光、按压膨胀、环境漂移与胶片颗粒。',
+    deps: [], demo: 'spotlight-card.html', source: 'react/components/ui/SpotlightCard.jsx',
+    props: ['theme', 'spotlightColor', 'intensity', 'spotlightSize', 'softness', 'shape', 'borderGlow', 'proximity', 'smoothing', 'ambient', 'flare', 'grain', 'className'],
+    note: '零第三方依赖（纯 DOM + radial-gradient + rAF）；两枚绝对定位 span 承载光斑与边缘光，mask 画 1px 边框；proximity 让相邻卡片共享一团光；prefers-reduced-motion 下关闭平滑与环境漂移。'
   }
 ];
 

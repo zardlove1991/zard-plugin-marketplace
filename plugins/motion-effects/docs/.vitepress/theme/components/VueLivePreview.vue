@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import { withBase } from 'vitepress'
-import { HoldButton, PeakChart, SpecularButton, SwipeRow, TerminalReplay } from '@motion-effects/vue'
+import { HoldButton, PeakChart, SpecularButton, SpotlightCard, SwipeRow, TerminalReplay } from '@motion-effects/vue'
 import type { SwipeAction } from '@motion-effects/vue'
 
 const props = defineProps<{ id: string }>()
@@ -123,7 +123,19 @@ const snippets = {
   <template #item="{ item }">
     <div class="row">{{ item.name }}</div>
   </template>
-</Shredder>`
+</Shredder>`,
+  'spotlight-card': `<SpotlightCard
+  theme="dark"
+  spotlight-color="#7aa8ff"
+  :intensity="0.18"
+  :spotlight-size="260"
+  :border-glow="0.7"
+  :proximity="80"
+  :grain="0.14"
+>
+  <h3>Ethan Harrison</h3>
+  <p>Product designer</p>
+</SpotlightCard>`
 } as const
 
 const snippet = computed(() => snippets[props.id as keyof typeof snippets] ?? '')
@@ -273,6 +285,42 @@ const isFramed = computed(() => FRAMED_IDS.has(props.id))
         />
         <p class="me-live__status">
           在 iframe 里拖动行到滚轮口体验碎片飘落；拖到列表其它位置可重排，聚焦后按 Delete / Backspace 也能 shred
+        </p>
+      </template>
+
+      <template v-else-if="id === 'spotlight-card'">
+        <div class="me-live__spotlight">
+          <SpotlightCard
+            theme="dark"
+            spotlight-color="#7aa8ff"
+            :intensity="0.18"
+            :spotlight-size="260"
+            :border-glow="0.7"
+            :grain="0.14"
+            class="me-live__spotlight-card"
+          >
+            <div class="me-live__spotlight-avatar">E</div>
+            <h3 class="me-live__spotlight-name">Ethan Harrison</h3>
+            <p class="me-live__spotlight-role">Product designer</p>
+            <button class="me-live__spotlight-cta" type="button">Get in touch</button>
+          </SpotlightCard>
+          <SpotlightCard
+            theme="dark"
+            spotlight-color="#54e6b6"
+            shape="beam"
+            :intensity="0.2"
+            :grain="0.1"
+            ambient
+            class="me-live__spotlight-card"
+          >
+            <div class="me-live__spotlight-avatar">M</div>
+            <h3 class="me-live__spotlight-name">Mara Voss</h3>
+            <p class="me-live__spotlight-role">Motion engineer</p>
+            <button class="me-live__spotlight-cta" type="button">Say hello</button>
+          </SpotlightCard>
+        </div>
+        <p class="me-live__status">
+          把指针移到卡片上，光斑跟随；靠近时被邻近感应提前照亮，按一下会膨胀变亮
         </p>
       </template>
 
