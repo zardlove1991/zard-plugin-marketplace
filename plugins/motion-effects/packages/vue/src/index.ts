@@ -7,6 +7,7 @@ export { default as PeakChart } from './components/PeakChart.vue'
 export { default as GlassyDashboard } from './components/GlassyDashboard.vue'
 export { default as SplashCursor } from './components/SplashCursor.vue'
 export { default as Shredder } from './components/Shredder.vue'
+export { default as SpotlightCard } from './components/SpotlightCard.vue'
 
 export type {
   HoldButtonDirection,
@@ -26,6 +27,14 @@ export type {
   ShredderItem,
   UseShredderOptions
 } from './composables/useShredder'
+export type {
+  SpotlightCardSettings as SpotlightCardProps,
+  UseSpotlightCardOptions
+} from './composables/useSpotlightCard'
+export {
+  SPOTLIGHT_NOISE as SPOTLIGHT_CARD_NOISE,
+  SPOTLIGHT_THEMES as SPOTLIGHT_CARD_THEMES
+} from './composables/useSpotlightCard'
 export { PROJECT_SETUP_SCRIPT } from './composables/useTerminalReplay'
 export { PEAK_CHART_SERIES, MONTH_DATA } from './composables/usePeakChart'
 export type { PeakChartSeries } from './composables/usePeakChart'
