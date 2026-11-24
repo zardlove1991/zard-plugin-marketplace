@@ -1,0 +1,41 @@
+.sh-root {
+  position: relative; width: min(var(--sh-w), 100%); height: var(--sh-h);
+  color: var(--sh-ink); -webkit-tap-highlight-color: transparent; -webkit-touch-callout: none;
+}
+.sh-root[data-disabled] { opacity: .6; }
+.sh-list {
+  position: absolute; right: 0; left: 0; z-index: 1; margin: 0; padding: 0 var(--sh-inset);
+  list-style: none; bottom: calc(var(--sh-fall) + var(--sh-slit-h));
+  clip-path: inset(-9999px -9999px 0 -9999px);
+}
+.sh-slot { position: relative; margin-bottom: var(--sh-gap); }
+.sh-slot[data-active] { z-index: 2; }
+.sh-slot[data-gone] { pointer-events: none; }
+.sh-item {
+  position: relative; transform-origin: center; cursor: grab; touch-action: none;
+  user-select: none; -webkit-user-select: none; outline: none;
+}
+.sh-slot[data-active] .sh-item {
+  position: absolute; top: 0; right: 0; left: 0;
+  will-change: transform, filter; filter: drop-shadow(0 0 0 rgba(0,0,0,0));
+  transition: filter 240ms ease;
+}
+.sh-item[data-state="drag"] { cursor: grabbing; filter: drop-shadow(0 14px 22px rgba(0,0,0,.22)); }
+.sh-item[data-state="feed"] { pointer-events: none; cursor: default; }
+.sh-root[data-disabled] .sh-item { cursor: default; }
+@media (prefers-reduced-motion: reduce) {
+  .sh-slot[data-active] .sh-item { transition: none; }
+}
+.sh-slit {
+  position: absolute; z-index: 3; right: var(--sh-slit-inset); left: var(--sh-slit-inset);
+  bottom: var(--sh-fall); height: var(--sh-slit-h); border-radius: 9999px;
+  background: var(--sh-slit); will-change: transform;
+}
+.sh-fall {
+  position: absolute; right: 0; bottom: 0; left: 0; z-index: 2;
+  height: var(--sh-fall); pointer-events: none;
+}
+.sh-canvas {
+  position: absolute; top: 0; left: calc(-1 * var(--sh-over));
+  display: block; inline-size: calc(100% + var(--sh-over) * 2); block-size: 100%;
+}

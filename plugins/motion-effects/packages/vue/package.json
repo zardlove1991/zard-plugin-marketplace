@@ -20,8 +20,11 @@
     "vue": "^3.5.0"
   },
   "dependencies": {
+    "@fontsource-variable/manrope": "^5.3.0",
     "@hugeicons/core-free-icons": "^4.4.0",
     "@hugeicons/vue": "^1.0.8",
+    "@lucide/vue": "^1.79.0",
+    "gsap": "^3.15.1",
     "motion-v": "^2.13.0"
   },
   "devDependencies": {

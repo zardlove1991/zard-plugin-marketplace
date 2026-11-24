@@ -1,0 +1,1280 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Shredder · 碎纸机</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; min-height: 100%; }
+  body {
+    min-height: 100svh; padding: 36px 20px 56px;
+    color: #e8ecf5;
+    background:
+      radial-gradient(900px 520px at 12% 0%, rgba(120, 150, 255, .14), transparent 70%),
+      radial-gradient(700px 500px at 92% 100%, rgba(45, 212, 191, .10), transparent 70%),
+      #0b0d14;
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  }
+  .wrap { max-width: 940px; margin: 0 auto; }
+  .eyebrow { margin: 0 0 8px; font-size: 11px; letter-spacing: .24em; text-transform: uppercase; color: #8ea6d4; }
+  h1 { margin: 0 0 10px; font-size: clamp(28px, 5vw, 46px); line-height: 1.1; letter-spacing: -.04em; }
+  .lede { margin: 0 0 26px; max-width: 620px; color: #a9bad8; font-size: 14px; line-height: 1.65; }
+  .layout { display: flex; flex-wrap: wrap; gap: 28px; align-items: flex-start; }
+  .machine {
+    position: relative; flex: 0 0 auto; padding: 18px;
+    border: 1px solid rgba(160, 190, 255, .16); border-radius: 20px;
+    background: rgba(15, 20, 34, .72);
+  }
+  .machine::after {
+    content: 'SHREDDER'; position: absolute; top: -9px; left: 24px; padding: 0 8px;
+    font-size: 9px; letter-spacing: .22em; color: #7f93ba; background: #10141f;
+  }
+  /* 组件用 min(var(--sh-w),100%) 自适应父容器；给出显式宽度，否则 100% 在 auto 宽度父级里会塌陷 */
+  #sh-mount { width: 340px; max-width: 100%; }
+  .side { flex: 1 1 280px; min-width: 260px; }
+  .panel {
+    padding: 16px 18px; margin-bottom: 14px;
+    border: 1px solid rgba(160, 190, 255, .16); border-radius: 14px;
+    background: rgba(15, 20, 34, .6);
+  }
+  .panel h2 { margin: 0 0 12px; font-size: 13px; letter-spacing: .04em; color: #cfe0ff; }
+  .controls { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 16px; }
+  .controls label { display: flex; flex-direction: column; gap: 5px; font-size: 11px; color: #9fb2d4; }
+  .controls input[type="range"] { width: 100%; accent-color: #7aa8ff; }
+  .controls select {
+    color: #e8ecf5; background: #16213a; border: 1px solid rgba(160, 190, 255, .24);
+    border-radius: 7px; padding: 5px 7px; font: inherit; font-size: 12px;
+  }
+  .toggles { display: flex; flex-wrap: wrap; gap: 8px 16px; margin-top: 12px; }
+  .toggles label { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; color: #b9c8e4; }
+  .toggles input { accent-color: #7aa8ff; }
+  button.reset {
+    margin-top: 14px; padding: 8px 14px; cursor: pointer;
+    color: #e8ecf5; background: #24304c; border: 1px solid rgba(160, 190, 255, .28);
+    border-radius: 9px; font: inherit; font-size: 12px;
+  }
+  button.reset:hover { background: #2e3c5f; }
+  .file-list { margin: 0; padding: 0; list-style: none; }
+  .file-list li {
+    display: flex; justify-content: space-between; gap: 12px;
+    padding: 9px 10px; margin-bottom: 6px; border-radius: 8px;
+    background: rgba(120, 150, 255, .07); font-size: 13px;
+  }
+  .file-list li[data-gone] { opacity: .35; text-decoration: line-through; }
+  .file-list .meta { color: #8ea6d4; font-variant-numeric: tabular-nums; }
+  .status { margin: 12px 0 0; min-height: 20px; font-size: 12px; color: #8fd6bf; }
+
+  /* ROOT / LIST / SLOT / SLIT / FALL：与 React 原件 Tailwind 类等价的普通 CSS */
+  .sh-root {
+    position: relative; width: min(var(--sh-w), 100%); height: var(--sh-h);
+    color: var(--sh-ink); -webkit-tap-highlight-color: transparent; -webkit-touch-callout: none;
+  }
+  .sh-root[data-disabled] { opacity: .6; }
+  .sh-list {
+    position: absolute; right: 0; left: 0; z-index: 1; margin: 0; padding: 0 var(--sh-inset);
+    list-style: none; bottom: calc(var(--sh-fall) + var(--sh-slit-h));
+    clip-path: inset(-9999px -9999px 0 -9999px);
+  }
+  .sh-slot { position: relative; margin-bottom: var(--sh-gap); }
+  .sh-slot[data-active] { z-index: 2; }
+  .sh-slot[data-gone] { pointer-events: none; }
+  .sh-item {
+    position: relative; transform-origin: center; cursor: grab; touch-action: none;
+    user-select: none; -webkit-user-select: none; outline: none;
+  }
+  .sh-slot[data-active] .sh-item {
+    position: absolute; top: 0; right: 0; left: 0;
+    will-change: transform, filter; filter: drop-shadow(0 0 0 rgba(0,0,0,0));
+    transition: filter 240ms ease;
+  }
+  .sh-item[data-state="drag"] { cursor: grabbing; filter: drop-shadow(0 14px 22px rgba(0,0,0,.22)); }
+  .sh-item[data-state="feed"] { pointer-events: none; cursor: default; }
+  .sh-root[data-disabled] .sh-item { cursor: default; }
+  @media (prefers-reduced-motion: reduce) {
+    .sh-slot[data-active] .sh-item { transition: none; }
+  }
+  .sh-slit {
+    position: absolute; z-index: 3; right: var(--sh-slit-inset); left: var(--sh-slit-inset);
+    bottom: var(--sh-fall); height: var(--sh-slit-h); border-radius: 9999px;
+    background: var(--sh-slit); will-change: transform;
+  }
+  .sh-fall {
+    position: absolute; right: 0; bottom: 0; left: 0; z-index: 2;
+    height: var(--sh-fall); pointer-events: none;
+  }
+  .sh-canvas {
+    position: absolute; top: 0; left: calc(-1 * var(--sh-over));
+    display: block; inline-size: calc(100% + var(--sh-over) * 2); block-size: 100%;
+  }
+
+  /* demo rows (renderItem 的产物) */
+  .row {
+    display: flex; justify-content: space-between; align-items: center; gap: 12px;
+    min-height: 54px; padding: 10px 14px;
+    border: 1px solid rgba(160, 190, 255, .18); border-radius: 11px;
+    background: linear-gradient(180deg, #1e2942, #182137);
+    box-shadow: 0 6px 18px rgba(0,0,0,.18);
+    font-size: 13px;
+  }
+  .row .size { color: #8ea6d4; font-variant-numeric: tabular-nums; font-size: 12px; }
+  .note { margin-top: 14px; font-size: 11px; line-height: 1.6; color: #7488ab; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <p class="eyebrow">React Bits · Vanilla 复刻</p>
+  <h1>Shredder · 碎纸机</h1>
+  <p class="lede">拖动任意一行到下方缝隙：滚轮会夹住它，把它切成条状再让碎片飘落消失。拖到列表其它位置可重新排序；聚焦后按 Delete / Backspace 也能送入碎纸机。</p>
+
+  <div class="layout">
+    <div class="machine"><div id="sh-mount"></div></div>
+
+    <div class="side">
+      <div class="panel">
+        <h2>文件列表（onShred / onReorder）</h2>
+        <ul class="file-list" id="file-list"></ul>
+        <p class="status" id="status">就绪 · 拖动一行试试</p>
+      </div>
+      <div class="panel">
+        <h2>参数</h2>
+        <div class="controls">
+          <label>Feed speed <input type="range" id="feedSpeed" min="60" max="420" step="10" value="180" /></label>
+          <label>Bite <input type="range" id="bite" min="4" max="60" step="1" value="18" /></label>
+          <label>Strip width <input type="range" id="stripWidth" min="4" max="24" step="1" value="10" /></label>
+          <label>Curl <input type="range" id="curl" min="0" max="2" step="0.1" value="1" /></label>
+          <label>Theme
+            <select id="theme"><option value="dark">dark</option><option value="light">light</option></select>
+          </label>
+          <label>Auto feed
+            <select id="autoFeed"><option value="true">on</option><option value="false">off</option></select>
+          </label>
+        </div>
+        <div class="toggles">
+          <label><input type="checkbox" id="loop" /> Loop</label>
+          <label><input type="checkbox" id="loopAfterDelete" /> Loop after delete</label>
+          <label><input type="checkbox" id="autoAnimate" /> Auto animate</label>
+          <label><input type="checkbox" id="disabled" /> Disabled</label>
+        </div>
+        <button class="reset" id="reset" type="button">重置所有行</button>
+      </div>
+      <p class="note">零第三方依赖：引擎从 React 原件 1:1 抽取，行内容先快照为 canvas 纹理，再由 2D canvas 逐条绘制碎片。图片与内联 SVG 也能被切碎（跨域图片需要 CORS）。</p>
+    </div>
+  </div>
+</div>
+
+<script>
+const FOLLOW = 30;
+const SETTLE = 16;
+const TUG = 2.4;
+const TUG_DECAY = 0.14;
+const SLIT = 6;
+const OVER = 40;
+const SLIVER = 2;
+const STACK_K = 320;
+const STACK_C = 22;
+const STAGGER = 0.035;
+const ENTER = 22;
+const HYSTERESIS = 8;
+const DEG = Math.PI / 180;
+const clamp = (v, lo, hi) => Math.min(hi, Math.max(lo, v));
+const ease = (from, to, dt, tau) => from + (to - from) * (1 - Math.exp(-dt / tau));
+const smooth = (t) => {
+  const u = clamp(t, 0, 1);
+  return u * u * (3 - 2 * u);
+};
+const pick = (lo, hi) => lo + Math.random() * (hi - lo);
+const side = () => Math.random() < 0.5 ? -1 : 1;
+const reduced = () => typeof window !== "undefined" && !!window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+const spring = (p, v, target, dt, omega) => {
+  const offset = p - target;
+  const term = v + omega * offset;
+  const decay = Math.exp(-omega * dt);
+  return [target + (offset + term * dt) * decay, (v - omega * term * dt) * decay];
+};
+const urls = /* @__PURE__ */ new Map();
+const dataUrl = (src) => {
+  if (!src || src.startsWith("data:")) return Promise.resolve(src);
+  const hit = urls.get(src);
+  if (hit) return hit;
+  const job = fetch(src, { mode: "cors" }).then((res) => res.blob()).then(
+    (blob) => new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result);
+      reader.onerror = reject;
+      reader.readAsDataURL(blob);
+    })
+  );
+  urls.set(src, job);
+  job.catch(() => urls.delete(src));
+  return job;
+};
+const snapshot = (node, W, H) => {
+  const clone = node.cloneNode(true);
+  const src = [node, ...node.querySelectorAll("*")];
+  const dst = [clone, ...clone.querySelectorAll("*")];
+  const images = [];
+  for (let i = 0; i < src.length; i += 1) {
+    const cs = getComputedStyle(src[i]);
+    const style = dst[i].style;
+    for (let j = 0; j < cs.length; j += 1) style.setProperty(cs[j], cs.getPropertyValue(cs[j]));
+    const from = src[i];
+    const to = dst[i];
+    if (to instanceof HTMLImageElement && from instanceof HTMLImageElement)
+      images.push([to, from.currentSrc || from.src]);
+  }
+  Object.assign(clone.style, {
+    position: "relative",
+    inset: "auto",
+    margin: "0",
+    transform: "none",
+    filter: "none",
+    transition: "none",
+    width: `${W}px`,
+    height: `${H}px`
+  });
+  clone.setAttribute("xmlns", "http://www.w3.org/1999/xhtml");
+  const scale = Math.min(3, window.devicePixelRatio || 1);
+  return Promise.all(
+    images.map(async ([img, from]) => {
+      img.removeAttribute("srcset");
+      img.removeAttribute("loading");
+      try {
+        img.setAttribute("src", await dataUrl(from));
+      } catch {
+        img.removeAttribute("src");
+        img.style.background = "rgba(127, 127, 127, 0.25)";
+      }
+    })
+  ).then(
+    () => new Promise((resolve, reject) => {
+      const markup = new XMLSerializer().serializeToString(clone);
+      const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}"><foreignObject width="${W}" height="${H}">${markup}</foreignObject></svg>`;
+      const img = new Image();
+      img.onload = () => {
+        const tex = document.createElement("canvas");
+        tex.width = Math.ceil(W * scale);
+        tex.height = Math.ceil(H * scale);
+        tex.getContext("2d").drawImage(img, 0, 0, tex.width, tex.height);
+        resolve({ tex, scale });
+      };
+      img.onerror = () => reject(new Error("snapshot"));
+      img.src = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`;
+    })
+  );
+};
+const flat = (W, H, fill) => {
+  const tex = document.createElement("canvas");
+  tex.width = W;
+  tex.height = H;
+  const ctx = tex.getContext("2d");
+  ctx.fillStyle = fill;
+  ctx.fillRect(0, 0, W, H);
+  return { tex, scale: 1 };
+};
+const shape = (st, len, time, tear) => {
+  const pts = st.pts;
+  pts.length = 0;
+  let x = st.ax;
+  let y = st.ay;
+  const steps = Math.ceil(len / SLIVER);
+  const swing = (3 + 9 * st.rA) * tear;
+  const pace = time * (1.6 + st.rA * 2.2) + st.rA * 6.2832;
+  for (let j = 0; j <= steps; j += 1) {
+    const d = Math.min(j * SLIVER, len);
+    const a = st.th + st.curl * d + st.amp * Math.sin(d * st.freq + st.wave);
+    const flutter = swing * Math.sin(d * 0.045 + pace);
+    pts.push(x + flutter * Math.cos(a), y - flutter * Math.sin(a), a);
+    const h = Math.min(SLIVER, len - d);
+    x += Math.sin(a) * h;
+    y += Math.cos(a) * h;
+  }
+};
+const middle = (pts) => {
+  let y = 0;
+  for (let j = 1; j < pts.length; j += 3) y += pts[j];
+  return y * 3 / pts.length;
+};
+const paintStrip = (ctx, st, len, dpr) => {
+  const { tex, ts } = st.feed;
+  if (!tex) return;
+  const pts = st.pts;
+  const wc = st.w * st.core;
+  const half = wc / 2;
+  const sx = (st.x + (st.w - wc) / 2) * ts;
+  const v0 = st.H - len;
+  ctx.globalAlpha = st.alpha;
+  for (let j = 0; j + 3 < pts.length; j += 3) {
+    const d = j / 3 * SLIVER;
+    const h = Math.min(SLIVER, len - d);
+    if (h <= 0) break;
+    const ca = Math.cos(pts[j + 2]);
+    const sa = Math.sin(pts[j + 2]);
+    ctx.setTransform(dpr * ca, -dpr * sa, dpr * sa, dpr * ca, dpr * (pts[j] + OVER), dpr * pts[j + 1]);
+    ctx.drawImage(tex, sx, (v0 + d) * ts, wc * ts, h * ts, -half, 0, wc, h + 0.4);
+  }
+  ctx.globalAlpha = 1;
+};
+/* Shredder — vanilla engine extracted from the React source; hooks stubbed. */
+let list;
+
+const createShredder = (rootEl, options) => {
+  const {
+    items = [],
+    renderItem,
+    onShred,
+    onReorder,
+    width = 340,
+    height = 460,
+    inset = 14,
+    gap = 10,
+    slitHeight = 4,
+    fallHeight = 140,
+    feedSpeed = 180,
+    bite = 18,
+    autoFeed = true,
+    stripWidth = 10,
+    curl = 1,
+    autoAnimate = false,
+    loop = false,
+    loopAfterDelete = false,
+    dragTilt = 6,
+    lift = 1.02,
+    slitColor = "#3f3f46",
+    color = "#f5f5f5",
+    disabled = false,
+    className = ""
+  } = options;
+  const effects = [];
+  const cleanups = [];
+  const useRef = (value) => ({ current: value });
+  const useEffect = (fn) => { effects.push(fn); };
+  const useLayoutEffect = (fn) => { effects.push(fn); };
+
+  let order = items.map((item) => item.id);
+  const buildSorted = () => {
+    const rank = new Map(order.map((id, i) => [id, i]));
+    const weight = (item) => rank.get(item.id) ?? order.length + items.indexOf(item);
+    return [...items].sort((a, b) => weight(a) - weight(b));
+  };
+  let sorted = buildSorted();
+  const setOrder = (ids) => {
+    order = ids;
+    sorted = buildSorted();
+    cfg.current.items = sorted;
+    if (list) sorted.forEach((item) => {
+      const slot = slotEls.current.get(item.id);
+      if (slot) list.appendChild(slot);
+    });
+  };
+  const rootRef = useRef(null);
+  const slitRef = useRef(null);
+  const canvasRef = useRef(null);
+  const slotEls = useRef(/* @__PURE__ */ new Map());
+  const itemEls = useRef(/* @__PURE__ */ new Map());
+  const cfg = useRef({});
+  cfg.current = {
+    items: sorted,
+    height,
+    inset,
+    gap,
+    slitHeight,
+    fallHeight,
+    feedSpeed,
+    bite,
+    autoFeed,
+    stripWidth,
+    curl,
+    loop,
+    loopAfterDelete,
+    dragTilt,
+    lift,
+    onShred,
+    onReorder,
+    disabled
+  };
+  const sim = useRef({
+    raf: 0,
+    last: 0,
+    t: 0,
+    drag: null,
+    feeds: [],
+    strips: [],
+    shifts: /* @__PURE__ */ new Map(),
+    tops: /* @__PURE__ */ new Map(),
+    timers: /* @__PURE__ */ new Set(),
+    dpr: 1,
+    cw: 0,
+    ch: 0
+  });
+  const metrics = () => {
+    const c = cfg.current;
+    const root = rootRef.current;
+    const r = root.getBoundingClientRect();
+    const k = r.width / root.offsetWidth || 1;
+    const lip = c.height - c.fallHeight - c.slitHeight;
+    return { left: r.left, top: r.top, k, rw: root.offsetWidth, lip, exit: lip + c.slitHeight };
+  };
+  const at = (el, m) => {
+    const r = el.getBoundingClientRect();
+    return { x: (r.left - m.left) / m.k, y: (r.top - m.top) / m.k };
+  };
+  const local = (e, m) => ({
+    x: (e.clientX - m.left) / m.k,
+    y: (e.clientY - m.top) / m.k
+  });
+  const run = () => {
+    const s = sim.current;
+    if (s.raf) return;
+    s.last = performance.now();
+    s.raf = requestAnimationFrame(step);
+  };
+  const later = (ms, fn) => {
+    const s = sim.current;
+    const id = setTimeout(() => {
+      s.timers.delete(id);
+      fn();
+    }, ms);
+    s.timers.add(id);
+  };
+  const slotOf = (key) => slotEls.current.get(key);
+  const isLive = (key) => {
+    const slot = slotOf(key);
+    return !!slot && slot.dataset.gone === void 0;
+  };
+  const liveKeys = () => cfg.current.items.map((item) => item.id).filter(isLive);
+  const goneKeys = () => cfg.current.items.map((item) => item.id).filter((key) => {
+    const slot = slotOf(key);
+    return !!slot && slot.dataset.gone !== void 0;
+  });
+  const shiftOf = (slot) => {
+    const s = sim.current;
+    let sh = s.shifts.get(slot);
+    if (!sh) {
+      sh = { el: slot, y: 0, v: 0, target: 0, delay: 0, item: null };
+      s.shifts.set(slot, sh);
+    }
+    return sh;
+  };
+  const settle = (origin, entering) => {
+    const s = sim.current;
+    if (!rootRef.current) return;
+    const m = metrics();
+    const next = /* @__PURE__ */ new Map();
+    const still = reduced();
+    const active = s.drag ? s.drag.slot : null;
+    const slots = cfg.current.items.map((item) => slotOf(item.id));
+    const from = origin ? slots.indexOf(origin) : -1;
+    let born = 0;
+    cfg.current.items.forEach((item, idx) => {
+      const slot = slots[idx];
+      if (!slot) return;
+      const sh = s.shifts.get(slot);
+      const top = at(slot, m).y - (sh ? sh.y : 0);
+      const prev = s.tops.get(slot);
+      next.set(slot, top);
+      if (slot === active || still) return;
+      const fresh = entering && entering.has(slot) || prev === void 0 && s.tops.size > 0;
+      if (fresh) {
+        const rec2 = shiftOf(slot);
+        const el = itemEls.current.get(item.id) || null;
+        rec2.y = -ENTER;
+        rec2.v = 0;
+        rec2.target = 0;
+        rec2.delay = born * 0.05;
+        rec2.item = el;
+        born += 1;
+        if (el) el.style.opacity = "0";
+        slot.style.transform = `translateY(${rec2.y}px)`;
+        return;
+      }
+      if (prev === void 0) return;
+      const delta = prev - top;
+      if (Math.abs(delta) < 0.5) return;
+      const rec = shiftOf(slot);
+      rec.y += delta;
+      if (from >= 0) rec.delay = Math.max(0, from - 1 - idx) * STAGGER;
+      slot.style.transform = `translateY(${rec.y}px)`;
+    });
+    s.tops = next;
+    run();
+  };
+  const reflow = (mutate, origin, entering) => {
+    mutate();
+    settle(origin || null, entering || null);
+  };
+  const arrange = (key, index) => {
+    const ids = cfg.current.items.map((item) => item.id).filter((id) => id !== key);
+    const live = ids.filter(isLive);
+    let anchor = 0;
+    if (index < live.length) anchor = ids.indexOf(live[index]);
+    else if (live.length) anchor = ids.indexOf(live[live.length - 1]) + 1;
+    ids.splice(anchor, 0, key);
+    return ids;
+  };
+  const commit = (ids) => {
+    const same = ids.every((id, i) => id === cfg.current.items[i]?.id);
+    if (same) return false;
+    setOrder(ids);
+    return true;
+  };
+  const revive = (keys, index) => {
+    const s = sim.current;
+    if (s.drag) {
+      later(300, () => revive(keys, index));
+      return;
+    }
+    const entering = /* @__PURE__ */ new Set();
+    reflow(
+      () => {
+        if (index !== void 0 && keys.length === 1) commit(arrange(keys[0], index));
+        keys.forEach((key) => {
+          const slot = slotOf(key);
+          const el = itemEls.current.get(key);
+          if (!slot || slot.dataset.gone === void 0) return;
+          delete slot.dataset.gone;
+          slot.style.height = "";
+          slot.style.marginBottom = "";
+          if (el) {
+            el.style.visibility = "";
+            el.style.transform = "";
+            delete el.dataset.state;
+          }
+          entering.add(slot);
+        });
+      },
+      null,
+      entering
+    );
+  };
+  const afterShred = (key) => {
+    const c = cfg.current;
+    if (c.loopAfterDelete) {
+      later(700, () => revive([key], Math.floor(Math.random() * (liveKeys().length + 1))));
+    } else if (c.loop && liveKeys().length === 0) {
+      later(900, () => revive(goneKeys()));
+    }
+  };
+  const collapse = (f, s) => {
+    f.consumed = true;
+    f.el.style.visibility = "hidden";
+    delete f.slot.dataset.active;
+    s.shifts.forEach((sh) => {
+      sh.target = 0;
+    });
+    reflow(() => {
+      f.slot.dataset.gone = "";
+      f.slot.style.height = "0px";
+      f.slot.style.marginBottom = "0px";
+    }, f.slot);
+    cfg.current.onShred?.(f.item);
+    afterShred(f.key);
+  };
+  const consumeNow = (key, item, el, slot) => {
+    const s = sim.current;
+    const f = {
+      key,
+      item,
+      el,
+      slot,
+      W: 0,
+      H: 0,
+      rx: 0,
+      ry: 0,
+      tx: 0,
+      tilt: 0,
+      lift: 1,
+      v: 0,
+      age: 0,
+      tex: null,
+      ts: 1,
+      consumed: false,
+      strips: 0
+    };
+    collapse(f, s);
+    run();
+  };
+  const grab = (d, m) => {
+    const s = sim.current;
+    const c = cfg.current;
+    s.drag = null;
+    s.shifts.forEach((sh) => {
+      sh.target = 0;
+    });
+    if (reduced()) {
+      consumeNow(d.key, d.item, d.el, d.slot);
+      return;
+    }
+    const over = d.ry + d.H - m.lip;
+    const ry = over > c.bite * 1.5 ? m.lip + c.bite * 1.5 - d.H : d.ry;
+    const lo = c.inset - SLIT;
+    const hi = m.rw - c.inset + SLIT - d.W;
+    const n = Math.max(1, Math.round(d.W / Math.max(4, c.stripWidth)));
+    const sw = Math.floor(d.W / n);
+    const f = {
+      key: d.key,
+      item: d.item,
+      el: d.el,
+      slot: d.slot,
+      W: d.W,
+      H: d.H,
+      rx: d.rx,
+      ry,
+      tx: clamp(d.rx, Math.min(lo, hi), Math.max(lo, hi)),
+      tilt: d.tilt,
+      lift: d.lift,
+      v: c.feedSpeed * TUG,
+      age: 0,
+      tex: null,
+      ts: 1,
+      consumed: false,
+      strips: n
+    };
+    let settled = false;
+    const use = ({ tex, scale }) => {
+      if (settled) return;
+      settled = true;
+      f.tex = tex;
+      f.ts = scale;
+      run();
+    };
+    d.snap.then(use, () => use(flat(d.W, d.H, d.fill)));
+    setTimeout(() => use(flat(d.W, d.H, d.fill)), 400);
+    d.el.dataset.state = "feed";
+    s.feeds.push(f);
+    for (let i = 0; i < n; i += 1) {
+      s.strips.push({
+        feed: f,
+        x: i * sw,
+        w: i === n - 1 ? d.W - sw * (n - 1) : sw,
+        H: d.H,
+        phase: "attached",
+        curl: side() * pick(0.35, 0.9) * DEG * c.curl,
+        amp: pick(1.5, 4) * DEG * c.curl,
+        freq: Math.PI * 2 / pick(34, 60),
+        wave: pick(0, Math.PI * 2),
+        rA: Math.random(),
+        rB: Math.random(),
+        speed: 0,
+        splay: 0,
+        core: 1,
+        rest: 0,
+        alpha: 1,
+        th: 0,
+        ax: 0,
+        ay: 0,
+        vx: 0,
+        vy: 0,
+        hang: 0,
+        pts: []
+      });
+    }
+  };
+  const place = (d, sp) => {
+    d.el.style.transform = `translate(${d.rx - sp.x}px, ${d.ry - sp.y}px) rotate(${d.tilt}deg) scale(${d.lift})`;
+  };
+  const aim = (d, m) => {
+    const s = sim.current;
+    const c = cfg.current;
+    const rows = [];
+    c.items.forEach((item) => {
+      if (item.id === d.key) return;
+      const slot = slotOf(item.id);
+      if (!slot || slot.dataset.gone !== void 0) return;
+      const top = s.tops.get(slot);
+      if (top === void 0) return;
+      rows.push({ slot, mid: top + slot.offsetHeight / 2 });
+    });
+    let j = -1;
+    if (d.moved && d.ry + d.H < m.lip - 8) {
+      const cy = d.ry + d.H / 2;
+      let n = 0;
+      rows.forEach((row) => {
+        if (row.mid < cy) n += 1;
+      });
+      if (d.j >= 0 && n !== d.j) {
+        const edge = rows[n > d.j ? n - 1 : n];
+        if (edge && Math.abs(edge.mid - cy) < HYSTERESIS) n = d.j;
+      }
+      j = n;
+    }
+    if (j === d.j) return;
+    d.j = j;
+    rows.forEach((row, k) => {
+      shiftOf(row.slot).target = j >= 0 && k < j ? -(d.H + c.gap) : 0;
+    });
+  };
+  const drop = (d) => {
+    const s = sim.current;
+    const c = cfg.current;
+    const live = liveKeys().filter((key) => key !== d.key);
+    const index = clamp(d.j >= 0 ? d.j : d.from, 0, live.length);
+    s.shifts.forEach((sh) => {
+      sh.target = 0;
+    });
+    let changed = false;
+    reflow(() => {
+      changed = commit(arrange(d.key, index));
+      d.slot.style.height = `${d.H}px`;
+      d.slot.style.marginBottom = "";
+    });
+    d.phase = "return";
+    if (changed) c.onReorder?.(cfg.current.items);
+  };
+  const tick = (now) => {
+    const s = sim.current;
+    const c = cfg.current;
+    const root = rootRef.current;
+    const canvas = canvasRef.current;
+    if (!root || !canvas) {
+      s.raf = 0;
+      return;
+    }
+    const dt = clamp((now - s.last) / 1e3, 0, 0.05);
+    s.last = now;
+    s.t += dt;
+    const m = metrics();
+    const d = s.drag;
+    if (d) {
+      if (!d.el.isConnected) {
+        s.drag = null;
+      } else {
+        const sp = at(d.slot, m);
+        const ceiling = m.lip + c.bite - d.H;
+        if (d.phase === "drag") {
+          d.tx = d.px - d.gx;
+          d.ty = Math.min(d.py - d.gy, ceiling);
+          if (!d.moved && Math.hypot(d.px - d.ox, d.py - d.oy) > 6) d.moved = true;
+          aim(d, m);
+        } else if (d.phase === "carry") {
+          d.tx = (m.rw - d.W) / 2;
+          d.ty = ceiling;
+        } else {
+          d.tx = sp.x;
+          d.ty = sp.y;
+        }
+        const omega = d.phase === "drag" ? FOLLOW : SETTLE;
+        [d.rx, d.vx] = spring(d.rx, d.vx, d.tx, dt, omega);
+        [d.ry, d.vy] = spring(d.ry, d.vy, d.ty, dt, omega);
+        const lean = d.phase === "drag" ? clamp(d.vx * 0.012, -c.dragTilt, c.dragTilt) : 0;
+        d.tilt = ease(d.tilt, lean, dt, 0.09);
+        d.lift = ease(d.lift, d.phase === "return" ? 1 : c.lift, dt, 0.12);
+        const over = d.ry + d.H - m.lip;
+        const bites = d.phase === "carry" || d.phase === "drag" && c.autoFeed;
+        if (bites && over >= c.bite - 0.5) {
+          grab(d, m);
+        } else {
+          place(d, sp);
+          const still = Math.abs(d.rx - d.tx) < 0.2 && Math.abs(d.ry - d.ty) < 0.2 && Math.abs(d.vy) < 2 && Math.abs(d.vx) < 2;
+          if (d.phase === "return" && still && Math.abs(d.lift - 1) < 2e-3 && Math.abs(d.tilt) < 0.05) {
+            d.el.style.transform = "";
+            delete d.el.dataset.state;
+            delete d.slot.dataset.active;
+            d.slot.style.height = "";
+            s.drag = null;
+          }
+        }
+      }
+    }
+    let pulling = false;
+    for (let i = s.feeds.length - 1; i >= 0; i -= 1) {
+      const f = s.feeds[i];
+      if (!f.consumed) {
+        if (!f.el.isConnected) {
+          s.feeds.splice(i, 1);
+          continue;
+        }
+        pulling = true;
+        const sp = at(f.slot, m);
+        if (f.tex) {
+          f.age += dt;
+          f.v = c.feedSpeed * (1 + (TUG - 1) * Math.exp(-f.age / TUG_DECAY));
+          f.ry += f.v * dt;
+        }
+        f.rx = ease(f.rx, f.tx, dt, 0.1);
+        f.tilt = ease(f.tilt, 0, dt, 0.08);
+        f.lift = ease(f.lift, 1, dt, 0.1);
+        if (f.ry >= m.lip) {
+          collapse(f, s);
+        } else {
+          const jitter = Math.sin(s.t * 150) * 0.5;
+          f.el.style.transform = `translate(${f.rx - sp.x + jitter}px, ${f.ry - sp.y}px) rotate(${f.tilt}deg) scale(${f.lift})`;
+        }
+      } else {
+        f.ry += f.v * dt;
+        if (f.strips === 0) s.feeds.splice(i, 1);
+      }
+    }
+    let moving = false;
+    s.shifts.forEach((sh, el) => {
+      if (!el.isConnected) {
+        s.shifts.delete(el);
+        return;
+      }
+      if (sh.delay > 0) {
+        sh.delay -= dt;
+        moving = true;
+        return;
+      }
+      if (sh.item) {
+        const el2 = sh.item;
+        el2.style.transition = "opacity 280ms ease";
+        el2.style.opacity = "";
+        setTimeout(() => {
+          el2.style.transition = "";
+        }, 320);
+        sh.item = null;
+      }
+      const n = Math.ceil(dt * 240);
+      const h = dt / n;
+      for (let k = 0; k < n; k += 1) {
+        sh.v += (-STACK_K * (sh.y - sh.target) - STACK_C * sh.v) * h;
+        sh.y += sh.v * h;
+      }
+      if (Math.abs(sh.y - sh.target) < 0.15 && Math.abs(sh.v) < 4) {
+        sh.y = sh.target;
+        sh.v = 0;
+        if (sh.target === 0) {
+          el.style.transform = "";
+          s.shifts.delete(el);
+        } else {
+          el.style.transform = `translateY(${sh.y}px)`;
+        }
+      } else {
+        el.style.transform = `translateY(${sh.y}px)`;
+        moving = true;
+      }
+    });
+    const ctx = canvas.getContext("2d");
+    const dpr = s.dpr;
+    if (s.strips.length) {
+      ctx.setTransform(1, 0, 0, 1, 0, 0);
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+    }
+    for (let i = s.strips.length - 1; i >= 0; i -= 1) {
+      const st = s.strips[i];
+      const f = st.feed;
+      let len = st.H;
+      if (st.phase === "attached") {
+        const top = f.ry - m.exit;
+        st.hang = top + st.H;
+        if (st.hang <= 0) {
+          moving = true;
+          continue;
+        }
+        st.ax = f.rx + st.x + st.w / 2;
+        st.th = Math.sin(s.t * 6 + st.wave) * 0.03 * smooth(st.hang / 40);
+        if (top >= 0) {
+          st.phase = "free";
+          st.ay = top;
+          st.vy = f.v;
+          st.vx = pick(-20, 20);
+          st.speed = 150 + st.rA * 230;
+          st.splay = (st.rA - 0.5) * 320;
+          st.rest = side() * pick(0.15, 0.6);
+          f.strips -= 1;
+        } else {
+          st.ay = 0;
+          len = st.hang;
+        }
+      }
+      if (st.phase === "free") {
+        const tear = Math.pow(clamp(middle(st.pts) / c.fallHeight, 0, 1), 1.2);
+        const breath = 0.85 + 0.15 * Math.sin(s.t * (1 + st.rB * 2) + st.rA * 6.2832);
+        st.vy = ease(st.vy, st.speed * breath, dt, 0.25);
+        st.vx = ease(st.vx, st.splay * tear + (st.ax - m.rw / 2) * 0.25, dt, 0.4);
+        st.ax += st.vx * dt;
+        st.ay += st.vy * dt;
+        st.th = ease(st.th, st.rest, dt, 0.5);
+        st.core = 1 - smooth(tear / 0.85) * (0.8 - st.rA * 0.16);
+        shape(st, st.H, s.t, tear);
+        st.alpha = 1 - smooth((tear - 0.6) / 0.4);
+        if (st.alpha <= 0.01 || st.pts[1] > c.fallHeight) {
+          s.strips.splice(i, 1);
+          continue;
+        }
+      } else {
+        st.core = 1;
+        shape(st, len, s.t, 0);
+        st.alpha = 1;
+      }
+      paintStrip(ctx, st, len, dpr);
+      moving = true;
+    }
+    const slit = slitRef.current;
+    if (slit) {
+      slit.style.transform = pulling ? `translate(${Math.sin(s.t * 140) * 0.5}px, ${Math.cos(s.t * 97) * 0.35}px)` : "";
+    }
+    if (s.drag || s.feeds.length || moving) {
+      s.raf = requestAnimationFrame(step);
+    } else {
+      s.raf = 0;
+    }
+  };
+  const step = (now) => {
+    const s = sim.current;
+    try {
+      tick(now);
+    } catch (err) {
+      s.raf = 0;
+      throw err;
+    }
+  };
+  const begin = (item, phase, e) => {
+    const s = sim.current;
+    const c = cfg.current;
+    const key = item.id;
+    const el = itemEls.current.get(key);
+    const slot = slotOf(key);
+    if (c.disabled || s.drag || !el || !slot || slot.dataset.gone !== void 0) return;
+    if (s.feeds.some((f) => f.key === key)) return;
+    const m = metrics();
+    const sp = at(slot, m);
+    const W = slot.offsetWidth;
+    const H = slot.offsetHeight;
+    const p = e ? local(e, m) : { x: sp.x, y: sp.y };
+    const face = el.firstElementChild || el;
+    const fill = getComputedStyle(face).backgroundColor;
+    let snap;
+    try {
+      snap = snapshot(el, W, H);
+    } catch {
+      snap = Promise.reject(new Error("snapshot"));
+    }
+    snap.catch(() => {
+    });
+    const d = {
+      key,
+      item,
+      el,
+      slot,
+      W,
+      H,
+      rx: sp.x,
+      ry: sp.y,
+      tx: sp.x,
+      ty: sp.y,
+      vx: 0,
+      vy: 0,
+      tilt: 0,
+      lift: 1,
+      gx: p.x - sp.x,
+      gy: p.y - sp.y,
+      px: p.x,
+      py: p.y,
+      ox: p.x,
+      oy: p.y,
+      moved: false,
+      from: liveKeys().indexOf(key),
+      j: -1,
+      phase,
+      id: e ? e.pointerId : null,
+      snap,
+      fill: fill === "rgba(0, 0, 0, 0)" || fill === "transparent" ? "rgba(127, 127, 127, 0.35)" : fill
+    };
+    s.drag = d;
+    s.shifts.delete(slot);
+    slot.style.transform = "";
+    reflow(() => {
+      slot.dataset.active = "";
+      el.dataset.state = "drag";
+      slot.style.height = "0px";
+      slot.style.marginBottom = "0px";
+    }, slot);
+    place(d, at(slot, m));
+    run();
+  };
+  const onDown = (e, item) => {
+    if (e.button !== 0) return;
+    try {
+      e.currentTarget.setPointerCapture(e.pointerId);
+    } catch {
+    }
+    begin(item, "drag", e);
+  };
+  const onMove = (e) => {
+    const d = sim.current.drag;
+    if (!d || d.id !== e.pointerId) return;
+    const p = local(e, metrics());
+    d.px = p.x;
+    d.py = p.y;
+  };
+  const onUp = (e) => {
+    const d = sim.current.drag;
+    if (!d || d.id !== e.pointerId) return;
+    d.id = null;
+    try {
+      if (e.currentTarget.hasPointerCapture(e.pointerId)) e.currentTarget.releasePointerCapture(e.pointerId);
+    } catch {
+    }
+    const m = metrics();
+    if (d.ry + d.H > m.lip + 0.5) {
+      grab(d, m);
+    } else {
+      drop(d);
+    }
+    run();
+  };
+  const onKey = (e, item) => {
+    if (e.key !== "Delete" && e.key !== "Backspace") return;
+    e.preventDefault();
+    if (e.repeat) return;
+    const key = item.id;
+    if (reduced()) {
+      const el = itemEls.current.get(key);
+      const slot = slotOf(key);
+      const s = sim.current;
+      if (cfg.current.disabled || !el || !slot || slot.dataset.gone !== void 0 || s.feeds.some((f) => f.key === key))
+        return;
+      consumeNow(key, item, el, slot);
+      return;
+    }
+    begin(item, "carry", null);
+  };
+  useLayoutEffect(() => {
+    settle(null, null);
+  });
+  useEffect(() => {
+    const s = sim.current;
+    const root = rootRef.current;
+    const canvas = canvasRef.current;
+    if (!root || !canvas) return void 0;
+    const fit = () => {
+      const dpr = Math.min(3, window.devicePixelRatio || 1);
+      const cw = root.offsetWidth + OVER * 2;
+      const ch = cfg.current.fallHeight;
+      if (cw === s.cw && ch === s.ch && dpr === s.dpr) return;
+      if (s.cw) s.tops = /* @__PURE__ */ new Map();
+      s.cw = cw;
+      s.ch = ch;
+      s.dpr = dpr;
+      canvas.width = Math.ceil(cw * dpr);
+      canvas.height = Math.ceil(ch * dpr);
+    };
+    const ro = new ResizeObserver(fit);
+    ro.observe(root);
+    fit();
+    return () => ro.disconnect();
+  }, [fallHeight]);
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      itemEls.current.forEach((el) => {
+        el.querySelectorAll("img").forEach((img) => {
+          dataUrl(img.currentSrc || img.src).catch(() => {
+          });
+        });
+      });
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [items]);
+  useEffect(() => {
+    if (!autoAnimate) return void 0;
+    const s = sim.current;
+    let alive = true;
+    let timer;
+    const wait = (ms) => new Promise((resolve) => {
+      timer = setTimeout(resolve, ms);
+    });
+    const idle = () => !s.drag && s.feeds.length === 0 && s.strips.length === 0 && s.shifts.size === 0;
+    const pickNext = () => {
+      const list = cfg.current.items;
+      for (let i = list.length - 1; i >= 0; i -= 1) {
+        if (isLive(list[i].id)) return list[i];
+      }
+      return null;
+    };
+    const play = async () => {
+      await wait(900);
+      while (alive) {
+        while (alive && !idle()) await wait(120);
+        if (!alive) break;
+        const item = pickNext();
+        if (!item) {
+          await wait(1100);
+          if (!alive) break;
+          revive(goneKeys());
+          await wait(1200);
+          continue;
+        }
+        if (!cfg.current.disabled) begin(item, "carry", null);
+        await wait(700);
+      }
+    };
+    play();
+    return () => {
+      alive = false;
+      clearTimeout(timer);
+    };
+  }, [autoAnimate]);
+  useEffect(() => {
+    const s = sim.current;
+    return () => {
+      cancelAnimationFrame(s.raf);
+      s.raf = 0;
+      s.timers.forEach((id) => clearTimeout(id));
+      s.timers.clear();
+    };
+  }, []);
+  const keep = (map, key) => (el) => {
+    if (el) map.current.set(key, el);
+    else map.current.delete(key);
+  };
+
+  /* ---- DOM construction (replaces the React JSX return) ---- */
+  rootEl.className = `sh-root${className ? ` ${className}` : ''}`;
+  if (disabled) rootEl.dataset.disabled = '';
+  const cssVars = {
+    '--sh-w': `${width}px`, '--sh-h': `${height}px`, '--sh-inset': `${inset}px`,
+    '--sh-gap': `${gap}px`, '--sh-slit-h': `${slitHeight}px`, '--sh-fall': `${fallHeight}px`,
+    '--sh-slit-inset': `${Math.max(0, inset - SLIT)}px`, '--sh-over': `${OVER}px`,
+    '--sh-slit': slitColor, '--sh-ink': color
+  };
+  Object.entries(cssVars).forEach(([key, value]) => rootEl.style.setProperty(key, value));
+
+  list = document.createElement('ul');
+  list.className = 'sh-list';
+  sorted.forEach((item, index) => {
+    const slot = document.createElement('li');
+    slot.className = 'sh-slot';
+    const el = document.createElement('div');
+    el.className = 'sh-item';
+    el.tabIndex = disabled ? -1 : 0;
+    if (disabled) el.setAttribute('aria-disabled', 'true');
+    const content = renderItem(item, index);
+    if (content instanceof Node) el.appendChild(content);
+    else if (content != null) el.textContent = String(content);
+    el.addEventListener('pointerdown', (e) => onDown(e, item));
+    el.addEventListener('pointermove', onMove);
+    el.addEventListener('pointerup', onUp);
+    el.addEventListener('pointercancel', onUp);
+    el.addEventListener('lostpointercapture', onUp);
+    el.addEventListener('keydown', (e) => onKey(e, item));
+    el.addEventListener('dragstart', (e) => e.preventDefault());
+    slot.appendChild(el);
+    list.appendChild(slot);
+    slotEls.current.set(item.id, slot);
+    itemEls.current.set(item.id, el);
+  });
+  const slit = document.createElement('div');
+  slit.className = 'sh-slit';
+  slit.setAttribute('aria-hidden', 'true');
+  const fall = document.createElement('div');
+  fall.className = 'sh-fall';
+  fall.setAttribute('aria-hidden', 'true');
+  const canvas = document.createElement('canvas');
+  canvas.className = 'sh-canvas';
+  fall.appendChild(canvas);
+  rootEl.append(list, slit, fall);
+  rootRef.current = rootEl;
+  slitRef.current = slit;
+  canvasRef.current = canvas;
+
+  /* React runs effects after commit; run them now that the DOM exists. */
+  effects.forEach((fn) => {
+    const cleanup = fn();
+    if (typeof cleanup === 'function') cleanups.push(cleanup);
+  });
+
+  return {
+    destroy() {
+      cleanups.forEach((fn) => fn());
+      cleanups.length = 0;
+    }
+  };
+};
+
+
+(function () {
+  const mount = document.getElementById('sh-mount');
+  const fileListEl = document.getElementById('file-list');
+  const statusEl = document.getElementById('status');
+  const initial = [
+    { id: 1, name: 'Harbour at dusk', size: '4.1 MB' },
+    { id: 2, name: 'Studio, take two', size: '2.8 MB' },
+    { id: 3, name: 'Fog over the bay', size: '6.3 MB' },
+    { id: 4, name: 'Night market', size: '3.5 MB' }
+  ];
+  let files = initial.map(item => ({ ...item }));
+  let instance = null;
+
+  const el = (id) => document.getElementById(id);
+  const num = (id) => Number(el(id).value);
+  const bool = (id) => el(id).checked;
+
+  function settings() {
+    return {
+      width: 340, height: 460, fallHeight: 140,
+      feedSpeed: num('feedSpeed'), bite: num('bite'),
+      stripWidth: num('stripWidth'), curl: num('curl'),
+      color: el('theme').value === 'light' ? '#1b2233' : '#f5f5f5',
+      slitColor: el('theme').value === 'light' ? '#b9c4d8' : '#3f3f46',
+      autoFeed: el('autoFeed').value === 'true',
+      loop: bool('loop'), loopAfterDelete: bool('loopAfterDelete'),
+      autoAnimate: bool('autoAnimate'), disabled: bool('disabled')
+    };
+  }
+
+  function renderItem(file) {
+    const row = document.createElement('div');
+    row.className = 'row';
+    const name = document.createElement('span');
+    name.textContent = file.name;
+    const size = document.createElement('span');
+    size.className = 'size';
+    size.textContent = file.size;
+    row.append(name, size);
+    return row;
+  }
+
+  function renderFileList() {
+    fileListEl.replaceChildren();
+    files.forEach(file => {
+      const li = document.createElement('li');
+      li.dataset.id = String(file.id);
+      const name = document.createElement('span');
+      name.textContent = file.name;
+      const meta = document.createElement('span');
+      meta.className = 'meta';
+      meta.textContent = file.size;
+      li.append(name, meta);
+      fileListEl.appendChild(li);
+    });
+  }
+
+  function setStatus(text) { statusEl.textContent = text; }
+
+  function build() {
+    if (instance) instance.destroy();
+    mount.replaceChildren();
+    instance = createShredder(mount, {
+      ...settings(),
+      items: files,
+      renderItem,
+      onShred: (file) => {
+        const row = fileListEl.querySelector(`li[data-id="${file.id}"]`);
+        if (row) row.dataset.gone = '';
+        setStatus(`已 shred：${file.name}`);
+      },
+      onReorder: (next) => {
+        files = next.slice();
+        renderFileList();
+        setStatus('顺序已更新（onReorder）');
+      }
+    });
+  }
+
+  ['feedSpeed', 'bite', 'stripWidth', 'curl', 'theme', 'autoFeed', 'loop', 'loopAfterDelete', 'autoAnimate', 'disabled']
+    .forEach(id => el(id).addEventListener('change', build));
+  el('reset').addEventListener('click', () => {
+    files = initial.map(item => ({ ...item }));
+    renderFileList();
+    build();
+    setStatus('已重置');
+  });
+
+  renderFileList();
+  build();
+})();
+</script>
+</body>
+</html>

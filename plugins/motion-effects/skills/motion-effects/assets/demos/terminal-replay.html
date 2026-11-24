@@ -132,7 +132,8 @@
 
   function markup(text) {
     const frag = document.createDocumentFragment();
-    const re = /\[(success|error|warning|info|accent|muted|dim|bold)\]([\s\S]*?)\[\/\1\]/g;
+    // 闭合标签可以带名字（[/success]）也可以不带（[/]）
+    const re = /\[(success|error|warning|info|accent|muted|dim|bold)\]([\s\S]*?)\[\/(?:\1)?\]/g;
     let last = 0, m;
     while ((m = re.exec(text)) !== null) {
       if (m.index > last) frag.appendChild(document.createTextNode(text.slice(last, m.index)));

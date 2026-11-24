@@ -1,0 +1,1350 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Glassy Dashboard</title>
+<style>
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  [hidden] { display: none !important; }
+  body { min-height: 100svh; background: #ab8e76; }
+  @font-face {
+    font-family: "Manrope Variable";
+    src: url("assets/manrope-latin-wght-normal.woff2") format("woff2-variations");
+    font-weight: 200 800;
+    font-style: normal;
+    font-display: swap;
+  }
+
+.gd-app {
+  --gd-ink: #25201e;
+  --gd-muted: #423731;
+  --gd-line: rgb(74 49 33 / 15%);
+  --gd-grid: rgb(74 49 33 / 19%);
+  --gd-rim: rgb(255 253 246 / 51%);
+  --gd-edge-light: rgb(255 254 247 / 84%);
+  --gd-edge-shade: rgb(57 40 28 / 19%);
+  --gd-gloss: rgb(255 251 242 / 45%);
+  --gd-frame: rgb(247 234 219 / 23%);
+  --gd-rail: rgb(241 222 206 / 48%);
+  --gd-card: rgb(250 242 232 / 46%);
+  --gd-card-light: rgb(255 251 245 / 34%);
+  --gd-raised: rgb(255 249 243 / 81%);
+  --gd-inner: rgb(255 250 245 / 37%);
+  --gd-surface: #f6ece2;
+  --gd-track: rgb(81 49 32 / 14%);
+  --gd-primary: #261e1b;
+  --gd-primary-ink: #fffaf5;
+  --gd-pick: #fff9f3;
+  --gd-pick-ink: #241b17;
+  --gd-coral: #a43c27;
+  --gd-teal: #09644f;
+  --gd-ochre: #996300;
+  --gd-graph-ink: #40332d;
+  --gd-focus: #194b48;
+  --gd-dark-shadow: 35 21 14;
+  inline-size: 100%;
+  min-inline-size: 0;
+  flex: 1 1 100%;
+  position: relative;
+  isolation: isolate;
+  min-block-size: 100svh;
+  background: #ab8e76;
+  color: var(--gd-ink);
+  color-scheme: light;
+  font-family: "Manrope Variable", Manrope, system-ui, sans-serif;
+  font-size: 13px;
+  font-weight: 550;
+  font-variant-numeric: tabular-nums;
+}
+.gd-app[data-theme="dark"] {
+  --gd-ink: #fff6e9;
+  --gd-muted: #e5d5c7;
+  --gd-line: rgb(243 221 198 / 19%);
+  --gd-grid: rgb(243 221 198 / 19%);
+  --gd-rim: rgb(255 236 212 / 31%);
+  --gd-edge-light: rgb(255 242 225 / 49%);
+  --gd-edge-shade: rgb(11 6 5 / 30%);
+  --gd-gloss: rgb(255 237 213 / 13%);
+  --gd-frame: rgb(42 31 29 / 52%);
+  --gd-rail: rgb(45 32 30 / 59%);
+  --gd-card: rgb(47 36 34 / 53%);
+  --gd-card-light: rgb(106 88 81 / 30%);
+  --gd-raised: rgb(80 67 61 / 82%);
+  --gd-inner: rgb(78 61 56 / 49%);
+  --gd-surface: #3b302c;
+  --gd-track: rgb(245 226 212 / 16%);
+  --gd-primary: #f3ddca;
+  --gd-primary-ink: #231a16;
+  --gd-pick: #f9eee0;
+  --gd-pick-ink: #241b17;
+  --gd-coral: #ff9177;
+  --gd-teal: #75dac0;
+  --gd-ochre: #f1be58;
+  --gd-graph-ink: #e7d9cd;
+  --gd-focus: #f9bf9b;
+  --gd-dark-shadow: 10 4 3;
+  background: #40322b;
+  color-scheme: dark;
+}
+
+.gd-app *, .gd-app *::before, .gd-app *::after { box-sizing: border-box; }
+.gd-app :where(button, input, select) { color: inherit; font: inherit; }
+.gd-app :where(button, a, input, select):focus-visible { outline: 2px solid var(--gd-focus); outline-offset: 3px; }
+.gd-app a { color: inherit; text-decoration: none; }
+.gd-app button { cursor: pointer; }
+.gd-app :where(h1, h2, h3, p, figure) { margin: 0; }
+.gd-app svg { flex: none; }
+.gd-sr { position: absolute; inline-size: 1px; block-size: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+
+.gd-background, .gd-app::before {
+  position: fixed;
+  z-index: -2;
+  inset: 0;
+  inline-size: 100%;
+  block-size: 100%;
+  pointer-events: none;
+}
+.gd-background {
+  object-fit: cover;
+  object-position: center 60%;
+  filter: sepia(.22) saturate(.78) brightness(.86);
+}
+.gd-app::before {
+  content: "";
+  z-index: -1;
+  background: linear-gradient(116deg, rgb(73 48 37 / 35%), transparent 43%, rgb(162 101 63 / 24%) 76%, transparent 100%),
+    linear-gradient(0deg, rgb(53 33 25 / 34%), transparent 58%);
+}
+.gd-app[data-theme="dark"] .gd-background { filter: sepia(.15) saturate(.75) brightness(.61); }
+.gd-surround {
+  inline-size: min(calc(100% - 100px), 1380px);
+  margin-inline: auto;
+  padding-block: 24px 8px;
+}
+.gd-top, .gd-dock {
+  border: 1px solid var(--gd-rim);
+  background: linear-gradient(165deg, var(--gd-gloss), transparent 32% 73%, var(--gd-gloss)), var(--gd-rail);
+  box-shadow: inset 1px 1px 1px var(--gd-edge-light), inset -1px -1px 1px var(--gd-edge-shade),
+    inset 0 -2px 5px var(--gd-gloss), 0 7px 20px rgb(var(--gd-dark-shadow) / 17%);
+  backdrop-filter: blur(15px) saturate(1.35);
+  -webkit-backdrop-filter: blur(15px) saturate(1.35);
+}
+.gd-top {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(240px, 400px) minmax(0, 1fr);
+  align-items: center;
+  gap: 12px;
+  min-block-size: 60px;
+  border-radius: 999px;
+  padding: 6px 9px 6px 13px;
+}
+.gd-brand { display: flex; align-items: center; gap: 10px; min-inline-size: 0; padding-inline-start: 3px; }
+.gd-logo {
+  inline-size: 35px; block-size: 35px; display: grid; place-items: center;
+  border-radius: 50%; background: var(--gd-pick); color: var(--gd-pick-ink);
+  box-shadow: inset 0 0 0 1px var(--gd-gloss), 0 2px 7px rgb(var(--gd-dark-shadow) / 12%);
+}
+.gd-logo svg { width: 22px; height: 22px; }
+.gd-brand strong { display: block; font-size: 12px; letter-spacing: .17em; line-height: 1.1; font-weight: 850; }
+.gd-brand small { display: block; margin-block-start: 3px; font-size: 10px; color: var(--gd-muted); }
+.gd-ask {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-block-size: 43px;
+  max-inline-size: 100%;
+  border: 1px solid var(--gd-line);
+  border-radius: 999px;
+  background: var(--gd-inner);
+  box-shadow: inset 0 1px 0 var(--gd-gloss);
+  padding: 4px 13px 4px 9px;
+  text-align: start;
+}
+.gd-ask:hover, .gd-icon-button:hover { background: var(--gd-raised); }
+.gd-orb {
+  flex: none;
+  inline-size: 25px;
+  block-size: 25px;
+  border-radius: 50%;
+  background:
+    radial-gradient(ellipse at 32% 24%, #faf7fe 5%, #72ecf1 25%, transparent 58%),
+    radial-gradient(ellipse at 67% 54%, #e1b7f9, #815add 55%, #353467 79%);
+  box-shadow: inset 0 0 0 .75px rgb(246 245 255 / 75%), inset 0 -2px 5px #604db4, 0 0 0 3px rgb(91 70 115 / 13%), 0 2px 8px rgb(71 46 113 / 35%);
+}
+.gd-prompt {
+  overflow: hidden; white-space: nowrap; text-overflow: ellipsis;
+  font-size: 12px; font-weight: 750;
+  animation: gd-prompt-in .74s steps(28, end) both;
+}
+@keyframes gd-prompt-in { from { clip-path: inset(0 100% 0 0); } }
+.gd-ask-search { margin-inline-start: auto; width: 15px; height: 15px; color: var(--gd-muted); }
+.gd-top-actions { display: flex; justify-content: flex-end; gap: 6px; }
+.gd-icon-button {
+  position: relative; min-inline-size: 44px; min-block-size: 44px; display: inline-grid; place-items: center;
+  border-radius: 999px; border: 1px solid var(--gd-line); padding: 0; background: var(--gd-inner);
+}
+.gd-icon-button svg { width: 17px; height: 17px; stroke-width: 1.75; }
+.gd-notices { background: var(--gd-raised); }
+.gd-notices i {
+  position: absolute; block-size: 6px; inline-size: 6px; inset: 9px 9px auto auto; border-radius: 50%;
+  background: var(--gd-coral); box-shadow: 0 0 0 2px var(--gd-surface);
+}
+
+.gd-stage-wrap { position: relative; margin-block: 11px 0; }
+.gd-stage {
+  color: var(--gd-ink);
+  border: 1px solid var(--gd-rim);
+  border-radius: 34px;
+  background:
+    linear-gradient(148deg, var(--gd-gloss), transparent 19% 77%, color-mix(in srgb, var(--gd-gloss) 48%, transparent)),
+    var(--gd-frame);
+  box-shadow: inset 1px 1px 1px var(--gd-edge-light), inset -1px -1px 1px var(--gd-edge-shade),
+    inset 0 0 7px var(--gd-gloss),
+    0 1px 3px rgb(var(--gd-dark-shadow) / 17%), 0 22px 72px rgb(var(--gd-dark-shadow) / 22%);
+  backdrop-filter: blur(var(--gd-panel-frost, 12px)) saturate(1.24);
+  -webkit-backdrop-filter: blur(var(--gd-panel-frost, 12px)) saturate(1.24);
+}
+.gd-stage-scroll {
+  block-size: max(605px, min(865px, calc(100svh - 165px)));
+  overflow: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  scrollbar-color: var(--gd-line) transparent;
+  border-radius: inherit;
+  padding: clamp(19px, 2.15vw, 35px) clamp(25px, 3.2vw, 49px) 41px;
+}
+.gd-view-head {
+  display: flex; align-items: flex-end; justify-content: space-between; gap: 12px 22px;
+  margin-block-end: 19px;
+}
+.gd-view-head h1 {
+  font-size: clamp(29px, 3.35vw, 49px);
+  font-weight: 760;
+  line-height: 1.03;
+  letter-spacing: -.062em;
+}
+.gd-view-head p { color: var(--gd-muted); font-size: 13px; margin-block-start: 8px; }
+.gd-view-actions { display: flex; align-items: center; flex-wrap: wrap; justify-content: flex-end; gap: 7px; }
+.gd-period {
+  display: inline-flex; align-items: center; padding: 3px; border-radius: 999px;
+  border: 1px solid var(--gd-rim); background: var(--gd-inner);
+  box-shadow: inset 0 1px 0 var(--gd-gloss);
+}
+.gd-period button {
+  min-block-size: 35px; min-inline-size: 56px; border: 0; border-radius: 999px; background: transparent;
+  padding: 0 11px; font-size: 11px; font-weight: 750; white-space: nowrap;
+}
+.gd-period button[aria-pressed="true"] { background: var(--gd-primary); color: var(--gd-primary-ink); }
+.gd-period button[aria-pressed="false"]:hover { background: var(--gd-inner); }
+
+.gd-primary, .gd-secondary {
+  display: inline-flex; justify-content: center; align-items: center; gap: 7px;
+  min-block-size: 40px; padding: 7px 12px;
+  font-size: 11.5px; font-weight: 790; line-height: 1.2; border-radius: 999px;
+  border: 1px solid transparent;
+}
+.gd-primary { background: var(--gd-primary); color: var(--gd-primary-ink); }
+.gd-secondary { background: var(--gd-raised); border-color: var(--gd-rim); color: var(--gd-ink); }
+.gd-primary:hover { filter: brightness(1.17); }
+.gd-secondary:hover { background: var(--gd-surface); }
+.gd-primary svg, .gd-secondary svg { width: 14px; height: 14px; }
+.gd-export { white-space: nowrap; }
+.gd-content { min-inline-size: 0; }
+.gd-analytics, .gd-command-grid, .gd-command-side, .gd-summary, .gd-metric-grid, .gd-analytics-grid { display: grid; gap: 12px; }
+.gd-command-grid { grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr) minmax(0, 1.05fr); align-items: stretch; }
+.gd-command-side { grid-column: 1; align-content: start; }
+.gd-command-grid > .gd-activity { grid-column: 2 / -1; }
+.gd-summary { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 7px; padding: 6px; }
+.gd-analytics-grid { grid-template-columns: minmax(0, 1.75fr) minmax(0, 1fr); }
+.gd-metric-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+
+.gd-panel, .gd-metric, .gd-summary {
+  min-inline-size: 0;
+  border: 1px solid var(--gd-rim);
+  border-radius: 20px;
+  background: linear-gradient(144deg, var(--gd-card-light), transparent 66%), var(--gd-card);
+  box-shadow: inset 0 1px 1px var(--gd-edge-light), inset 0 -1px 1px var(--gd-edge-shade), 0 6px 18px rgb(var(--gd-dark-shadow) / 9%);
+}
+.gd-summary { border-radius: 20px; background: var(--gd-inner); }
+.gd-summary .gd-metric { border-radius: 15px; }
+.gd-panel { padding: 15px 16px; }
+.gd-panel-head {
+  display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-start;
+  gap: 7px 12px; margin-block-end: 12px;
+}
+.gd-panel-head h2 { font-size: 14px; font-weight: 810; letter-spacing: -.024em; }
+.gd-panel-head p { font-size: 11px; color: var(--gd-muted); margin-block-start: 3px; }
+.gd-metric { display: flex; flex-direction: column; justify-content: space-between; min-block-size: 112px; padding: 11px 12px; }
+.gd-metric[data-tone="teal"] {
+  --gd-coral: #ffc8b8;
+  --gd-teal: #b8f1dd;
+  --gd-muted: #e4f5ef;
+  color: #fff;
+  border-color: rgb(196 248 231 / 55%);
+  background: radial-gradient(ellipse at 5% -20%, #3a9381, transparent 68%), linear-gradient(145deg, #1e7461, #08443a);
+  box-shadow: inset 0 1px 2px rgb(214 252 240 / 45%), 0 6px 14px rgb(19 78 64 / 17%);
+}
+.gd-metric-head { display: flex; justify-content: space-between; align-items: center; gap: 4px; min-inline-size: 0; font-size: 11px; font-weight: 740; }
+.gd-metric-icon, .gd-list-icon {
+  display: grid; place-items: center; flex: none; color: inherit;
+  inline-size: 28px; block-size: 28px; border-radius: 10px;
+  background: var(--gd-inner); box-shadow: inset 0 1px 0 var(--gd-gloss);
+}
+.gd-metric-icon svg, .gd-list-icon svg { width: 14px; height: 14px; }
+.gd-metric[data-tone="teal"] .gd-metric-icon { background: rgb(235 255 247 / 16%); }
+.gd-metric-value { display: block; font-size: clamp(22px, 2.35vw, 35px); line-height: 1.05; margin-block: 3px 7px; letter-spacing: -.052em; font-weight: 815; }
+.gd-summary .gd-metric-value { font-size: clamp(20px, 2vw, 31px); }
+.gd-metric-caption, .gd-balance-change { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; color: var(--gd-muted); font-size: 10px; font-weight: 680; }
+.gd-delta {
+  display: inline-flex; align-items: center; gap: 2px; color: var(--gd-teal); font-weight: 850;
+  border-radius: 6px; padding: 2px 4px;
+  background: color-mix(in srgb, var(--gd-teal) 12%, transparent);
+}
+.gd-delta[data-attention="true"] { color: var(--gd-coral); background: color-mix(in srgb, var(--gd-coral) 11%, transparent); }
+.gd-delta svg { width: 11px; height: 11px; stroke-width: 2.4; }
+
+.gd-balance .gd-panel-head { align-items: center; margin-block-end: 9px; }
+.gd-unit { border-radius: 6px; padding: 4px 6px; background: var(--gd-raised); font-size: 10px; font-weight: 810; }
+.gd-balance-number { font-size: clamp(28px, 3.85vw, 57px); font-weight: 820; letter-spacing: -.077em; line-height: 1.02; }
+.gd-balance-change { margin-block-start: 7px; }
+.gd-balance-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-block: 13px 12px; }
+.gd-streams { display: flex; border-radius: 12px; background: var(--gd-inner); padding: 8px 2px; }
+.gd-streams div { flex: 1; min-inline-size: 0; padding: 0 7px; }
+.gd-streams div + div { border-inline-start: 1px solid var(--gd-line); }
+.gd-streams span, .gd-streams strong { display: block; }
+.gd-streams span { font-size: 9px; color: var(--gd-muted); }
+.gd-streams strong { font-size: 11px; font-weight: 810; margin-block-start: 4px; }
+.gd-capacity .gd-panel-head, .gd-approvals .gd-panel-head { margin-block-end: 10px; }
+.gd-capacity-track, .gd-mix-track { display: block; height: 7px; border-radius: 999px; overflow: hidden; background: var(--gd-track); }
+.gd-capacity-track .gd-fill { display: block; block-size: 100%; border-radius: inherit; background: var(--gd-teal); transform-origin: left center; }
+.gd-capacity-label { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 4px; color: var(--gd-muted); font-size: 10px; margin-top: 8px; }
+.gd-capacity-label strong { color: var(--gd-ink); }
+.gd-approval-content { display: flex; align-items: center; gap: 9px; min-inline-size: 0; }
+.gd-approval-content .gd-list-icon { inline-size: 37px; block-size: 37px; color: var(--gd-teal); background: color-mix(in srgb, var(--gd-teal) 12%, var(--gd-inner)); }
+.gd-approval-content div { flex: 1; min-inline-size: 0; }
+.gd-approval-content strong, .gd-approval-content small { display: block; }
+.gd-approval-content strong { font-size: 12px; font-weight: 810; }
+.gd-approval-content small { margin-top: 4px; font-size: 10px; color: var(--gd-muted); }
+.gd-statement .gd-panel-head { margin-block-end: 8px; }
+
+.gd-table-tools { display: flex; flex-wrap: wrap; align-items: center; gap: 7px; max-inline-size: 100%; }
+.gd-search, .gd-filter {
+  display: inline-flex; align-items: center; gap: 6px; border: 1px solid var(--gd-line); border-radius: 10px;
+  background: var(--gd-inner); min-block-size: 35px; padding: 0 8px;
+}
+.gd-search svg, .gd-filter svg { width: 13px; height: 13px; color: var(--gd-muted); }
+.gd-search input { width: 105px; flex: 1; min-inline-size: 0; border: 0; background: transparent; min-block-size: 33px; }
+.gd-search input::placeholder { color: var(--gd-muted); opacity: 1; }
+.gd-search input, .gd-filter select { font-size: 11px; }
+.gd-filter select { border: 0; background: transparent; padding: 5px 0; min-inline-size: 0; }
+.gd-filter select option { color: var(--gd-ink); background: var(--gd-surface); }
+.gd-search:focus-within, .gd-filter:focus-within { outline: 2px solid var(--gd-focus); }
+.gd-app .gd-search input:focus-visible, .gd-app .gd-filter select:focus-visible { outline: none; }
+.gd-table-scroll { max-inline-size: 100%; overflow: auto; scrollbar-width: thin; }
+.gd-table-scroll table { inline-size: 100%; border-spacing: 0; text-align: start; }
+.gd-table-scroll th, .gd-table-scroll td { padding: 9px 10px; text-align: start; }
+.gd-table-scroll th { background: var(--gd-inner); font-size: 10px; color: var(--gd-muted); font-weight: 800; }
+.gd-table-scroll th:first-child { border-radius: 8px 0 0 8px; }
+.gd-table-scroll th:last-child { border-radius: 0 8px 8px 0; }
+.gd-table-scroll td { white-space: nowrap; font-size: 11px; }
+.gd-table-scroll td:first-child { font-weight: 750; }
+.gd-table-scroll tr + tr td { border-top: 1px solid var(--gd-line); }
+.gd-status {
+  --gd-status-color: var(--gd-graph-ink);
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 4px 6px; border-radius: 999px; font-size: 10px; font-weight: 790;
+  background: color-mix(in srgb, var(--gd-status-color) 11%, var(--gd-inner));
+  color: var(--gd-status-color); white-space: nowrap;
+}
+.gd-status[data-state="teal"] { --gd-status-color: var(--gd-teal); }
+.gd-status[data-state="coral"] { --gd-status-color: var(--gd-coral); }
+.gd-status i { inline-size: 5px; block-size: 5px; border-radius: 50%; background: currentColor; }
+.gd-empty { padding: 12px 3px; color: var(--gd-muted); font-size: 12px; }
+
+.gd-app [data-tone="ink"] { --gd-series: var(--gd-graph-ink); }
+.gd-app [data-tone="coral"] { --gd-series: var(--gd-coral); }
+.gd-app [data-tone="teal"] { --gd-series: var(--gd-teal); }
+.gd-app [data-tone="ochre"] { --gd-series: var(--gd-ochre); }
+.gd-legend { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 6px 12px; color: var(--gd-muted); }
+.gd-legend span, .gd-device-list button span:first-child { display: inline-flex; align-items: center; gap: 5px; font-size: 10px; font-weight: 740; }
+.gd-legend i, .gd-device-list button span:first-child i { inline-size: 7px; block-size: 7px; border-radius: 50%; background: var(--gd-series); }
+.gd-stack-meta { display: flex; justify-content: space-between; align-items: center; height: 20px; gap: 4px; }
+.gd-chart-readout { font-size: 10px; font-weight: 830; white-space: nowrap; }
+.gd-stack-plot { display: grid; grid-template-columns: repeat(var(--gd-series-count), minmax(0, 1fr)); gap: 4px; block-size: 194px; margin-top: 5px; }
+.gd-command-chart .gd-stack-plot { block-size: 141px; }
+.gd-stack-column { display: flex; flex-direction: column; align-items: center; min-inline-size: 0; border: 0; border-radius: 8px; background: transparent; padding: 3px 0 0; }
+.gd-stack-column:is(:focus-visible, :hover, [aria-pressed="true"]) { background: var(--gd-inner); }
+.gd-stack-track { display: flex; justify-content: center; align-items: end; flex: 1; inline-size: 100%; border-bottom: 1px solid var(--gd-line); }
+.gd-stack-bar {
+  display: flex; flex-direction: column; transform-origin: center bottom;
+  inline-size: min(65%, 40px); min-inline-size: 6px; border-radius: 6px 6px 3px 3px; overflow: hidden;
+}
+.gd-stack-bar i { display: block; flex-basis: 0; background: var(--gd-series); min-block-size: 2px; }
+.gd-stack-bar i:first-child { background: repeating-linear-gradient(138deg, var(--gd-series) 0 4px, color-mix(in srgb, var(--gd-series) 76%, white) 4px 6px); }
+.gd-stack-label { font-size: 9px; color: var(--gd-muted); margin-top: 7px; white-space: nowrap; }
+.gd-revenue-main { display: grid; grid-template-columns: 38px minmax(0, 1fr); }
+.gd-chart-y { display: flex; flex-direction: column; justify-content: space-between; padding-block: 0; font-size: 10px; color: var(--gd-muted); }
+.gd-line-plot { position: relative; min-inline-size: 0; block-size: 208px; }
+.gd-line-plot svg { display: block; width: 100%; height: 100%; overflow: visible; }
+.gd-grid-line { stroke: var(--gd-grid); stroke-dasharray: 3 4; vector-effect: non-scaling-stroke; }
+.gd-chart-path { fill: none; stroke: var(--gd-series); stroke-width: 2.5; stroke-linecap: round; vector-effect: non-scaling-stroke; }
+.gd-line-cursor { stroke: var(--gd-muted); stroke-dasharray: 2 4; vector-effect: non-scaling-stroke; }
+.gd-chart-zones { position: absolute; inset: 0; display: flex; align-items: stretch; }
+.gd-chart-zones button { flex: 1; min-inline-size: 0; border: 0; background: transparent; padding: 0; border-radius: 2px; }
+.gd-line-tooltip {
+  pointer-events: none; position: absolute; top: 6px; left: clamp(70px, var(--gd-tooltip-x), calc(100% - 70px)); translate: -50% 0;
+  display: grid; gap: 2px; min-inline-size: 132px; padding: 7px 8px; background: var(--gd-surface);
+  border: 1px solid var(--gd-line); border-radius: 9px; font-size: 10px; box-shadow: 0 4px 10px rgb(var(--gd-dark-shadow) / 15%);
+}
+.gd-line-tooltip span { display: flex; justify-content: space-between; gap: 10px; }
+.gd-chart-axis { display: flex; justify-content: space-between; margin: 9px 0 0 38px; font-size: 9px; color: var(--gd-muted); }
+.gd-device { display: grid; gap: 8px; justify-items: stretch; }
+.gd-device-ring { position: relative; inline-size: min(100%, 150px); aspect-ratio: 1; justify-self: center; }
+.gd-device-ring svg { display: block; inline-size: 100%; block-size: 100%; }
+.gd-device-segment { stroke: var(--gd-series); transition: opacity .2s ease; }
+.gd-device-segment[data-muted="true"] { opacity: .29; }
+.gd-device-total { position: absolute; inset: 0; display: flex; flex-direction: column; justify-content: center; align-items: center; pointer-events: none; }
+.gd-device-total strong { font-size: 23px; line-height: 1.05; letter-spacing: -.05em; font-weight: 850; }
+.gd-device-total > span { font-size: 10px; margin-top: 5px; color: var(--gd-muted); }
+.gd-device-list { display: grid; gap: 2px; }
+.gd-device-list button {
+  display: grid; grid-template-columns: 66px minmax(0, 1fr) 34px; gap: 7px; align-items: center;
+  min-block-size: 32px; text-align: start; background: transparent; border: 0; border-radius: 8px; padding: 3px 6px;
+}
+.gd-device-list button:is(:hover, [aria-pressed="true"]) { background: var(--gd-inner); }
+.gd-device-list button strong { text-align: end; font-weight: 850; font-size: 11px; }
+.gd-mix-track { height: 4px; }
+.gd-mix-track .gd-fill { display: block; block-size: 100%; border-radius: inherit; background: var(--gd-series); transform-origin: left center; }
+
+.gd-lanes { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 9px; }
+.gd-lanes[data-filtered="true"] { grid-template-columns: minmax(0, 1fr); }
+.gd-lane { min-inline-size: 0; border: 1px solid var(--gd-line); background: var(--gd-inner); padding: 7px; border-radius: 14px; }
+.gd-lane header { display: flex; align-items: center; gap: 5px; padding: 3px 4px 8px; }
+.gd-lane header i { display: inline-grid; place-items: center; border-radius: 7px; width: 23px; height: 23px; color: var(--gd-series); background: color-mix(in srgb, var(--gd-series) 13%, transparent); }
+.gd-lane header svg { width: 13px; height: 13px; }
+.gd-lane header h3 { min-inline-size: 0; font-size: 11px; font-weight: 840; }
+.gd-lane header span { margin-inline-start: auto; color: var(--gd-muted); font-size: 10px; }
+.gd-work-item {
+  display: grid; gap: 5px; width: 100%; text-align: start; border-radius: 11px; padding: 9px;
+  border: 1px solid var(--gd-rim); background: var(--gd-card);
+  box-shadow: inset 0 1px 0 var(--gd-gloss);
+}
+.gd-work-item + .gd-work-item { margin-top: 6px; }
+.gd-work-item:hover { background: var(--gd-raised); }
+.gd-work-titlerow, .gd-work-meta { display: flex; align-items: flex-start; justify-content: space-between; gap: 6px; }
+.gd-work-titlerow strong { font-size: 11.5px; font-weight: 820; }
+.gd-work-titlerow svg { width: 14px; height: 14px; }
+.gd-work-detail { font-size: 10.5px; line-height: 1.42; color: var(--gd-muted); }
+.gd-work-meta { font-size: 9.5px; font-weight: 750; margin-top: 2px; color: var(--gd-muted); }
+
+.gd-dock {
+  position: absolute; z-index: 3;
+  display: flex; align-items: center; gap: 3px; padding: 4px; border-radius: 999px;
+}
+.gd-dock-side { flex-direction: column; left: -24px; top: clamp(66px, 16vh, 153px); }
+.gd-dock-bottom { left: 50%; bottom: -24px; translate: -50% 0; }
+.gd-dock a {
+  z-index: 1; position: relative; display: flex; gap: 6px; justify-content: center; align-items: center;
+  min-inline-size: 44px; min-block-size: 44px; padding: 0 13px; border-radius: 999px;
+  font-size: 11px; font-weight: 800; white-space: nowrap;
+}
+.gd-dock-side a { padding: 0; }
+.gd-dock a svg { width: 16px; height: 16px; stroke-width: 1.9; }
+.gd-dock a[aria-current="page"] { color: var(--gd-pick-ink); }
+.gd-dock a:not([aria-current="page"]):hover { background: var(--gd-inner); }
+.gd-dock-indicator {
+  position: absolute; inset: 0 auto auto 0; pointer-events: none; visibility: hidden;
+  border-radius: 999px; background: var(--gd-pick); box-shadow: inset 0 1px 0 white, 0 2px 7px rgb(var(--gd-dark-shadow) / 16%);
+}
+.gd-dock-indicator[data-ready="true"] { visibility: visible; transition: transform .36s cubic-bezier(.24, .89, .26, 1), width .36s cubic-bezier(.24, .89, .26, 1), height .36s cubic-bezier(.24, .89, .26, 1); }
+.gd-dock-side .gd-dock-text, .gd-dock-short { display: none; }
+.gd-dock-tip {
+  display: none; position: absolute; left: calc(100% + 7px); z-index: 1; pointer-events: none;
+  color: var(--gd-ink); background: var(--gd-surface); padding: 6px 9px; border: 1px solid var(--gd-rim);
+  border-radius: 7px; box-shadow: 0 3px 8px rgb(var(--gd-dark-shadow) / 17%);
+}
+.gd-dock-side a:is(:hover, :focus-visible) .gd-dock-tip { display: inline; }
+.gd-footer { padding: 33px 3px 1px; display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+.gd-footer > * {
+  border-radius: 999px; padding: 5px 8px; color: var(--gd-ink); font-size: 10px; font-weight: 740;
+  background: var(--gd-raised); min-block-size: 24px; display: flex; align-items: center; gap: 4px;
+}
+.gd-footer a:hover { text-decoration: underline; }
+.gd-footer a svg { width: 10px; height: 10px; }
+
+.gd-dialog {
+  max-inline-size: min(calc(100% - 26px), 485px); inline-size: 100%;
+  border-radius: 23px; border: 1px solid var(--gd-rim); color: var(--gd-ink); padding: 0;
+  background: var(--gd-surface); box-shadow: 0 20px 80px rgb(var(--gd-dark-shadow) / 38%);
+}
+.gd-dialog::backdrop { background: rgb(30 21 17 / 43%); backdrop-filter: blur(5px); }
+.gd-dialog-inner { padding: 18px; }
+.gd-dialog-inner > header { display: flex; gap: 10px; align-items: center; justify-content: space-between; margin-bottom: 13px; }
+.gd-dialog-inner h2 { font-size: 24px; font-weight: 830; letter-spacing: -.045em; }
+.gd-command-input { inline-size: 100%; padding-inline: 10px; margin-bottom: 8px; min-block-size: 44px; }
+.gd-command-input input { min-block-size: 42px; font-size: 14px; }
+.gd-quick-list { display: grid; gap: 5px; }
+.gd-quick-list button {
+  display: flex; align-items: center; gap: 9px; width: 100%; padding: 9px;
+  text-align: start; border: 1px solid var(--gd-line); border-radius: 10px; background: var(--gd-inner);
+}
+.gd-quick-list button:hover { background: var(--gd-raised); }
+.gd-quick-list button svg { width: 16px; height: 16px; color: var(--gd-muted); }
+.gd-quick-list button div { flex: 1; }
+.gd-quick-list strong, .gd-quick-list small { display: block; }
+.gd-quick-list small { color: var(--gd-muted); margin-top: 2px; font-size: 11px; }
+.gd-work-dialog-description { margin: 12px 0; }
+.gd-work-facts { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
+.gd-work-facts div { border: 1px solid var(--gd-line); border-radius: 9px; padding: 8px; }
+.gd-work-facts dt { font-size: 11px; color: var(--gd-muted); }
+.gd-work-facts dd { margin: 4px 0 0; font-weight: 790; }
+
+@media (max-width: 1060px) {
+  .gd-surround { inline-size: calc(100% - 74px); }
+  .gd-stage-scroll { padding-inline: 29px; }
+  .gd-command-grid { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+  .gd-command-grid > .gd-command-chart { grid-column: 1; }
+  .gd-command-side { grid-column: 2; }
+  .gd-command-grid > .gd-activity { grid-column: 1 / -1; }
+}
+@media (max-width: 760px) {
+  .gd-surround { padding-top: 11px; padding-bottom: calc(73px + env(safe-area-inset-bottom)); inline-size: calc(100% - 24px); }
+  .gd-top { grid-template-columns: minmax(0, 1fr) auto; padding: 7px 9px; gap: 6px 12px; border-radius: 21px; }
+  .gd-brand { padding-inline-start: 3px; }
+  .gd-ask { grid-area: 2 / 1 / 3 / -1; min-block-size: 41px; }
+  .gd-top-actions { grid-area: 1 / 2; }
+  .gd-top-actions .gd-icon-button { width: 41px; min-inline-size: 41px; min-block-size: 41px; }
+  .gd-stage { border-radius: 23px; }
+  .gd-stage-scroll { block-size: auto; padding: 15px 13px 17px; overflow: visible; }
+  .gd-view-head { align-items: flex-start; flex-direction: column; gap: 10px; margin-bottom: 14px; }
+  .gd-view-head p { font-size: 12px; margin-top: 6px; }
+  .gd-view-actions { justify-content: flex-start; }
+  .gd-command-grid, .gd-analytics-grid { grid-template-columns: minmax(0, 1fr); }
+  .gd-command-side, .gd-command-grid > .gd-activity { grid-column: 1; }
+  .gd-metric-grid, .gd-lanes { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .gd-dock-side { display: none; }
+  .gd-dock-bottom { position: fixed; inset: auto 11px calc(9px + env(safe-area-inset-bottom)); translate: none; justify-content: space-between; }
+  .gd-dock-bottom a { flex: 1; flex-direction: column; gap: 2px; padding: 3px 5px; min-block-size: 47px; line-height: 1.2; font-size: 9.5px; }
+  .gd-dock-bottom a svg { width: 15px; height: 15px; }
+  .gd-dock-bottom .gd-dock-text { display: none; }
+  .gd-dock-bottom .gd-dock-short { display: inline; }
+  .gd-footer { padding-top: 9px; }
+  .gd-period button { min-block-size: 41px; }
+  .gd-primary, .gd-secondary { min-block-size: 44px; }
+}
+@media (max-width: 420px) {
+  .gd-panel { padding: 12px; }
+  .gd-metric { padding: 9px; }
+  .gd-summary { gap: 5px; padding: 5px; }
+  .gd-chart-axis span:nth-child(even) { visibility: hidden; }
+  .gd-chart-y { font-size: 9px; }
+  .gd-stack-label { font-size: 8px; }
+  .gd-lanes { grid-template-columns: 1fr; }
+  .gd-table-scroll table { min-inline-size: 278px; }
+  .gd-table-scroll th, .gd-table-scroll td { padding-inline: 6px; }
+  .gd-table-scroll td { font-size: 10px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .gd-app *, .gd-app *::before, .gd-app *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; }
+}
+@media (prefers-reduced-transparency: reduce), (prefers-contrast: more), (forced-colors: active) {
+  .gd-top, .gd-stage, .gd-dock, .gd-panel, .gd-metric, .gd-summary { background: var(--gd-surface); backdrop-filter: none; -webkit-backdrop-filter: none; }
+  .gd-metric[data-tone="teal"] { background: var(--gd-surface); color: var(--gd-ink); --gd-muted: var(--gd-ink); --gd-teal: var(--gd-ink); }
+}
+@media (forced-colors: active) {
+  .gd-app { --gd-ink: CanvasText; --gd-muted: CanvasText; --gd-focus: Highlight; --gd-coral: LinkText; --gd-teal: Highlight; --gd-graph-ink: CanvasText; --gd-surface: Canvas; }
+  .gd-app :is(.gd-metric, .gd-panel, .gd-lane, .gd-dock, button, .gd-stage) { border: 1px solid CanvasText; }
+  .gd-dock a[aria-current="page"] { border: 2px solid Highlight; }
+}
+
+</style>
+</head>
+<body>
+<div id="app"></div>
+
+<script src="assets/gsap.min.js"></script>
+<script src="assets/lucide.min.js"></script>
+<script>
+/* Glassy Dashboard — vanilla 复刻：CSS 与数据逐字取自 React 源码，动画使用同款 GSAP。 */
+
+const periods = ["7 days", "30 days", "90 days"];
+const analytics = {
+  "7 days": {
+    revenue: 11600, orders: 319, visitors: 2184, refunds: 14, automation: 304, subscribers: 1847,
+    revenueChange: "+4.7%", orderChange: "+7.4%", visitorChange: "+5.2%", refundChange: "−8.0%",
+    axis: ["Tue", "Wed", "Thu", "Fri", "Sat", "Sun", "Mon"],
+    collected: [1.2, 1.5, 1.35, 1.9, 1.59, 1.72, 2.34],
+    costs: [.8, .92, .72, .85, 1.04, 1.01, .84],
+    desktop: [58, 63, 61, 57, 59, 64, 60],
+    devices: [54, 38, 8],
+  },
+  "30 days": {
+    revenue: 47200, orders: 1328, visitors: 8344, refunds: 56, automation: 1284, subscribers: 1847,
+    revenueChange: "+8.3%", orderChange: "+12.2%", visitorChange: "+9.0%", refundChange: "−3.4%",
+    axis: ["Oct 19", "Oct 24", "Oct 29", "Nov 3", "Nov 8", "Nov 13", "Nov 17"],
+    collected: [5.5, 6.4, 5.2, 7.6, 6.8, 7.1, 8.6],
+    costs: [4.3, 4.85, 4.52, 4.2, 5.85, 5.15, 5.5],
+    desktop: [66, 57, 64, 58, 60, 55, 61],
+    devices: [56, 36, 8],
+  },
+  "90 days": {
+    revenue: 126100, orders: 3728, visitors: 24132, refunds: 162, automation: 3562, subscribers: 1847,
+    revenueChange: "+13.4%", orderChange: "+17.5%", visitorChange: "+11.6%", refundChange: "−5.2%",
+    axis: ["Aug 20", "Sep 4", "Sep 19", "Oct 4", "Oct 19", "Nov 3", "Nov 17"],
+    collected: [13.7, 16.2, 15.4, 16.8, 18.6, 20.4, 25],
+    costs: [10.2, 11.2, 12.1, 11.16, 13.4, 13.1, 14.9],
+    desktop: [64, 62, 59, 53, 56, 63, 57],
+    devices: [58, 33, 9],
+  },
+};
+const automationActivity = [
+  { label: "Tue", complete: 108, review: 10 },
+  { label: "Wed", complete: 176, review: 11 },
+  { label: "Thu", complete: 138, review: 14 },
+  { label: "Fri", complete: 213, review: 19 },
+  { label: "Sat", complete: 155, review: 12 },
+  { label: "Sun", complete: 161, review: 15 },
+  { label: "Mon", complete: 238, review: 14 },
+];
+const workStatuses = ["Needs review", "Scheduled", "Running", "Exceptions"];
+const initialWork = [
+  { id: "OP-241", name: "Refund approval", description: "A refund exception is ready for the owner to review.", tool: "Stripe", owner: "Finance", status: "Needs review", timestamp: "10:42" },
+  { id: "OP-238", name: "Send cap review", description: "Review the first batch size for the renewal campaign.", tool: "HubSpot", owner: "Marketing", status: "Needs review", timestamp: "10:16" },
+  { id: "OP-235", name: "Inventory check", description: "Review 23 low-stock items for the next supplier order.", tool: "Shopify", owner: "Operations", status: "Scheduled", timestamp: "15:00" },
+  { id: "OP-234", name: "Executive summary", description: "Compile revenue, customer support and campaign performance.", tool: "Reports", owner: "Analytics", status: "Scheduled", timestamp: "Fri 09:00" },
+  { id: "OP-232", name: "Sync 142 orders", description: "Update CRM and fulfillment records with validated orders.", tool: "Shopify", owner: "Operations", status: "Running", timestamp: "09:52" },
+  { id: "OP-229", name: "Lead enrichment", description: "Match recent support requests to the sales pipeline.", tool: "HubSpot", owner: "Sales", status: "Running", timestamp: "09:23" },
+  { id: "OP-227", name: "Duplicate account", description: "Two CRM entries share a billing address. Updates are on hold.", tool: "Salesforce", owner: "Operations", status: "Exceptions", timestamp: "09:06" },
+  { id: "OP-223", name: "Calendar access", description: "The scheduling connector needs an owner to restore write access.", tool: "Google", owner: "Marketing", status: "Exceptions", timestamp: "08:41" },
+];
+const recentActivity = [
+  { id: "ACT-108", event: "Order records validated", source: "Shopify", status: "Complete", time: "10:38" },
+  { id: "ACT-107", event: "Refund sent to review", source: "Stripe", status: "Needs review", time: "10:24" },
+  { id: "ACT-106", event: "Renewal sequence scheduled", source: "HubSpot", status: "Scheduled", time: "10:07" },
+  { id: "ACT-105", event: "Support digest delivered", source: "Reports", status: "Complete", time: "09:51" },
+  { id: "ACT-104", event: "Account match paused", source: "Salesforce", status: "Exceptions", time: "09:06" },
+];
+const views = [
+  { id: "command", label: "Command Center", short: "Command", icon: "layout-dashboard", description: "Revenue, automations, and what needs your attention.", prompt: "Show me what needs attention." },
+  { id: "trends", label: "Trends", short: "Trends", icon: "trending-up", description: "Compare operating costs and revenue over time.", prompt: "How is revenue trending this month?" },
+  { id: "metrics", label: "Metrics", short: "Metrics", icon: "bar-chart-3", description: "Track orders, traffic, and device performance.", prompt: "Show me traffic by device." },
+  { id: "operations", label: "Premium Operations", short: "Operations", icon: "briefcase-business", description: "Manage approvals, schedules, and exceptions across systems.", prompt: "Which actions are waiting for review?" },
+];
+
+/* ---------- helpers ---------- */
+const $ = (sel, root = document) => root.querySelector(sel);
+const $$ = (sel, root = document) => Array.from(root.querySelectorAll(sel));
+const esc = value => String(value).replace(/[&<>"']/g, ch => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[ch]));
+const PHOTO = "https://images.unsplash.com/photo-1497366754035-f200968a6e72?w=1600&q=80&fit=crop";
+const nf = new Intl.NumberFormat("en-US");
+const currency = new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 }).format;
+const compact = new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", notation: "compact", maximumFractionDigits: 1 }).format;
+const fmt = {
+  number: value => nf.format(Math.round(value)),
+  usd: currency,
+  compact,
+  percent: value => value.toFixed(1) + "%",
+};
+const icon = (name, cls = "") => `<i data-lucide="${name}"${cls ? ` class="${cls}"` : ""}></i>`;
+const logo = '<svg viewBox="0 0 28 28" fill="none"><path d="m5 22 7.4-16h3.2L23 22h-4l-5-11.4L9 22H5Z" fill="currentColor"/><path d="M10 18h8l1.4 3h-10.8l1.4-3Z" fill="currentColor"/></svg>';
+const routeOrder = views.map(view => view.id);
+const validView = id => routeOrder.includes(id) ? id : "command";
+
+const state = {
+  view: validView(location.hash.slice(1)),
+  period: "30 days",
+  theme: (() => {
+    const html = document.documentElement;
+    if (html.classList.contains("dark") || html.dataset.theme === "dark") return "dark";
+    if (html.classList.contains("light") || html.dataset.theme === "light") return "light";
+    return matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+  })(),
+  frost: 12,
+  workspace: "ATLAS",
+  work: initialWork.map(item => ({ ...item })),
+  readNotices: false,
+  reduced: matchMedia("(prefers-reduced-motion: reduce)").matches,
+};
+matchMedia("(prefers-reduced-motion: reduce)").addEventListener("change", event => { state.reduced = event.matches; });
+
+/* ---------- small render primitives ---------- */
+function count(value, format = "number") {
+  const text = fmt[format](value);
+  return `<span data-gd-count="${value}" data-format="${format}" aria-hidden="true">${text}</span><span class="gd-sr">${text}</span>`;
+}
+function panel(title, subtitle, action, className, body) {
+  return `<section class="gd-panel ${className}" data-gd-enter>
+    <header class="gd-panel-head"><div><h2>${esc(title)}</h2>${subtitle ? `<p>${esc(subtitle)}</p>` : ""}</div>${action || ""}</header>
+    ${body}
+  </section>`;
+}
+function metric({ title, glyph, value, format, change, detail, tone }) {
+  const attention = tone === "coral";
+  const arrow = change && change.startsWith("−") ? "arrow-down-right" : "arrow-up-right";
+  return `<article class="gd-metric" data-tone="${tone || ""}" data-gd-enter>
+    <div class="gd-metric-head"><span>${esc(title)}</span><span class="gd-metric-icon" aria-hidden="true">${icon(glyph)}</span></div>
+    <strong class="gd-metric-value">${count(value, format)}</strong>
+    <div class="gd-metric-caption">
+      ${change ? `<span class="gd-delta" data-attention="${attention}">${icon(arrow)}${esc(change)}</span>` : ""}
+      <span>${esc(detail || "vs prior period")}</span>
+    </div>
+  </article>`;
+}
+function badge(status) {
+  const color = status === "Complete" || status === "Running" ? "teal"
+    : status === "Needs review" || status === "Exceptions" ? "coral" : "ink";
+  return `<span class="gd-status" data-state="${color}"><i aria-hidden="true"></i>${esc(status)}</span>`;
+}
+function legend(entries) {
+  return `<div class="gd-legend">${entries.map(({ label, tone }) => `<span><i data-tone="${tone}" aria-hidden="true"></i>${esc(label)}</span>`).join("")}</div>`;
+}
+function curve(points) {
+  return points.reduce((path, [x, y], index) => {
+    if (index === 0) return `M ${x} ${y}`;
+    const [px, py] = points[index - 1];
+    const mid = (x + px) / 2;
+    return `${path} C ${mid} ${py}, ${mid} ${y}, ${x} ${y}`;
+  }, "");
+}
+
+/* ---------- charts ---------- */
+function stackChart(items, labels, tones, formatFn, title) {
+  const max = Math.max(1, ...items.map(item => item.lower + item.upper)) * 1.11;
+  const chartIndex = stackCharts.push({ items, format: formatFn }) - 1;
+  return `<figure class="gd-stack" data-stack-chart="${chartIndex}" aria-label="${esc(title)}">
+    <div class="gd-stack-meta">${legend(labels.map((label, i) => ({ label, tone: tones[i] })))}<span class="gd-chart-readout" data-readout></span></div>
+    <div class="gd-stack-plot" style="--gd-series-count:${items.length}">
+      ${items.map((item, index) => `<button type="button" class="gd-stack-column" data-stack="${index}" aria-pressed="false"
+        aria-label="${esc(item.label)}: ${formatFn(item.lower)} ${esc(labels[0])}, ${formatFn(item.upper)} ${esc(labels[1])}">
+        <span class="gd-stack-track" aria-hidden="true"><span class="gd-stack-bar" style="height:${(item.lower + item.upper) / max * 100}%">
+          <i data-tone="${tones[1]}" style="flex-grow:${item.upper}"></i>
+          <i data-tone="${tones[0]}" style="flex-grow:${item.lower}"></i>
+        </span></span>
+        <span class="gd-stack-label" aria-hidden="true">${esc(item.label)}</span>
+      </button>`).join("")}
+    </div>
+  </figure>`;
+}
+
+function revenueChart(labels, revenue, costs) {
+  const plotHeight = 204, width = 600;
+  const max = Math.ceil(Math.max(...revenue, ...costs) * 1.14 / 2.5) * 2.5;
+  const points = values => values.map((value, index) => [index * width / Math.max(1, values.length - 1), plotHeight - value / max * plotHeight]);
+  const rPoints = points(revenue), cPoints = points(costs);
+  const line = curve(rPoints);
+  const last = (rPoints.length - 1) * width / Math.max(1, rPoints.length - 1);
+  const ticks = [max, max * .75, max * .5, max * .25, 0];
+  return `<figure class="gd-revenue-chart" aria-label="Revenue and operating costs by date">
+    <div class="gd-revenue-main">
+      <div class="gd-chart-y" aria-hidden="true">${ticks.map(value => `<span>${value === 0 ? "0" : `$${Number(value.toFixed(1))}k`}</span>`).join("")}</div>
+      <div class="gd-line-plot">
+        <svg viewBox="0 0 ${width} ${plotHeight}" preserveAspectRatio="none" aria-hidden="true">
+          <defs><linearGradient id="revenue-fill-demo" x1="0" x2="0" y1="0" y2="1" gradientUnits="objectBoundingBox">
+            <stop offset="0" stop-color="var(--gd-coral)" stop-opacity=".30" />
+            <stop offset="1" stop-color="var(--gd-coral)" stop-opacity=".025" />
+          </linearGradient></defs>
+          ${ticks.map((tick, index) => `<line class="gd-grid-line" x1="0" x2="${width}" y1="${plotHeight * index / 4}" y2="${plotHeight * index / 4}" />`).join("")}
+          <g class="gd-line-reveal">
+            <path d="${line} L ${last} ${plotHeight} H 0 Z" fill="url(#revenue-fill-demo)" />
+            <path class="gd-chart-path" data-tone="coral" d="${line}" />
+            <path class="gd-chart-path" data-tone="ink" d="${curve(cPoints)}" />
+          </g>
+          <g class="gd-line-cursor-group" opacity="0">
+            <line class="gd-line-cursor" x1="0" x2="0" y1="0" y2="${plotHeight}" />
+            <circle class="gd-cursor-revenue" cx="0" cy="0" r="4" fill="var(--gd-coral)" />
+            <circle class="gd-cursor-cost" cx="0" cy="0" r="4" fill="var(--gd-graph-ink)" />
+          </g>
+        </svg>
+        <div class="gd-chart-zones">${labels.map((label, index) => `<button type="button" data-zone="${index}" aria-pressed="false"
+          aria-label="${esc(label)}, revenue ${currency(revenue[index] * 1000)}, operating costs ${currency(costs[index] * 1000)}"></button>`).join("")}</div>
+        <div class="gd-line-tooltip" data-tooltip hidden>
+          <strong data-tip-label></strong><span>Revenue <b data-tip-revenue></b></span><span>Costs <b data-tip-costs></b></span>
+        </div>
+      </div>
+    </div>
+    <div class="gd-chart-axis" aria-hidden="true">${labels.map(label => `<span>${esc(label)}</span>`).join("")}</div>
+  </figure>`;
+}
+
+const deviceLabels = ["Desktop", "Mobile", "Tablet"];
+const deviceTones = ["coral", "ink", "teal"];
+function deviceChart(mix, visitors) {
+  return `<div class="gd-device" aria-label="Visitors by device">
+    <div class="gd-device-ring">
+      <svg viewBox="0 0 124 124" aria-hidden="true">
+        <defs><mask id="gd-ring-demo">
+          <circle class="gd-donut-draw" cx="62" cy="62" r="47" fill="none" stroke="white" stroke-width="15" pathLength="100" stroke-dasharray="100 0" transform="rotate(-90 62 62)" />
+        </mask></defs>
+        <circle cx="62" cy="62" r="47" fill="none" stroke="var(--gd-track)" stroke-width="14" />
+        <g mask="url(#gd-ring-demo)" transform="rotate(-90 62 62)">
+          ${mix.map((ratio, index) => `<circle cx="62" cy="62" r="47" pathLength="100" fill="none" stroke-width="14" data-tone="${deviceTones[index]}"
+            class="gd-device-segment" data-segment="${index}" stroke-dasharray="${Math.max(0, ratio - 1.1)} 100"
+            stroke-dashoffset="${-mix.slice(0, index).reduce((sum, value) => sum + value, 0)}" />`).join("")}
+        </g>
+      </svg>
+      <div class="gd-device-total"><strong data-device-total>${count(visitors)}</strong><span data-device-label>Visitors</span></div>
+    </div>
+    <div class="gd-device-list">${mix.map((ratio, index) => `<button type="button" data-device="${index}" aria-pressed="false" aria-label="${deviceLabels[index]}, ${ratio}% of visitors">
+      <span><i data-tone="${deviceTones[index]}" aria-hidden="true"></i>${deviceLabels[index]}</span>
+      <span class="gd-mix-track" aria-hidden="true"><i class="gd-fill" data-tone="${deviceTones[index]}" style="width:${ratio}%"></i></span>
+      <strong>${ratio}%</strong>
+    </button>`).join("")}</div>
+  </div>`;
+}
+
+function activityTable() {
+  return `<div class="gd-table-tools">
+    <label class="gd-search">${icon("search")}<input type="search" data-activity-query placeholder="Search activity" aria-label="Search activity" /></label>
+    <label class="gd-filter">${icon("filter")}<select data-activity-status aria-label="Filter activity">
+      ${["All statuses", "Complete", "Needs review", "Scheduled", "Exceptions"].map(item => `<option>${item}</option>`).join("")}
+    </select></label>
+  </div>
+  <div class="gd-table-scroll"><table>
+    <thead><tr><th scope="col">Activity</th><th scope="col">Source</th><th scope="col">Status</th><th scope="col">Time</th></tr></thead>
+    <tbody data-activity-body></tbody>
+  </table></div>
+  <p class="gd-empty" data-activity-empty role="status" hidden>No matching activity.</p>`;
+}
+function refreshActivity() {
+  const query = ($("[data-activity-query]")?.value || "").trim().toLowerCase();
+  const status = $("[data-activity-status]")?.value || "All statuses";
+  const show = recentActivity.filter(item =>
+    [item.event, item.source, item.status].join(" ").toLowerCase().includes(query) &&
+    (status === "All statuses" || item.status === status));
+  const body = $("[data-activity-body]");
+  if (!body) return;
+  body.innerHTML = show.map(item => `<tr><td>${esc(item.event)}</td><td>${esc(item.source)}</td><td>${badge(item.status)}</td><td>${item.time}</td></tr>`).join("");
+  $("[data-activity-empty]").hidden = show.length !== 0;
+}
+
+/* ---------- views ---------- */
+function commandView(stats) {
+  const streams = [{ label: "Subscriptions", ratio: .686 }, { label: "Services", ratio: .208 }, { label: "Add-ons", ratio: .106 }];
+  const sources = streams.map(({ label, ratio }) => ({ label, value: Math.round(stats.revenue * ratio) }));
+  return `<div class="gd-command-grid">
+    ${panel("Total revenue", "", `<span class="gd-unit">USD</span>`, "gd-balance", `
+      <div class="gd-balance-number">${count(stats.revenue, "usd")}</div>
+      <div class="gd-balance-change"><span class="gd-delta">${icon("arrow-up-right")}${esc(stats.revenueChange)}</span><span>vs prior period</span></div>
+      <div class="gd-balance-actions">
+        <button type="button" class="gd-primary" data-view="trends">View trends ${icon("arrow-up-right")}</button>
+        <button type="button" class="gd-secondary" data-view="metrics">View metrics ${icon("arrow-right")}</button>
+      </div>
+      <div class="gd-streams" aria-label="Revenue sources">${sources.map(item => `<div><span>${esc(item.label)}</span><strong>${currency(item.value)}</strong></div>`).join("")}</div>`)}
+    <div class="gd-summary">
+      ${metric({ title: "Automations run", glyph: "zap", value: stats.automation, change: "+9.6%", tone: "teal" })}
+      ${metric({ title: "Subscribers", glyph: "users", value: stats.subscribers, change: "+124", detail: "this month" })}
+      ${metric({ title: "Churn rate", glyph: "arrow-down-right", value: 4.2, format: "percent", change: "+0.6%", tone: "coral" })}
+      ${metric({ title: "Open tickets", glyph: "list-checks", value: 12, detail: "9 resolved today" })}
+    </div>
+    ${panel("Automation activity", "Completed and sent to review · last 7 days", "", "gd-command-chart",
+      stackChart(automationActivity.map(item => ({ label: item.label, lower: item.complete, upper: item.review })), ["Complete", "Review"], ["ink", "teal"], nf.format, "Automation runs by day"))}
+    <div class="gd-command-side">
+      ${panel("Automation capacity", "", "", "gd-capacity", `
+        <div class="gd-capacity-track" role="meter" aria-label="Monthly automation capacity" aria-valuenow="1284" aria-valuemin="0" aria-valuemax="2200"><span class="gd-fill" style="width:${1284 / 2200 * 100}%"></span></div>
+        <div class="gd-capacity-label"><span><strong>1,284</strong> used</span><span>2,200 monthly runs</span></div>`)}
+      ${panel("Approvals", "Decisions that need an owner", "", "gd-approvals", `
+        <div class="gd-approval-content"><span class="gd-list-icon">${icon("shield-check")}</span>
+          <div><strong>Owner review</strong><small>Refunds and renewal campaigns</small></div>
+          <button type="button" class="gd-icon-button" aria-label="Open Premium Operations" data-view="operations">${icon("arrow-up-right")}</button>
+        </div>`)}
+    </div>
+    ${panel("Recent activity", "", `<div class="gd-table-tools">
+      <label class="gd-search">${icon("search")}<input type="search" data-activity-query placeholder="Search activity" aria-label="Search activity" /></label>
+      <label class="gd-filter">${icon("filter")}<select data-activity-status aria-label="Filter activity">${["All statuses", "Complete", "Needs review", "Scheduled", "Exceptions"].map(i => `<option>${i}</option>`).join("")}</select></label>
+    </div>`, "gd-activity", `<div class="gd-table-scroll"><table>
+      <thead><tr><th scope="col">Activity</th><th scope="col">Source</th><th scope="col">Status</th><th scope="col">Time</th></tr></thead>
+      <tbody data-activity-body></tbody></table></div><p class="gd-empty" data-activity-empty role="status" hidden>No matching activity.</p>`)}
+  </div>`;
+}
+
+function analyticsView(stats, type) {
+  const trend = type === "trends";
+  const costTotal = Math.round(stats.costs.reduce((total, cost) => total + cost, 0) * 1000);
+  const margin = (stats.revenue - costTotal) / stats.revenue * 100;
+  const metrics = trend ? `
+    ${metric({ title: "Revenue", glyph: "circle-dollar-sign", value: stats.revenue, format: "compact", change: stats.revenueChange, tone: "teal" })}
+    ${metric({ title: "Operating costs", glyph: "arrow-down-right", value: costTotal, format: "compact", detail: "in this period" })}
+    ${metric({ title: "Net revenue", glyph: "box", value: stats.revenue - costTotal, format: "compact", detail: "after operating costs" })}
+    ${metric({ title: "Operating margin", glyph: "circle-dollar-sign", value: margin, format: "percent", detail: "of revenue" })}` : `
+    ${metric({ title: "Revenue", glyph: "circle-dollar-sign", value: stats.revenue, format: "compact", change: stats.revenueChange, tone: "teal" })}
+    ${metric({ title: "Orders", glyph: "shopping-bag", value: stats.orders, change: stats.orderChange })}
+    ${metric({ title: "Visitors", glyph: "eye", value: stats.visitors, change: stats.visitorChange })}
+    ${metric({ title: "Refunds", glyph: "arrow-down-right", value: stats.refunds, change: stats.refundChange })}`;
+  const chart = trend
+    ? revenueChart(stats.axis, stats.collected, stats.costs)
+    : stackChart(stats.axis.map((label, index) => {
+        const sum = stats.collected[index] * 1000;
+        const lower = Math.round(sum * stats.desktop[index] / 100);
+        return { label, lower, upper: sum - lower };
+      }), ["Desktop", "Mobile"], ["ink", "coral"], currency, "Revenue by device and date");
+  return `<div class="gd-analytics">
+    <div class="gd-metric-grid">${metrics}</div>
+    <div class="gd-analytics-grid">
+      ${panel(trend ? "Revenue vs operating costs" : "Revenue by device",
+        trend ? "Compare revenue and costs across the selected period" : "Desktop and mobile revenue across the selected period",
+        trend ? legend([{ label: "Revenue", tone: "coral" }, { label: "Costs", tone: "ink" }]) : "", "", chart)}
+      ${panel("Traffic by device", "", "", "gd-device-panel", deviceChart(stats.devices, stats.visitors))}
+    </div>
+    ${trend ? panel("Reporting snapshot", "", "", "gd-statement", `
+      <div class="gd-approval-content"><span class="gd-list-icon">${icon("clock-3")}</span>
+        <div><strong>Revenue and operating costs</strong><small>${esc(state.period)} · ${esc(stats.axis[0])} to ${esc(stats.axis.at(-1))}</small></div>
+        <button type="button" class="gd-icon-button" aria-label="Download revenue and expense CSV" data-action="export">${icon("download")}</button>
+      </div>`) : panel("Recent activity", "", activityToolbar(), "gd-activity", activityBody())}
+  </div>`;
+}
+
+const statusStyle = {
+  "Needs review": { glyph: "list-checks", tone: "coral" },
+  "Scheduled": { glyph: "clock-3", tone: "ochre" },
+  "Running": { glyph: "zap", tone: "teal" },
+  "Exceptions": { glyph: "triangle-alert", tone: "ink" },
+};
+function activityToolbar() {
+  return `<div class="gd-table-tools">
+    <label class="gd-search">${icon("search")}<input type="search" data-activity-query placeholder="Search activity" aria-label="Search activity" /></label>
+    <label class="gd-filter">${icon("filter")}<select data-activity-status aria-label="Filter activity">${["All statuses", "Complete", "Needs review", "Scheduled", "Exceptions"].map(i => `<option>${i}</option>`).join("")}</select></label>
+  </div>`;
+}
+function activityBody() {
+  return `<div class="gd-table-scroll"><table>
+    <thead><tr><th scope="col">Activity</th><th scope="col">Source</th><th scope="col">Status</th><th scope="col">Time</th></tr></thead>
+    <tbody data-activity-body></tbody></table></div><p class="gd-empty" data-activity-empty role="status" hidden>No matching activity.</p>`;
+}
+function operationsView() {
+  const filter = state.laneFilter || "All lanes";
+  const review = state.work.filter(item => item.status === "Needs review").length;
+  const tools = new Set(state.work.map(item => item.tool)).size;
+  const lanes = filter === "All lanes" ? workStatuses : [filter];
+  return `<div class="gd-analytics">
+    <div class="gd-metric-grid">
+      ${metric({ title: "Revenue at work", glyph: "circle-dollar-sign", value: 126100, format: "compact", detail: "last 90 days", tone: "teal" })}
+      ${metric({ title: "Active work items", glyph: "zap", value: state.work.length, detail: "in the operations queue" })}
+      ${metric({ title: "Needs approval", glyph: "list-checks", value: review, detail: "waiting for an owner" })}
+      ${metric({ title: "Connected systems", glyph: "shield-check", value: tools, detail: "represented in the queue" })}
+    </div>
+    ${panel("Active work board", "Track queued actions, approvals, and connector exceptions.", `<label class="gd-filter">${icon("filter")}
+      <select data-lane-filter aria-label="Filter operations lanes">${["All lanes", ...workStatuses].map(i => `<option${i === filter ? " selected" : ""}>${i}</option>`).join("")}</select></label>`, "gd-board", `
+      <div class="gd-lanes" data-filtered="${filter !== "All lanes"}">
+        ${lanes.map(lane => {
+          const items = state.work.filter(item => item.status === lane);
+          const style = statusStyle[lane];
+          return `<section class="gd-lane" aria-label="${esc(lane)}">
+            <header><i data-tone="${style.tone}" aria-hidden="true">${icon(style.glyph)}</i><h3>${esc(lane)}</h3><span>${items.length}</span></header>
+            ${items.map(item => `<button class="gd-work-item" type="button" data-work="${item.id}">
+              <span class="gd-work-titlerow"><strong>${esc(item.name)}</strong>${icon("ellipsis")}</span>
+              <span class="gd-work-detail">${esc(item.description)}</span>
+              <span class="gd-work-meta"><span>${esc(item.tool)}</span><span>${esc(item.timestamp)}</span></span>
+            </button>`).join("")}
+            ${items.length === 0 ? `<p class="gd-empty">Queue clear.</p>` : ""}
+          </section>`;
+        }).join("")}
+      </div>`)}
+  </div>`;
+}
+
+/* ---------- shell ---------- */
+function dockHTML(side) {
+  return `<nav class="gd-dock ${side ? "gd-dock-side" : "gd-dock-bottom"}" aria-label="${side ? "Workspace shortcuts" : "Workspace views"}">
+    <span class="gd-dock-indicator" aria-hidden="true"></span>
+    ${views.map(view => `<a href="#${view.id}" data-view="${view.id}" aria-label="${esc(view.label)}"${state.view === view.id ? ' aria-current="page"' : ""}>
+      ${icon(view.icon)}<span class="gd-dock-text" aria-hidden="true">${esc(view.label)}</span><span class="gd-dock-short" aria-hidden="true">${esc(view.short)}</span>
+      ${side ? `<span class="gd-dock-tip" aria-hidden="true">${esc(view.label)}</span>` : ""}
+    </a>`).join("")}
+  </nav>`;
+}
+function shellHTML() {
+  return `<div class="gd-app" data-theme="${state.theme}" id="gdApp" style="--gd-panel-frost:${state.frost}px">
+    <img class="gd-background" src="${PHOTO}" alt="" aria-hidden="true" fetchpriority="high" />
+    <div class="gd-surround">
+      <header class="gd-top">
+        <div class="gd-brand"><span class="gd-logo" aria-hidden="true">${logo}</span><div><strong>${esc(state.workspace)}</strong><small>Workspace</small></div></div>
+        <button type="button" class="gd-ask" aria-label="Search ${esc(state.workspace)} views" data-action="search">
+          <span class="gd-orb" aria-hidden="true"></span><span class="gd-prompt" id="prompt"></span>${icon("search", "gd-ask-search")}
+        </button>
+        <div class="gd-top-actions">
+          <button title="${state.theme === "light" ? "Switch to dark theme" : "Switch to light theme"}" type="button" class="gd-icon-button"
+            aria-label="Toggle theme" data-action="theme">${icon(state.theme === "light" ? "moon" : "sun")}</button>
+          <button type="button" class="gd-icon-button gd-notices" aria-label="Notifications" data-action="notifications">
+            ${icon("bell")}<i id="noticeDot" aria-hidden="true"></i>
+          </button>
+        </div>
+      </header>
+      <div class="gd-stage-wrap">
+        ${dockHTML(true)}
+        <main class="gd-stage"><div class="gd-stage-scroll" id="scrollArea">
+          <header class="gd-view-head" id="viewHead"></header>
+          <div class="gd-content" id="content"></div>
+        </div></main>
+        ${dockHTML(false)}
+      </div>
+      <footer class="gd-footer"><span>Sample workspace</span><a href="https://unsplash.com" target="_blank" rel="noreferrer">Photo via Unsplash ${icon("arrow-up-right")}</a></footer>
+    </div>
+    <div id="modalHost"></div>
+  </div>`;
+}
+
+function periodHTML() {
+  return `<div class="gd-period" role="group" aria-label="Reporting period">${periods.map(item =>
+    `<button type="button" data-period="${item}" aria-pressed="${item === state.period}">${item}</button>`).join("")}</div>`;
+}
+function syncHead() {
+  const view = views.find(item => item.id === state.view);
+  const isOps = state.view === "operations";
+  const head = $("#viewHead");
+  head.innerHTML = `<div><h1>${esc(view.label)}</h1><p>${esc(view.description)}</p></div>
+    <div class="gd-view-actions">
+      ${!isOps ? periodHTML() : ""}
+      ${isOps || state.view === "trends" ? `<button type="button" class="gd-primary gd-export" data-action="export">${icon("arrow-down-to-line")}Export CSV</button>` : ""}
+    </div>`;
+  const prompt = $("#prompt");
+  if (prompt) {
+    prompt.textContent = view.prompt;
+    prompt.style.animation = "none";
+    void prompt.offsetWidth;
+    prompt.style.animation = "";
+  }
+}
+function syncDock() {
+  $$(".gd-dock a[data-view]").forEach(link => {
+    if (link.dataset.view === state.view) link.setAttribute("aria-current", "page");
+    else link.removeAttribute("aria-current");
+  });
+  const review = state.work.filter(item => item.status === "Needs review").length;
+  const dot = $("#noticeDot");
+  if (dot) dot.style.display = state.readNotices || review === 0 ? "none" : "";
+  positionIndicators();
+}
+function positionIndicators() {
+  $$(".gd-dock").forEach(nav => {
+    const indicator = $(".gd-dock-indicator", nav);
+    const current = $('[aria-current="page"]', nav);
+    if (!indicator || !current) return;
+    indicator.style.width = `${current.offsetWidth}px`;
+    indicator.style.height = `${current.offsetHeight}px`;
+    indicator.style.transform = `translate(${current.offsetLeft}px, ${current.offsetTop}px)`;
+    indicator.dataset.ready = "true";
+  });
+}
+
+function renderView() {
+  const stats = analytics[state.period];
+  const content = $("#content");
+  stackCharts = [];
+  content.dataset.view = state.view;
+  if (state.view === "command") content.innerHTML = commandView(stats);
+  else if (state.view === "trends" || state.view === "metrics") content.innerHTML = analyticsView(stats, state.view);
+  else content.innerHTML = operationsView();
+  $$("[data-stack-chart]", content).forEach(figure => {
+    stackData.set(figure, stackCharts[Number(figure.dataset.stackChart)]);
+  });
+  lucide.createIcons({ attrs: { width: 16, height: 16, "stroke-width": 1.75 } });
+  refreshActivity();
+  bindView();
+  syncHead();
+  syncDock();
+  $("#scrollArea").scrollTo({ top: 0 });
+  animateContent();
+}
+
+/* ---------- animations (same GSAP timeline as the React component) ---------- */
+function animateContent() {
+  const layer = $("#content");
+  if (!layer) return;
+  const counts = $$("[data-gd-count]", layer);
+  if (state.reduced || !window.gsap) {
+    counts.forEach(el => { el.textContent = fmt[el.dataset.format](Number(el.dataset.gdCount)); });
+    return;
+  }
+  gsap.set(layer, { clearProps: "opacity,filter" });
+  const tl = gsap.timeline({ defaults: { ease: "power3.out" } });
+  tl.fromTo(layer, { opacity: .55, filter: "blur(5px)" }, { opacity: 1, filter: "blur(0px)", clearProps: "opacity,filter", duration: .32 }, 0);
+  const entering = $$("[data-gd-enter]", layer);
+  if (entering.length) tl.from(entering, { y: 18, opacity: 0, stagger: .045, duration: .50, clearProps: "transform,opacity" }, .035);
+  const bars = $$(".gd-stack-bar", layer);
+  const line = $(".gd-line-reveal", layer);
+  const ring = $(".gd-donut-draw", layer);
+  const meters = $$(".gd-fill", layer);
+  if (bars.length) tl.from(bars, { scaleY: 0, stagger: .034, duration: .46, clearProps: "transform" }, .17);
+  if (line) tl.fromTo(line, { clipPath: "inset(0 100% 0 0)" }, { clipPath: "inset(0 0% 0 0)", duration: .74, clearProps: "clipPath" }, .14);
+  if (ring) tl.fromTo(ring, { attr: { "stroke-dasharray": "0 100" } }, { attr: { "stroke-dasharray": "100 0" }, duration: .76 }, .16);
+  if (meters.length) tl.from(meters, { scaleX: 0, duration: .58, stagger: .045, clearProps: "transform" }, .18);
+  counts.forEach((el, index) => {
+    const target = Number(el.dataset.gdCount);
+    const format = fmt[el.dataset.format];
+    const counter = { value: 0 };
+    tl.to(counter, { value: target, duration: .75, onUpdate: () => { el.textContent = format(counter.value); } }, .09 + index * .02);
+  });
+}
+
+/* ---------- view-scoped interactions ---------- */
+function bindView() {
+  $$("[data-activity-query], [data-activity-status]").forEach(el => {
+    el.addEventListener(el.tagName === "SELECT" ? "change" : "input", refreshActivity);
+  });
+  $$("[data-lane-filter]").forEach(el => el.addEventListener("change", event => {
+    state.laneFilter = event.target.value;
+    renderView();
+  }));
+  $$("[data-work]").forEach(el => el.addEventListener("click", () => {
+    const item = state.work.find(work => work.id === el.dataset.work);
+    if (item) openWorkDialog(item);
+  }));
+  $$("[data-stack]").forEach(el => {
+    const figure = el.closest(".gd-stack");
+    const items = figure ? $$("[data-stack]", figure) : [];
+    const setActive = index => {
+      items.forEach((node, i) => node.setAttribute("aria-pressed", String(i === index)));
+      const readout = $("[data-readout]", figure);
+      if (readout) {
+        const data = stackData.get(figure);
+        const item = data && data[index];
+        readout.textContent = item ? `${item.label} · ${data.format(item.lower + item.upper)}` : "";
+      }
+    };
+    el.addEventListener("mouseenter", () => setActive(Number(el.dataset.stack)));
+    el.addEventListener("focus", () => setActive(Number(el.dataset.stack)));
+    el.addEventListener("click", () => setActive(Number(el.dataset.stack)));
+    el.addEventListener("blur", () => setActive(null));
+    figure?.addEventListener("mouseleave", () => setActive(null));
+  });
+  const plot = $(".gd-stack-plot");
+  plot?.addEventListener("mouseleave", () => {
+    $$("[data-stack]", plot).forEach(node => node.setAttribute("aria-pressed", "false"));
+    const readout = $("[data-readout]", plot.parentElement);
+    if (readout) readout.textContent = "";
+  });
+  bindRevenueChart();
+  bindDeviceChart();
+}
+
+const stackData = new WeakMap();
+let stackCharts = [];
+
+function bindRevenueChart() {
+  const plot = $(".gd-line-plot");
+  if (!plot) return;
+  const stats = analytics[state.period];
+  const zones = $$("[data-zone]", plot);
+  const cursor = $(".gd-line-cursor-group", plot);
+  const tooltip = $("[data-tooltip]", plot);
+  const plotHeight = 204, width = 600;
+  const max = Math.ceil(Math.max(...stats.collected, ...stats.costs) * 1.14 / 2.5) * 2.5;
+  const toPoint = (value, index, length) => [index * width / Math.max(1, length - 1), plotHeight - value / max * plotHeight];
+  const setActive = index => {
+    zones.forEach((zone, i) => zone.setAttribute("aria-pressed", String(i === index)));
+    if (index === null) {
+      cursor?.setAttribute("opacity", "0");
+      if (tooltip) tooltip.hidden = true;
+      return;
+    }
+    const [rx, ry] = toPoint(stats.collected[index], index, stats.collected.length);
+    const [cx, cy] = toPoint(stats.costs[index], index, stats.costs.length);
+    if (cursor) {
+      cursor.setAttribute("opacity", "1");
+      const line = $(".gd-line-cursor", cursor);
+      line?.setAttribute("x1", rx); line?.setAttribute("x2", rx);
+      const r = $(".gd-cursor-revenue", cursor), c = $(".gd-cursor-cost", cursor);
+      r?.setAttribute("cx", rx); r?.setAttribute("cy", ry);
+      c?.setAttribute("cx", cx); c?.setAttribute("cy", cy);
+    }
+    if (tooltip) {
+      tooltip.hidden = false;
+      tooltip.style.setProperty("--gd-tooltip-x", `${index / (stats.axis.length - 1) * 100}%`);
+      $("[data-tip-label]", tooltip).textContent = stats.axis[index];
+      $("[data-tip-revenue]", tooltip).textContent = currency(stats.collected[index] * 1000);
+      $("[data-tip-costs]", tooltip).textContent = currency(stats.costs[index] * 1000);
+    }
+  };
+  zones.forEach(zone => {
+    zone.addEventListener("mouseenter", () => setActive(Number(zone.dataset.zone)));
+    zone.addEventListener("focus", () => setActive(Number(zone.dataset.zone)));
+    zone.addEventListener("click", () => setActive(Number(zone.dataset.zone)));
+    zone.addEventListener("blur", () => setActive(null));
+  });
+  plot.addEventListener("mouseleave", () => setActive(null));
+}
+
+function bindDeviceChart() {
+  $$("[data-device]").forEach(button => {
+    const index = Number(button.dataset.device);
+    const apply = () => {
+      const chart = button.closest(".gd-device");
+      const active = button.getAttribute("aria-pressed") === "true" ? null : index;
+      $$("[data-device]", chart).forEach(node => node.setAttribute("aria-pressed", String(Number(node.dataset.device) === active)));
+      $$("[data-segment]", chart).forEach(node => node.dataset.muted = String(active !== null && Number(node.dataset.segment) !== active));
+      const stats = analytics[state.period];
+      const total = $("[data-device-total]", chart);
+      const label = $("[data-device-label]", chart);
+      if (active === null) {
+        if (total) total.innerHTML = count(stats.visitors);
+        if (label) label.textContent = "Visitors";
+      } else {
+        const value = nf.format(Math.round(stats.visitors * stats.devices[active] / 100));
+        if (total) total.textContent = value;
+        if (label) label.textContent = deviceLabels[active];
+      }
+    };
+    button.addEventListener("click", apply);
+  });
+}
+
+/* ---------- dialogs ---------- */
+function openDialog(title, body) {
+  const host = $("#modalHost");
+  host.innerHTML = `<dialog class="gd-dialog" id="gdDialog">
+    <section class="gd-dialog-inner"><header><h2>${esc(title)}</h2>
+      <button type="button" class="gd-icon-button" aria-label="Close dialog" data-action="close-dialog">${icon("x")}</button>
+    </header>${body}</section></dialog>`;
+  lucide.createIcons({ attrs: { width: 16, height: 16, "stroke-width": 1.75 } });
+  const dialog = $("#gdDialog");
+  dialog.addEventListener("close", () => { host.innerHTML = ""; });
+  dialog.addEventListener("click", event => { if (event.target === dialog) dialog.close(); });
+  dialog.showModal();
+  dialog.querySelector("input")?.focus();
+  return dialog;
+}
+function openSearchDialog() {
+  const body = `<label class="gd-search gd-command-input">${icon("search")}
+      <input type="search" data-search-input aria-label="Find a dashboard view" placeholder="Find a view or report" />
+    </label><div class="gd-quick-list" data-search-results></div>`;
+  const dialog = openDialog(`Search ${state.workspace}`, body);
+  const render = () => {
+    const terms = ($("[data-search-input]", dialog).value || "").toLowerCase().trim().split(/\s+/).filter(Boolean);
+    const results = views.filter(view => terms.every(term => `${view.label} ${view.description} ${view.prompt}`.toLowerCase().includes(term)));
+    $("[data-search-results]", dialog).innerHTML = results.map(view => `<button type="button" data-result="${view.id}">
+      ${icon(view.icon)}<div><strong>${esc(view.label)}</strong><small>${esc(view.description)}</small></div>${icon("chevron-right")}
+    </button>`).join("") || `<p class="gd-empty" role="status">No matching views.</p>`;
+    $$("[data-result]", dialog).forEach(button => button.addEventListener("click", () => {
+      dialog.close();
+      navigate(button.dataset.result);
+    }));
+  };
+  $("[data-search-input]", dialog).addEventListener("input", render);
+  render();
+}
+function openNotificationsDialog() {
+  const pending = state.work.filter(item => item.status === "Needs review");
+  const body = `<div class="gd-quick-list">${pending.map(item => `<button type="button" data-notice="${item.id}">
+    ${icon("bell")}<div><strong>${esc(item.name)}</strong><small>${esc(item.description)}</small></div>${icon("arrow-right")}
+  </button>`).join("")}${pending.length === 0 ? `<p class="gd-empty">You’re all caught up.</p>` : ""}</div>`;
+  const dialog = openDialog("Notifications", body);
+  $$("[data-notice]", dialog).forEach(button => button.addEventListener("click", () => {
+    const item = state.work.find(work => work.id === button.dataset.notice);
+    dialog.close();
+    navigate("operations");
+    if (item) openWorkDialog(item);
+  }));
+}
+function openWorkDialog(item) {
+  const body = `${badge(item.status)}
+    <p class="gd-work-dialog-description">${esc(item.description)}</p>
+    <dl class="gd-work-facts">
+      <div><dt>System</dt><dd>${esc(item.tool)}</dd></div>
+      <div><dt>Owner</dt><dd>${esc(item.owner)}</dd></div>
+      <div><dt>Reference</dt><dd>${esc(item.id)}</dd></div>
+    </dl>
+    ${item.status === "Needs review" ? `<button type="button" class="gd-primary" data-action="review" data-id="${item.id}">Mark reviewed ${icon("command")}</button>` : ""}`;
+  const dialog = openDialog(item.name, body);
+  const review = $("[data-action='review']", dialog);
+  review?.addEventListener("click", () => {
+    state.work = state.work.map(work => work.id === item.id ? { ...work, status: "Scheduled" } : work);
+    dialog.close();
+    if (state.view === "operations") renderView();
+    else syncDock();
+  });
+}
+
+/* ---------- navigation / CSV ---------- */
+function saveCsv(filename, rows) {
+  const csv = rows.map(row => row.map(cell => `"${String(cell).replaceAll('"', '""')}"`).join(",")).join("\r\n");
+  const url = URL.createObjectURL(new Blob([csv], { type: "text/csv;charset=utf-8" }));
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = filename;
+  link.click();
+  setTimeout(() => URL.revokeObjectURL(url), 0);
+}
+function downloadReport() {
+  const stats = analytics[state.period];
+  saveCsv(`atlas-trends-${state.period.replace(" ", "-")}.csv`, [
+    ["Period ending", "Revenue (USD)", "Operating costs (USD)"],
+    ...stats.axis.map((label, index) => [label, Math.round(stats.collected[index] * 1000), Math.round(stats.costs[index] * 1000)]),
+  ]);
+}
+function downloadWork() {
+  saveCsv("atlas-operations.csv", [
+    ["ID", "Workflow", "System", "Owner", "Status", "Time"],
+    ...state.work.map(item => [item.id, item.name, item.tool, item.owner, item.status, item.timestamp]),
+  ]);
+}
+function navigate(next, push = true) {
+  if (next === state.view) return;
+  if (push && location.hash !== `#${next}`) history.pushState(null, "", `#${next}`);
+  state.view = next;
+  const content = $("#content");
+  const swap = () => { renderView(); };
+  if (state.reduced || !window.gsap || !content) swap();
+  else gsap.to(content, { opacity: 0, filter: "blur(8px)", duration: .14, ease: "power1.in", onComplete: swap });
+  syncHead();
+  syncDock();
+}
+function restoreFromHash() { navigate(validView(location.hash.slice(1)), false); }
+
+/* ---------- boot ---------- */
+$("#app").innerHTML = shellHTML();
+lucide.createIcons({ attrs: { width: 16, height: 16, "stroke-width": 1.75 } });
+
+$("#app").addEventListener("click", event => {
+  const viewLink = event.target.closest("a[data-view]");
+  if (viewLink && !event.altKey && !event.ctrlKey && !event.metaKey && !event.shiftKey) {
+    event.preventDefault();
+    navigate(viewLink.dataset.view);
+    return;
+  }
+  const action = event.target.closest("[data-action]")?.dataset.action;
+  if (action === "theme") {
+    state.theme = state.theme === "light" ? "dark" : "light";
+    $("#gdApp").dataset.theme = state.theme;
+    const button = $('[data-action="theme"]');
+    button.innerHTML = icon(state.theme === "light" ? "moon" : "sun");
+    button.setAttribute("title", state.theme === "light" ? "Switch to dark theme" : "Switch to light theme");
+    lucide.createIcons({ attrs: { width: 16, height: 16, "stroke-width": 1.75 } });
+  } else if (action === "search") openSearchDialog();
+  else if (action === "notifications") { state.readNotices = true; syncDock(); openNotificationsDialog(); }
+  else if (action === "close-dialog") $("#gdDialog")?.close();
+  else if (action === "export") state.view === "operations" ? downloadWork() : downloadReport();
+});
+
+$("#content").addEventListener("click", event => {
+  const period = event.target.closest("[data-period]");
+  if (period) {
+    state.period = period.dataset.period;
+    $$("[data-period]").forEach(button => button.setAttribute("aria-pressed", String(button === period)));
+    renderView();
+  }
+});
+$("#viewHead").addEventListener("click", event => {
+  const period = event.target.closest("[data-period]");
+  if (period) {
+    state.period = period.dataset.period;
+    renderView();
+  }
+  const exportBtn = event.target.closest("[data-action='export']");
+  if (exportBtn) downloadReport();
+});
+
+addEventListener("hashchange", restoreFromHash);
+addEventListener("popstate", restoreFromHash);
+const observer = new ResizeObserver(positionIndicators);
+$$(".gd-dock").forEach(nav => {
+  observer.observe(nav);
+  $$("a", nav).forEach(link => observer.observe(link));
+});
+
+renderView();
+</script>
+</body>
+</html>

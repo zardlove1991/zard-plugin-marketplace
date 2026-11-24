@@ -1,0 +1,29 @@
+/* 容器 / 画布：对应 React 原件里的 ROOT / CANVAS Tailwind 常量，观感不变。 */
+.splash-cursor {
+  pointer-events: none;
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+}
+
+.splash-cursor[data-contained] {
+  position: absolute;
+}
+
+.splash-cursor__canvas {
+  display: block;
+  inline-size: 100%;
+  block-size: 100%;
+}
+
+.splash-cursor__fallback {
+  position: absolute;
+  inset: 0;
+  margin: 0;
+  display: grid;
+  place-items: center;
+  padding: 16px;
+  color: #93a6c8;
+  font-size: 13px;
+  text-align: center;
+}
