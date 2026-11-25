@@ -1,0 +1,118 @@
+/* ============================================================
+   Motion Effects · design tokens
+   深色 + 青柠强调色。站点壳、总览、详情页都只从这里取值。
+   ============================================================ */
+
+:root {
+  color-scheme: dark;
+
+  /* ---------- surfaces ---------- */
+  --me-bg: #09090b;
+  --me-bg-rgb: 9 9 11;
+  --me-panel: #0f0f12;
+  --me-panel-2: #141418;
+  --me-panel-3: #1a1a20;
+  --me-sunk: #050506;
+  --me-ghost: rgb(255 255 255 / 0.04);
+  --me-ghost-hover: rgb(255 255 255 / 0.08);
+
+  /* ---------- lines ---------- */
+  --me-line: rgb(255 255 255 / 0.08);
+  --me-line-strong: rgb(255 255 255 / 0.16);
+
+  /* ---------- text ---------- */
+  --me-text-1: #f2f4ec;
+  --me-text-2: #b4b8ac;
+  --me-text-3: #7c8075;
+  --me-text-4: #55584f;
+
+  /* ---------- accent ---------- */
+  --me-lime: #c8ff4d;
+  --me-lime-rgb: 200 255 77;
+  --me-lime-hi: #deffa3;
+  --me-lime-ink: #0b0f02;
+  --me-lime-soft: rgb(200 255 77 / 0.12);
+  --me-lime-line: rgb(200 255 77 / 0.34);
+
+  /* ---------- semantic ---------- */
+  --me-blue: #8ab4ff;
+  --me-pink: #ff8ec7;
+  --me-amber: #ffc46b;
+
+  /* ---------- type ---------- */
+  --me-font-display: 'Syne Variable', 'PingFang SC', 'HarmonyOS Sans SC', 'Microsoft YaHei', sans-serif;
+  --me-font-ui: 'Manrope Variable', 'PingFang SC', 'HarmonyOS Sans SC', 'Microsoft YaHei', 'Helvetica Neue', sans-serif;
+  --me-font-mono: 'IBM Plex Mono', ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+
+  /* ---------- shape ---------- */
+  --me-r-sm: 8px;
+  --me-r-md: 12px;
+  --me-r-lg: 16px;
+  --me-r-xl: 22px;
+  --me-r-pill: 999px;
+
+  /* ---------- shell ---------- */
+  --me-header-h: 60px;
+  --me-sidebar-w: 276px;
+  --me-content-max: 1180px;
+  --me-ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --me-dur: 0.2s;
+
+  /* ---------- legacy aliases（旧详情页组件还在用） ---------- */
+  --me-mono: var(--me-font-mono);
+  --me-radius: 14px;
+
+  /* ---------- VitePress bridge ---------- */
+  --vp-c-bg: var(--me-bg);
+  --vp-c-bg-alt: #0c0c0f;
+  --vp-c-bg-elv: var(--me-panel-2);
+  --vp-c-bg-soft: var(--me-panel);
+  --vp-c-divider: var(--me-line);
+  --vp-c-border: var(--me-line);
+  --vp-c-gutter: var(--me-line);
+  --vp-c-text-1: var(--me-text-1);
+  --vp-c-text-2: var(--me-text-2);
+  --vp-c-text-3: var(--me-text-3);
+  --vp-c-text-4: #55584f;
+  --vp-c-default-soft: var(--me-ghost);
+  --vp-c-brand-1: var(--me-lime);
+  --vp-c-brand-2: var(--me-lime-hi);
+  --vp-c-brand-3: #b6ea3b;
+  --vp-c-brand-soft: var(--me-lime-soft);
+  --vp-c-tip: var(--me-lime);
+  --vp-c-warning: var(--me-amber);
+  --vp-c-danger: #ff8d8d;
+  --vp-c-success: #8fe0a4;
+  --vp-c-important: var(--me-blue);
+  --vp-button-brand-border: transparent;
+  --vp-button-brand-text: var(--me-lime-ink);
+  --vp-button-brand-bg: var(--me-lime);
+  --vp-button-brand-hover-border: transparent;
+  --vp-button-brand-hover-text: var(--me-lime-ink);
+  --vp-button-brand-hover-bg: var(--me-lime-hi);
+  --vp-button-brand-active-border: transparent;
+  --vp-button-brand-active-text: var(--me-lime-ink);
+  --vp-button-brand-active-bg: #b6ea3b;
+  --vp-button-alt-border: var(--me-line-strong);
+  --vp-button-alt-text: var(--me-text-1);
+  --vp-button-alt-bg: var(--me-panel);
+  --vp-button-alt-hover-border: var(--me-line-strong);
+  --vp-button-alt-hover-text: var(--me-text-1);
+  --vp-button-alt-hover-bg: var(--me-panel-2);
+  --vp-button-alt-active-border: var(--me-line-strong);
+  --vp-button-alt-active-text: var(--me-text-1);
+  --vp-button-alt-active-bg: var(--me-panel-2);
+  --vp-font-family-base: var(--me-font-ui);
+  --vp-font-family-mono: var(--me-font-mono);
+  --vp-code-block-bg: #0c0c10;
+  --vp-code-block-color: var(--me-text-1);
+  --vp-code-line-highlight-color: rgb(200 255 77 / 0.09);
+  --vp-code-line-diff-add-color: rgb(120 220 140 / 0.16);
+  --vp-code-line-diff-remove-color: rgb(255 120 120 / 0.14);
+  --vp-code-lang-color: var(--me-text-3);
+  --vp-code-copy-code-hover-bg: rgb(255 255 255 / 0.1);
+  --vp-code-copy-code-active-text: var(--me-lime);
+  --vp-c-control: var(--me-panel-2);
+  --vp-c-control-hover: var(--me-panel-3);
+  --vp-c-control-disabled: var(--me-panel);
+}

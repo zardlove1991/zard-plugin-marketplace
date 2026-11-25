@@ -1,6 +1,6 @@
 # Vue 组件（0.1）
 
-已有 10 个特效移植成 Vue 3 组件，并在每个详情页的「Vue 3 实装」区域直接渲染真实组件：
+已有 10 个特效移植成 Vue 3 组件，详情页的预览台里直接渲染真实组件。其中 6 个（`HoldButton`、`SwipeRow`、`SpecularButton`、`TerminalReplay`、`PeakChart`、`SpotlightCard`）带「自定义」面板：改参数，预览实时跟着变，「代码」页签的用法片段只写出你改过的项。另外 4 个需要独占文档，放在 iframe 里加载：
 
 | 组件 | 详情页 | 测试 |
 |---|---|---|

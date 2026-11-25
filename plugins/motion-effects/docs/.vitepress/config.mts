@@ -1,21 +1,8 @@
 import { defineConfig } from 'vitepress'
-import { CATEGORIES, EFFECTS } from './data/effects.mjs'
+import { EFFECTS } from './data/effects.mjs'
+import { REPO } from './data/nav.mjs'
 
-const repo = 'https://github.com/zardlove1991/zard-plugin-marketplace'
 const base = process.env.DOCS_BASE || '/'
-
-const effectSidebar = CATEGORIES.slice(1).map(category => ({
-  text: category,
-  collapsed: false,
-  items: EFFECTS
-    .filter(effect => effect.cat === category)
-    .map(effect => ({
-      text: `${effect.zh} · ${effect.name}`,
-      link: `/effects/${effect.id}`
-    }))
-}))
-
-const referenceRoot = `${repo}/blob/main/plugins/motion-effects/skills/motion-effects/references`
 
 export default defineConfig({
   lang: 'zh-CN',
@@ -32,61 +19,44 @@ export default defineConfig({
     transformItems: items => items.filter(item => !/^\/?live\//.test(item.url))
   },
   head: [
-    ['meta', { name: 'theme-color', content: '#09090c' }],
+    ['meta', { name: 'theme-color', content: '#09090b' }],
     ['link', { rel: 'icon', type: 'image/svg+xml', href: `${base}logo.svg` }]
   ],
   themeConfig: {
     logo: '/logo.svg',
     siteTitle: 'Motion Effects',
-    nav: [
-      { text: '特效', link: '/effects/' },
-      { text: '指南', link: '/guide/' },
-      { text: 'Gallery', link: '/gallery.html', target: '_blank' },
-      { text: 'GitHub', link: repo }
-    ],
-    sidebar: {
-      '/effects/': effectSidebar,
-      '/guide/': [
-        {
-          text: '接入指南',
-          items: [
-            { text: '概览', link: '/guide/' },
-            { text: 'Vue 组件（0.1）', link: '/guide/vue-components' },
-            { text: '本地运行与部署', link: '/guide/deploy' },
-            { text: '维护者：新增特效', link: '/guide/add-effect' }
-          ]
-        },
-        {
-          text: '参考文档（GitHub）',
-          items: [
-            { text: '完整特效目录', link: `${referenceRoot}/catalog.md` },
-            { text: 'React → Vue 3 移植手册', link: `${referenceRoot}/vue-porting.md` },
-            { text: '生产验收清单', link: `${referenceRoot}/production-checklist.md` }
-          ]
-        }
-      ]
-    },
+    // 外壳（顶栏 / 侧栏）由 theme/Layout.vue 自己画，菜单数据见 data/nav.mjs；
+    // 这里只保留搜索、页脚文案等配置型字段
     search: {
-      provider: 'local'
+      provider: 'local',
+      options: {
+        translations: {
+          button: { buttonText: '搜索文档', buttonAriaLabel: '搜索文档' },
+          modal: {
+            displayDetails: '显示详细列表',
+            resetButtonTitle: '清除查询',
+            backButtonTitle: '返回',
+            noResultsText: '无法找到相关结果',
+            footer: {
+              selectText: '选择',
+              selectKeyAriaLabel: '回车',
+              navigateText: '切换',
+              navigateUpKeyAriaLabel: '向上箭头',
+              navigateDownKeyAriaLabel: '向下箭头',
+              closeText: '关闭',
+              closeKeyAriaLabel: 'Esc'
+            }
+          }
+        }
+      }
     },
-    outline: {
-      level: [2, 3],
-      label: '本页'
-    },
-    docFooter: {
-      prev: '上一个',
-      next: '下一个'
-    },
-    lastUpdated: {
-      text: '最后更新'
-    },
+    docFooter: { prev: '上一个', next: '下一个' },
+    lastUpdated: { text: '最后更新' },
     editLink: {
-      pattern: `${repo}/edit/main/plugins/motion-effects/docs/:path`,
+      pattern: `${REPO}/edit/main/plugins/motion-effects/docs/:path`,
       text: '在 GitHub 编辑此页'
     },
-    socialLinks: [
-      { icon: 'github', link: repo }
-    ],
+    socialLinks: [{ icon: 'github', link: REPO }],
     footer: {
       message: 'Vue 3 优先 · 从 React 源码与 vanilla 演示出发做保真移植',
       copyright: `Motion Effects · ${EFFECTS.length} effects`
