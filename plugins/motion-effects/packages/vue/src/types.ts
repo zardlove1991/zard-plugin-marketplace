@@ -72,6 +72,19 @@ export type GlassBackdrop =
 
 export type RubberSegmentSize = 'sm' | 'md' | 'lg'
 
+
+export interface SignaturePoint {
+  x: number
+  y: number
+  t?: number
+  p?: number
+}
+
+export type SignatureStrokes = SignaturePoint[][]
+export type SignaturePen = 'fountain' | 'ballpoint' | 'marker'
+export type SignatureMode = 'play' | 'sign'
+export type SignatureTheme = 'auto' | 'light' | 'dark'
+
 export interface RubberSegmentItem {
   value: string
   label: string

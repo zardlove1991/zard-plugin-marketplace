@@ -18,6 +18,7 @@ export { default as GridMotion } from './components/GridMotion.vue'
 export { default as RubberSegment } from './components/RubberSegment.vue'
 export { default as TiltedCard } from './components/TiltedCard.vue'
 export { default as TiltedCardLayer } from './components/TiltedCardLayer.vue'
+export { default as Signature } from './components/Signature.vue'
 export { ANIMATED_LIST_ITEMS, ANIMATED_LIST_ICONS } from './components/animatedListIcons'
 
 export type {
@@ -31,6 +32,11 @@ export type {
   GridMotionTile,
   RubberSegmentItem,
   RubberSegmentSize,
+  SignatureMode,
+  SignaturePen,
+  SignaturePoint,
+  SignatureStrokes,
+  SignatureTheme,
   GhostCursorTheme,
   GlassBackdrop,
   GlassSurfaceChannel,
