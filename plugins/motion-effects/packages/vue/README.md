@@ -1,6 +1,6 @@
 # @motion-effects/vue
 
-`motion-effects` 的 Vue 3 实装包（0.1）。当前包含 20 个已完成移植并有 Vitest 覆盖的组件：
+`motion-effects` 的 Vue 3 实装包（0.1）。当前包含 21 个已完成移植并有 Vitest 覆盖的组件：
 
 | 组件 | 说明 | 依赖 |
 |---|---|---|
@@ -24,8 +24,9 @@
 | `TiltedCard` | 3D 倾斜卡片：指针 / 陀螺仪 / 自动漂浮、聚光、视差层、翻面与跟随提示 | 无 |
 | `Signature` | 手写签名：播放示例笔迹 / 手写输入 / 撤销清除 / 导出 SVG 与 PNG | 无 |
 | `PaperCrumple` | three.js 纸张揉皱：按住揉成团 / 拖拽移动 / 键盘操作 / 折痕残留 | `three` |
+| `ReflectiveCard` | 金属反射证件卡：WebGL2 环境反射 / 倾斜眩光 / 可选摄像头反射 | Hugeicons（内置内容） |
 
-其余 5 个特效仍以 React 源码 + vanilla 演示为真源，按需按 `references/vue-porting.md` 移植。
+其余 4 个特效仍以 React 源码 + vanilla 演示为真源，按需按 `references/vue-porting.md` 移植。
 
 > `TerminalReplay`、`ScrollLockedVideoHero`、`PeakChart`、`GlassyDashboard` 和 `LiquidNavbar` 按 Vue 习惯设计：没有 `className` prop，`class` / `style` 自动透传到根元素；受控状态只走 `v-model`，不另发 `xxx-change` 事件。前三个组件仍保留 React 式的 `className` 与 `open-change`；`SplashCursor` / `GlassSurface` / `AnimatedList` 保留了 React 原件的 `className` / `style` props；`Shredder` 保留 React 的 `className` prop，但用 `#item` 插槽替代 `renderItem`，事件改走 `shred` / `reorder`；`SpotlightCard` 保留 `className` 与默认插槽，其余 div 属性自动透传。
 
@@ -287,9 +288,18 @@ CSS 随 SFC 自动引入，不需要单独 import CSS 文件。根类名前缀�
 - 图片用 `THREE.TextureLoader` 加载，必须同源或允许 CORS；WebGL 不可用时显示静态 `<img>` 降级并发出 `error`
 - 根类名前缀 `.paper-crumple`
 
+### ReflectiveCard
+
+- props：`name` / `role` / `badge` / `status` / `statusColor` / `idLabel` / `idValue`（内置内容字段）、`theme`（`dark` / `light`）、`videoSrc`、`webcam`、`tint`、`metalness`、`roughness`、`blurStrength`、`grayscale`、`warp`、`warpScale`、`shine`、`bevel`、`glare`、`enableTilt`、`tiltStrength`、`intro`、`width`、`height`、`radius`、`className`、`style`
+- 插槽：默认插槽替换整块卡面内容（不传时用内置的身份卡布局）
+- emits：`webcam-error`（摄像头不可用或被拒绝时）
+- WebGL2 环境反射：视频 / 摄像头的画面经 capture + 两向高斯模糊后作为环境贴图，按卡片姿态与指针做金属反射；`prefers-reduced-motion` 下关闭倾斜与入场
+- 摄像头需要 HTTPS 与用户授权；失败时只发事件，卡片仍可显示视频反射或静态背景
+- 根类名前缀 `.reflective-card`
+
 ## 与 React 原件的差异
 
-前三个组件是 1:1 直译。后十七个在移植时处理了上游的几处问题或按 Vue 习惯调整，行为上有意不同（`SplashCursor` / `Shredder` / `SpotlightCard` / `GlassSurface` / `AnimatedList` / `FlipCard` / `GhostCursor` / `GridMotion` / `RubberSegment` / `TiltedCard` / `Signature` / `PaperCrumple` 的引擎是 1:1 抽取，差异只在框架胶水与 DOM 归属）：
+前三个组件是 1:1 直译。后十八个在移植时处理了上游的几处问题或按 Vue 习惯调整，行为上有意不同（`SplashCursor` / `Shredder` / `SpotlightCard` / `GlassSurface` / `AnimatedList` / `FlipCard` / `GhostCursor` / `GridMotion` / `RubberSegment` / `TiltedCard` / `Signature` / `PaperCrumple` 的引擎是 1:1 抽取，差异只在框架胶水与 DOM 归属）：
 
 - `TerminalReplay` 的行内标签：上游的正则要求闭合标签带名字（`[/success]`），而它的数据全用 `[/]`，所以标签从来没有被解析过，是原样打印的。这里两种闭合都认。
 - `TerminalReplay` 跳过 spinner / progress 步骤时立即结束；上游会原地空转到该步骤的时长走完。
@@ -322,6 +332,7 @@ CSS 随 SFC 自动引入，不需要单独 import CSS 文件。根类名前缀�
 - `TiltedCard` 的 `children` / `backContent` / `overlayContent` 换成默认 / `#back` / `#overlay` 插槽；提供 `#back` 才进入可翻面交互。`flipped` 用 `v-model:flipped`，`onFlip` 换成 `flip` 事件；`onClick` 按原生事件透传。运行中改 props 会重启引擎（上游靠 ref 偷读最新值）。
 - `Signature` 用 `defineExpose` 暴露 React `forwardRef` 的方法；`onChange` / `onComplete` 换成 `change` / `complete` 事件。默认笔迹放在模块作用域，避免 `withDefaults` 引用 setup 局部变量导致编译失败。
 - `PaperCrumple` 的布料求解与 three.js 场景逐段搬到 `paperCrumplePhysics.ts` / `usePaperCrumple.ts`（`// @ts-nocheck` 保留原始数值算法，不引入类型注解改动计算）；`onStateChange` / `onError` 换成 `state-change` / `error` 事件。运行中改场景参数会重建整个 three.js 场景（上游的 effect 依赖也是这些 props）。
+- `ReflectiveCard` 的着色器 / WebGL 渲染器逐段搬到 `reflectiveCardEngine.ts`，生命周期在 `useReflectiveCard.ts`；`children` 换成默认插槽，`onWebcamError` 换成 `webcam-error` 事件。上下文恢复用 `generation` ref + `watch` 重建渲染器。
 
 ## 测试
 
@@ -339,7 +350,7 @@ pnpm check       # test + typecheck
 - `ScrollLockedVideoHero` 没有 poster：视频数据加载前显示深色背景和标题。
 - `TerminalReplay` 的无障碍文案、复制按钮标题和默认脚本沿用上游的写法，没有做本地化。
 - `PeakChart` 运行中修改 `width` 会重建画布并重播揭示动画（上游 effect 依赖 `[width, u]` 的语义）；`fontStretch` 的实际效果随平台字体支持变化。
-- 二十个组件都做了 SSR 安全处理：浏览器 API 只在 `onMounted` 或用户事件中访问；`LiquidNavbar` 的 `getContext` / `matchMedia` / `AudioContext` 同样如此。`GlassyDashboard` 的 `matchMedia` / `ResizeObserver` / `history` 也在挂载后才用；`SplashCursor` 的 `getContext` / `matchMedia`、`Shredder` 的 `ResizeObserver` / canvas 上下文、`SpotlightCard` 的 `matchMedia` / `IntersectionObserver` 同样只在挂载后访问；`GlassSurface` 的 `getContext` / `Image` / `ResizeObserver` / `IntersectionObserver` / `canvas 2d` 也都在挂载后；`AnimatedList` 的 `matchMedia` / `CSS.supports` / `IntersectionObserver` / `ResizeObserver` / `window` 监听同样只在挂载后；`FlipCard` 的 `useReducedMotion` / 指针捕获同样只在挂载与事件中；`GhostCursor` 的 `getContext` / `matchMedia` / `window` 指针监听 / `IntersectionObserver` 同样只在挂载后；`GridMotion` 的 `ResizeObserver` / `IntersectionObserver` / `window` 监听同样只在挂载后；`RubberSegment` 的 `ResizeObserver` / `document.fonts` / 指针捕获同样只在挂载后；`TiltedCard` 的 `matchMedia` / `IntersectionObserver` / 陀螺仪权限同样只在挂载后；`Signature` 的 canvas 2d / `devicePixelRatio` / `IntersectionObserver` 同样只在挂载后；`PaperCrumple` 的 `WebGLRenderer` / `TextureLoader` / `matchMedia` 同样只在挂载后。
+- 二十一个组件都做了 SSR 安全处理：浏览器 API 只在 `onMounted` 或用户事件中访问；`LiquidNavbar` 的 `getContext` / `matchMedia` / `AudioContext` 同样如此。`GlassyDashboard` 的 `matchMedia` / `ResizeObserver` / `history` 也在挂载后才用；`SplashCursor` 的 `getContext` / `matchMedia`、`Shredder` 的 `ResizeObserver` / canvas 上下文、`SpotlightCard` 的 `matchMedia` / `IntersectionObserver` 同样只在挂载后访问；`GlassSurface` 的 `getContext` / `Image` / `ResizeObserver` / `IntersectionObserver` / `canvas 2d` 也都在挂载后；`AnimatedList` 的 `matchMedia` / `CSS.supports` / `IntersectionObserver` / `ResizeObserver` / `window` 监听同样只在挂载后；`FlipCard` 的 `useReducedMotion` / 指针捕获同样只在挂载与事件中；`GhostCursor` 的 `getContext` / `matchMedia` / `window` 指针监听 / `IntersectionObserver` 同样只在挂载后；`GridMotion` 的 `ResizeObserver` / `IntersectionObserver` / `window` 监听同样只在挂载后；`RubberSegment` 的 `ResizeObserver` / `document.fonts` / 指针捕获同样只在挂载后；`TiltedCard` 的 `matchMedia` / `IntersectionObserver` / 陀螺仪权限同样只在挂载后；`Signature` 的 canvas 2d / `devicePixelRatio` / `IntersectionObserver` 同样只在挂载后；`PaperCrumple` 的 `WebGLRenderer` / `TextureLoader` / `matchMedia` 同样只在挂载后；`ReflectiveCard` 的 `getContext` / `getUserMedia` / `matchMedia` 同样只在挂载后。
 - `GlassyDashboard` 的示例数据固定三个周期（7/30/90 天）与四视图；CSV 只在浏览器本地生成，不上传。背景图为 Unsplash 远程资源，离线时只有底色。
 - `SplashCursor` 需要 WebGL2 与浮点纹理扩展；不支持时只显示静态降级提示。弱机建议 `quality="low"`，主题切到 `light` 时要配浅色背景。
 - `Shredder` 的行快照依赖 `SVG foreignObject` + canvas，跨域图片会被污染；同页多实例时各自独立（引擎状态不共享）。
@@ -354,3 +365,4 @@ pnpm check       # test + typecheck
 - `TiltedCard` 的陀螺仪需要 HTTPS 与用户手势授权；`prefers-reduced-motion` 下减小倾斜幅度并跳过自动漂浮与入场动画。
 - `Signature` 的 `toDataURL()` 依赖浏览器 canvas；导出 SVG 是独立实现，不依赖画布内容。`aspect` 决定画面高度（720 / aspect）。
 - `PaperCrumple` 依赖 `three`；揉皱路径按尺寸 / 折数缓存，首次生成会占用一些主线程时间。移动端建议降低 `detail`。
+- `ReflectiveCard` 需要 WebGL2；无 WebGL 时只有 CSS 卡面（没有金属反射）。摄像头反射依赖 HTTPS 与授权，弱机建议关掉 `webcam`。
