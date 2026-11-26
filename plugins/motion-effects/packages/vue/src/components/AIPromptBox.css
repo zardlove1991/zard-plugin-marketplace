@@ -48,10 +48,14 @@
 .aip button {
   font-family: inherit;
 }
-.aip button:focus-visible,
-.aip .aip__textarea:focus-visible {
+.aip button:focus-visible {
   outline: 2px solid rgba(156, 163, 175, 0.8);
   outline-offset: 2px;
+}
+/* 对齐 React 原件：textarea 用 focus-visible:outline-none，
+   点击输入框时不出现额外描边（容器自带边框，聚焦靠光标体现）。 */
+.aip .aip__textarea:focus-visible {
+  outline: none;
 }
 .aip button:disabled {
   pointer-events: none;
