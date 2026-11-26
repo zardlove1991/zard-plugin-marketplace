@@ -14,6 +14,7 @@ export { default as GlassSurface } from './components/GlassSurface.vue'
 export { default as AnimatedList } from './components/AnimatedList.vue'
 export { default as FlipCard } from './components/FlipCard.vue'
 export { default as GhostCursor } from './components/GhostCursor.vue'
+export { default as GridMotion } from './components/GridMotion.vue'
 export { ANIMATED_LIST_ITEMS, ANIMATED_LIST_ICONS } from './components/animatedListIcons'
 
 export type {
@@ -21,6 +22,10 @@ export type {
   AnimatedListItem,
   AnimatedListEntry,
   GhostCursorSettings,
+  GridMotionDirection,
+  GridMotionItem,
+  GridMotionSettings,
+  GridMotionTile,
   GhostCursorTheme,
   GlassBackdrop,
   GlassSurfaceChannel,

@@ -69,6 +69,33 @@ export type GlassBackdrop =
   | { current: HTMLImageElement | HTMLVideoElement | HTMLCanvasElement | null }
   | null
 
+
+export type GridMotionDirection = 'alternate' | 'left' | 'right'
+
+export type GridMotionItem = string | { src: string; alt?: string } | null | false
+
+export interface GridMotionTile {
+  kind: 'empty' | 'image' | 'text'
+  src?: string
+  alt?: string
+  text?: string
+}
+
+export interface GridMotionSettings {
+  items: GridMotionItem[]
+  rows: number
+  aspectRatio: number
+  gap: number
+  angle: number
+  tilt: number
+  speed: number
+  direction: GridMotionDirection
+  parallax: number
+  spotlight: number
+  dim: number
+  fade: number
+}
+
 export type GhostCursorTheme = 'dark' | 'light'
 
 export interface GhostCursorSettings {
