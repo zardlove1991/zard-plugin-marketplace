@@ -11,6 +11,7 @@ import SpecularButtonStage from '../../demos/SpecularButtonStage.vue'
 import TerminalReplayStage from '../../demos/TerminalReplayStage.vue'
 import PeakChartStage from '../../demos/PeakChartStage.vue'
 import SpotlightCardStage from '../../demos/SpotlightCardStage.vue'
+import LiquidNavbarStage from '../../demos/LiquidNavbarStage.vue'
 import StageFrame from './StageFrame.vue'
 import CustomizePanel from './CustomizePanel.vue'
 import PropTable from './PropTable.vue'
@@ -44,7 +45,8 @@ const STAGES = {
   'specular-button': SpecularButtonStage,
   'terminal-replay': TerminalReplayStage,
   'peak-chart': PeakChartStage,
-  'spotlight-card': SpotlightCardStage
+  'spotlight-card': SpotlightCardStage,
+  'liquid-glass-navbar': LiquidNavbarStage
 }
 
 /** 会劫持全局输入或需要整屏的组件：放进只渲染它自己的独立页面，再用 iframe 加载 */

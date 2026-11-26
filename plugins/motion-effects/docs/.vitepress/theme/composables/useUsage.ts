@@ -37,6 +37,9 @@ function attrTokens(name: string, value: unknown): Tok[] {
 
 const same = (a: unknown, b: unknown) => String(a) === String(b)
 
+/** select 控件的选项：字符串原样用作值和文案；对象形式用于值不是字符串的情况（如三态的 boolean） */
+export type SelectOption = string | { value: unknown; label: string }
+
 export interface PropDef {
   name: string
   type: string
@@ -48,7 +51,7 @@ export interface PropDef {
   max?: number
   step?: number
   unit?: string
-  options?: readonly string[]
+  options?: readonly SelectOption[]
   /** 文档预览台的初始值；与组件默认值不同时，用法代码里会把这一项写出来 */
   demo?: unknown
 }
@@ -66,8 +69,9 @@ export interface UsageOptions {
   all: ComputedRef<boolean>
 }
 
+/** 事件名到处理函数名：hold → onHold，update:active → onUpdateActive */
 const handlerOf = (event: string) =>
-  `on${event.charAt(0).toUpperCase()}${event.slice(1).replace(/[:-]/g, '')}`
+  'on' + event.split(/[:-]/).map(part => part.charAt(0).toUpperCase() + part.slice(1)).join('')
 
 export function useUsage({ schema, values, all }: UsageOptions) {
   const lines = computed<Tok[][]>(() => {
@@ -81,8 +85,11 @@ export function useUsage({ schema, values, all }: UsageOptions) {
       [],
       [kw(TEMPLATE_OPEN)]
     ]
+    // 值为 undefined 的 prop（比如三态的 compact）不写成属性，也就不占一行
     const attrs: Tok[][] = [
-      ...shown.map(prop => attrTokens(prop.name, values[prop.name] ?? prop.value)),
+      ...shown
+        .map(prop => attrTokens(prop.name, values[prop.name] ?? prop.value))
+        .filter(line => line.length > 0),
       ...(schema.events ?? []).map(
         event =>
           [

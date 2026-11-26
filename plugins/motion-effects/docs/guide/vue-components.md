@@ -1,6 +1,6 @@
 # Vue 组件（0.1）
 
-已有 10 个特效移植成 Vue 3 组件，详情页的预览台里直接渲染真实组件。其中 6 个（`HoldButton`、`SwipeRow`、`SpecularButton`、`TerminalReplay`、`PeakChart`、`SpotlightCard`）带「自定义」面板：改参数，预览实时跟着变，「代码」页签的用法片段只写出你改过的项。另外 4 个需要独占文档，放在 iframe 里加载：
+已有 11 个特效移植成 Vue 3 组件，详情页的预览台里直接渲染真实组件。其中 7 个（`HoldButton`、`SwipeRow`、`SpecularButton`、`TerminalReplay`、`PeakChart`、`SpotlightCard`、`LiquidNavbar`）带「自定义」面板：改参数，预览实时跟着变，「代码」页签的用法片段只写出你改过的项。另外 4 个需要独占文档，放在 iframe 里加载：
 
 | 组件 | 详情页 | 测试 |
 |---|---|---|
@@ -14,13 +14,14 @@
 | `SplashCursor` | [流体墨迹光标](/effects/splash-cursor) | `packages/vue/tests/splash-cursor.spec.ts` |
 | `Shredder` | [碎纸机](/effects/shredder) | `packages/vue/tests/shredder.spec.ts` |
 | `SpotlightCard` | [光斑卡片](/effects/spotlight-card) | `packages/vue/tests/spotlight-card.spec.ts` |
+| `LiquidNavbar` | [液态玻璃导航](/effects/liquid-glass-navbar) | `packages/vue/tests/liquid-navbar.spec.ts` |
 
 `ScrollLockedVideoHero` 会锁定所在页面的滚动，`GlassyDashboard` 是整屏工作区，`SplashCursor` 会铺满整个视口跟随光标，`Shredder` 需要一个固定宽度的父容器，四者的预览都放在 iframe 里；iframe 里跑的仍是同一个真实组件。
 
 ## 导入
 
 ```ts
-import { GlassyDashboard, HoldButton, PeakChart, ScrollLockedVideoHero, Shredder, SpecularButton, SpotlightCard, SplashCursor, SwipeRow, TerminalReplay } from '@motion-effects/vue'
+import { GlassyDashboard, HoldButton, LiquidNavbar, PeakChart, ScrollLockedVideoHero, Shredder, SpecularButton, SpotlightCard, SplashCursor, SwipeRow, TerminalReplay } from '@motion-effects/vue'
 import type { SwipeAction } from '@motion-effects/vue'
 ```
 
@@ -196,6 +197,26 @@ import { SpotlightCard } from '@motion-effects/vue'
 </template>
 ```
 
+### LiquidNavbar
+
+```vue
+<script setup lang="ts">
+import { LiquidNavbar, NimbusIcons } from '@motion-effects/vue'
+import type { LiquidNavItem } from '@motion-effects/vue'
+
+const items: LiquidNavItem[] = [
+  { label: 'Home', href: '/', icon: NimbusIcons.home, fx: 'glow' },
+  { label: 'Docs', href: '/docs', icon: NimbusIcons.globe, fx: 'spin' }
+]
+</script>
+
+<template>
+  <LiquidNavbar :items="items" tone="dark" sound />
+</template>
+```
+
+亮背景用 `tone="light"`，深色背景用 `tone="dark"`；`sound` 打开时点击有一声合成的"叮"。
+
 指针扫过卡片时打出一团柔光，边缘在靠近时被照亮。`shape="beam"` 把光从顶边打下来；`proximity` 让指针还没进入卡片就开始照亮（相邻卡片共享一团光）；`ambient` 让无指针时缓慢漂移；`flare` 在按住时膨胀变亮；`grain` 叠加胶片颗粒。零第三方依赖，主题用 `theme` 或 `--spotlight-card-surface` / `--spotlight-card-border` 覆盖。
 
 ## 契约与限制
@@ -211,8 +232,9 @@ import { SpotlightCard } from '@motion-effects/vue'
 - `SplashCursor` 无 WebGL2 时显示降级提示；同页最多一个实例；props 变化时整体重启引擎（装饰性组件），浏览器上下文丢失后自动重建。
 - `Shredder` 用 `#item` 插槽替代 `renderItem`；行快照对跨域图片敏感（需要 CORS）；`shred` 后需自行从 `items` 移除该项，除非开启循环类 props；props 变化会整体重建引擎。
 - `SpotlightCard` 用默认插槽放卡片内容；`class` / `style` 与其它 div 属性自动透传到根元素；`theme` 只切换表面 / 边框 / 阴影与光色，文字颜色仍由内容自己决定。
+- `LiquidNavbar` 的当前项走 `v-model:active`；`items` 里 `href` 有值渲染成链接、`icon` 传 Vue 组件；`compact` 不传时 520px 以下自动收成纯图标；没有 WebGL 时退回 CSS 水滴。
 - 后七个与 React 原件有几处有意的行为差异，清单见上面那份 README 的「与 React 原件的差异」。
-- 十个组件都做了 SSR 安全处理，浏览器 API 只在 `onMounted` 或用户事件中访问。
+- 十一个组件都做了 SSR 安全处理，浏览器 API 只在 `onMounted` 或用户事件中访问。
 - 当前是 workspace 私有包，未发布 npm；外部项目可复制 `packages/vue/src` 或等待发布。
 
 ## 本地测试

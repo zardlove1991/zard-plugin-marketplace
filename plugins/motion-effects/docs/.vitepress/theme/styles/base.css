@@ -13,6 +13,8 @@ html {
   background: var(--me-bg);
   scrollbar-color: rgb(255 255 255 / 0.18) transparent;
   scrollbar-width: thin;
+  /* 顶栏是吸顶的：锚点跳转、键盘聚焦带过去的滚动要给它留出高度，否则目标被盖在下面 */
+  scroll-padding-top: calc(var(--me-header-h) + 24px);
 }
 
 body {

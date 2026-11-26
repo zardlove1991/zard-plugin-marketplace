@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import type { PropDef } from '../../composables/useUsage'
+import type { PropDef, SelectOption } from '../../composables/useUsage'
 import { useValues } from '../../composables/useValues'
 
 const props = defineProps<{ schema: { props: PropDef[] } }>()
@@ -16,6 +16,12 @@ function reset() {
     if (prop.control) values[prop.name] = prop.value
   }
 }
+
+const isLabeled = (option: SelectOption): option is { value: unknown; label: string } =>
+  typeof option === 'object' && option !== null
+const optionKey = (option: SelectOption) => (isLabeled(option) ? option.label : option)
+const optionValue = (option: SelectOption) => (isLabeled(option) ? option.value : option)
+const optionLabel = (option: SelectOption) => (isLabeled(option) ? option.label : option)
 
 const unit = (prop: PropDef) => (prop.unit ? ` ${prop.unit}` : '')
 const display = (prop: PropDef) => {
@@ -89,7 +95,9 @@ const display = (prop: PropDef) => {
         </button>
 
         <select v-else-if="prop.control === 'select'" v-model="values[prop.name]" class="ctl__input">
-          <option v-for="option in prop.options" :key="option" :value="option">{{ option }}</option>
+          <option v-for="option in prop.options" :key="optionKey(option)" :value="optionValue(option)">
+            {{ optionLabel(option) }}
+          </option>
         </select>
 
         <label v-else-if="prop.control === 'color'" class="ctl__color">

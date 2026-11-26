@@ -129,11 +129,11 @@ export const EFFECTS = [
     note: 'logo 纹理必须同源 / CORS；background 要匹配页面底色；time 可用于滚动驱动。'
   },
   {
-    id: 'liquid-glass-navbar', name: 'LiquidNavbar', zh: '液态玻璃导航', cat: '导航与页面', vue: 'hard', height: 480,
+    id: 'liquid-glass-navbar', name: 'LiquidNavbar', zh: '液态玻璃导航', cat: '导航与页面', vue: 'hard', vueReady: true, height: 480,
     desc: '液态玻璃导航栏：点击时水体波纹、图标小场景与合成音效，无 WebGL 自动降级。',
     deps: [], demo: 'navbar.html', source: 'react/components/ui/liquid-glass-navbar.tsx',
     props: ['items', 'active', 'tone', 'compact', 'sound'],
-    note: '音效需要用户手势后才能播放；移动端留 env(safe-area-inset-bottom)。'
+    note: '音效需要用户手势后才能播放；移动端留 env(safe-area-inset-bottom)。Vue 实装的当前项走 v-model:active；上下文丢失后退回 CSS 水滴，恢复后自动重建；卸载时关闭音频上下文。'
   },
   {
     id: 'scroll-video-hero', name: 'ScrollVideoHero', zh: '滚动锁定视频', cat: '导航与页面', vue: 'easy', vueReady: true, height: 640,

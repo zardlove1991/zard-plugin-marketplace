@@ -67,10 +67,11 @@
 | `SplashCursor` | `../../packages/vue/src/components/SplashCursor.vue` | `../../packages/vue/tests/splash-cursor.spec.ts` |
 | `Shredder` | `../../packages/vue/src/components/Shredder.vue` | `../../packages/vue/tests/shredder.spec.ts` |
 | `SpotlightCard` | `../../packages/vue/src/components/SpotlightCard.vue` | `../../packages/vue/tests/spotlight-card.spec.ts` |
+| `LiquidNavbar` | `../../packages/vue/src/components/LiquidNavbar.vue` | `../../packages/vue/tests/liquid-navbar.spec.ts` |
 
 其余 14 个仍以 React 源码 + vanilla 演示为真源，按需按 `vue-porting.md` 移植。`GlassSurface` 因 SVG + WebGL 双路径，放在下一批。
 
-后七个（`TerminalReplay`、`ScrollLockedVideoHero`、`PeakChart`、`GlassyDashboard`、`SplashCursor`、`Shredder`、`SpotlightCard`）与 React 原件有几处有意的行为差异，见 `../../packages/vue/README.md` 的「与 React 原件的差异」。
+后八个（`TerminalReplay`、`ScrollLockedVideoHero`、`PeakChart`、`GlassyDashboard`、`SplashCursor`、`Shredder`、`SpotlightCard`、`LiquidNavbar`）与 React 原件有几处有意的行为差异，见 `../../packages/vue/README.md` 的「与 React 原件的差异」。
 
 > Vue 实装自带 CSS，不依赖 Tailwind；需要安装的依赖见下面「依赖安装」。
 
@@ -232,10 +233,11 @@ React 项目对应：`motion` + `@hugeicons/react`；`glassy-dashboard` 另需 `
 ## 17. liquid-glass-navbar · 液态玻璃导航
 
 - **源码**：`liquid-glass-navbar.tsx`；**演示**：`navbar.html`
+- **Vue 实装**：`../../packages/vue/src/components/LiquidNavbar.vue`（已测试；引擎在 `../../packages/vue/src/composables/useLiquidNavbar.ts`）
 - **适用**：深色官网/产品页底部或顶部导航，点击有水体波纹与音效。
 - **关键 API**：`items`（`{ label, href, icon, fx }`，`fx` = `glow`/`spin`/`plane`/`drop`/`wave`/`pop`/`none`）、`defaultActive`、`active`、`onChange`、`tone`（`light`/`dark`）、`compact`、`sound`。
-- **移植要点**：单个 TSX 内嵌 WebGL shader + CSS 水滴降级 + Web Audio 合成音；Vue 原样搬，`active` 用 `defineModel`。`NimbusIcons` 可直接复用或换项目图标。
-- **注意**：音效需要用户手势后才能播放；`compact` 是纯图标模式；无 WebGL 时自动降级，别额外做第二套；移动端底部安全区（`env(safe-area-inset-bottom)`）要留。
+- **移植要点**：单个 TSX 内嵌 WebGL（1）着色器 + CSS 水滴降级 + Web Audio 合成音，零依赖；引擎原样抽进 composable，逐帧状态用普通对象。当前项走 `v-model:active`，不保留 `onChange`；`icon` 从 React 节点换成 Vue 组件（随包导出 `NimbusIcons`），`href` 有值渲染成链接、否则是按钮。水体是 GLSL ES 1.00（`gl_FragColor`），走 `getContext('webgl')`，和库里其它组件的 WebGL2 不是一回事。
+- **注意**：音效需要用户手势后才能播放；`compact` 是三态（不传时 520px 以下自动收成纯图标）；无 WebGL 或着色器编译失败时自动退回 CSS 水滴，别额外做第二套；折射（`backdrop-filter: url(#…)`）只有 Chromium 支持；移动端底部安全区（`env(safe-area-inset-bottom)`）要留。Vue 实装的上下文丢失后会随浏览器恢复并重建着色器，`prefers-reduced-motion` 下帧循环在到位后停下。
 
 ## 18. scroll-locked-video-hero · 滚动锁定视频 Hero
 
