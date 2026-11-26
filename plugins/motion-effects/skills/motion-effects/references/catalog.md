@@ -72,10 +72,11 @@
 | `AnimatedList` | `../../packages/vue/src/components/AnimatedList.vue` | `../../packages/vue/tests/animated-list.spec.ts` |
 | `FlipCard` | `../../packages/vue/src/components/FlipCard.vue` | `../../packages/vue/tests/flip-card.spec.ts` |
 | `GhostCursor` | `../../packages/vue/src/components/GhostCursor.vue` | `../../packages/vue/tests/ghost-cursor.spec.ts` |
+| `GridMotion` | `../../packages/vue/src/components/GridMotion.vue` | `../../packages/vue/tests/grid-motion.spec.ts` |
 
-其余 10 个仍以 React 源码 + vanilla 演示为真源，按需按 `vue-porting.md` 移植。
+其余 9 个仍以 React 源码 + vanilla 演示为真源，按需按 `vue-porting.md` 移植。
 
-后十二个（`TerminalReplay`、`ScrollLockedVideoHero`、`PeakChart`、`GlassyDashboard`、`SplashCursor`、`Shredder`、`SpotlightCard`、`LiquidNavbar`、`GlassSurface`、`AnimatedList`、`FlipCard`、`GhostCursor`）与 React 原件有几处有意的行为差异，见 `../../packages/vue/README.md` 的「与 React 原件的差异」。
+后十三个（`TerminalReplay`、`ScrollLockedVideoHero`、`PeakChart`、`GlassyDashboard`、`SplashCursor`、`Shredder`、`SpotlightCard`、`LiquidNavbar`、`GlassSurface`、`AnimatedList`、`FlipCard`、`GhostCursor`、`GridMotion`）与 React 原件有几处有意的行为差异，见 `../../packages/vue/README.md` 的「与 React 原件的差异」。
 
 > Vue 实装自带 CSS，不依赖 Tailwind；需要安装的依赖见下面「依赖安装」。
 
@@ -142,9 +143,10 @@ React 项目对应：`motion` + `@hugeicons/react`；`glassy-dashboard` 另需 `
 ## 5. GridMotion · 动感网格墙
 
 - **源码**：`GridMotion.jsx`；**演示**：`grid-motion.html`
+- **Vue 实装**：`../../packages/vue/src/components/GridMotion.vue`（已测试；引擎在 `../../packages/vue/src/composables/useGridMotion.ts`，样式从 demo 抽成 `GridMotion.css`）
 - **适用**：作品集照片墙、客户 Logo 墙、关键词墙、产品图流。
 - **关键 API**：`items`（字符串 → 文字块；`{ src, alt }` → 图片；VNode → 自定义节点）、`rows`、`aspectRatio`、`gap`、`radius`、`angle`、`tilt`、`speed`、`direction`（`alternate`/`up`/`down`/`left`/`right`）、`parallax`、`spotlight`、`dim`、`grayscale`、`fade`、`tileColor`、`textColor`、`theme`。
-- **移植要点**：**依赖 Tailwind**（类名是常量字符串）；Vue 项目若没有 Tailwind，直接复用 `assets/demos/grid-motion.html` 的 `.gm-*` 规则（与组件等价），不要逐条翻译任意值类。滚动用 rAF 写 `transform`，不要变成响应式逐帧更新。
+- **移植要点**：React 版依赖 Tailwind（类名是常量字符串）；Vue 实装直接把 demo 的 `.gm-*` 规则落成 `GridMotion.css` 全局引入，不依赖 Tailwind。滚动 / 聚光用 rAF 写 `transform` 与 `--spot`，逐帧状态是普通数组 / Float32Array，不进响应式；`isValidElement` 的节点项换成 `#tile` 作用域插槽。
 - **注意**：图片走 `<img>`，注意 CORS/尺寸；`items` 少于 `rows × perRow` 会循环填充；移动端降低 `rows` 与 `speed`。
 
 ## 6. HoldButton · 长按确认

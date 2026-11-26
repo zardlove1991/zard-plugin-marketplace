@@ -45,11 +45,11 @@ export const EFFECTS = [
     note: '背后要有内容才看得出折射；背景图必须同源或 CORS 允许，否则纹理被污染。Vue 实装的默认插槽放内容，Chromium 走 SVG 色散折射、其它浏览器给 backdrop 才走 WebGL2，两者都不可用退回雾面；backdrop 接受 DOM 或模板 ref。'
   },
   {
-    id: 'grid-motion', name: 'GridMotion', zh: '动感网格墙', cat: '氛围与装饰', vue: 'mid', height: 600,
+    id: 'grid-motion', name: 'GridMotion', zh: '动感网格墙', cat: '氛围与装饰', vue: 'mid', vueReady: true, height: 600,
     desc: '倾斜的自动滚动网格墙，支持图片 / 文字 / 自定义节点、聚光、视差与边缘渐隐。',
     deps: ['Tailwind'], demo: 'grid-motion.html', source: 'react/components/ui/GridMotion.jsx',
     props: ['items', 'rows', 'angle', 'speed', 'direction', 'spotlight', 'fade'],
-    note: 'Tailwind 是硬依赖；不用 Tailwind 时复用 demo 的 .gm-* CSS。items 可为图片、文字或节点；移动端降低 rows 与 speed。'
+    note: 'Tailwind 是硬依赖；不用 Tailwind 时复用 demo 的 .gm-* CSS。items 可为图片、文字或节点；移动端降低 rows 与 speed。Vue 实装已自带抽出的 .gm-* CSS，不依赖 Tailwind；节点项换成 #tile 插槽。'
   },
   {
     id: 'hold-button', name: 'HoldButton', zh: '长按确认', cat: '操作与反馈', vue: 'easy', vueReady: true, height: 420,

@@ -16,6 +16,7 @@ import GlassSurfaceStage from '../../demos/GlassSurfaceStage.vue'
 import AnimatedListStage from '../../demos/AnimatedListStage.vue'
 import FlipCardStage from '../../demos/FlipCardStage.vue'
 import GhostCursorStage from '../../demos/GhostCursorStage.vue'
+import GridMotionStage from '../../demos/GridMotionStage.vue'
 import StageFrame from './StageFrame.vue'
 import CustomizePanel from './CustomizePanel.vue'
 import PropTable from './PropTable.vue'
@@ -54,7 +55,8 @@ const STAGES = {
   'glass-surface': GlassSurfaceStage,
   'animated-list': AnimatedListStage,
   'flip-card': FlipCardStage,
-  'ghost-cursor': GhostCursorStage
+  'ghost-cursor': GhostCursorStage,
+  'grid-motion': GridMotionStage
 }
 
 /** 会劫持全局输入或需要整屏的组件：放进只渲染它自己的独立页面，再用 iframe 加载 */
