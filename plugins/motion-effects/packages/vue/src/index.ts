@@ -21,6 +21,7 @@ export { default as TiltedCardLayer } from './components/TiltedCardLayer.vue'
 export { default as Signature } from './components/Signature.vue'
 export { default as PaperCrumple } from './components/PaperCrumple.vue'
 export { default as ReflectiveCard } from './components/ReflectiveCard.vue'
+export { default as PillNav } from './components/PillNav.vue'
 export { ANIMATED_LIST_ITEMS, ANIMATED_LIST_ICONS } from './components/animatedListIcons'
 
 export type {
@@ -37,6 +38,7 @@ export type {
   SignatureMode,
   SignaturePen,
   SignaturePoint,
+  PillNavItem,
   SignatureStrokes,
   SignatureTheme,
   GhostCursorTheme,

@@ -73,6 +73,13 @@ export type GlassBackdrop =
 export type RubberSegmentSize = 'sm' | 'md' | 'lg'
 
 
+export interface PillNavItem {
+  label: string
+  href?: string
+  icon?: Component | null
+  ariaLabel?: string
+}
+
 export interface SignaturePoint {
   x: number
   y: number
