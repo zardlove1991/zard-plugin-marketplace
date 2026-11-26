@@ -73,6 +73,22 @@ export type GlassBackdrop =
 export type RubberSegmentSize = 'sm' | 'md' | 'lg'
 
 
+export interface MagicBentoItem {
+  id?: string | number
+  title?: string
+  description?: string
+  label?: string
+  icon?: unknown
+  image?: string
+  href?: string
+  target?: string
+  rel?: string
+  visual?: string | unknown
+  content?: unknown
+  colSpan?: number
+  rowSpan?: number
+}
+
 export interface PillNavItem {
   label: string
   href?: string

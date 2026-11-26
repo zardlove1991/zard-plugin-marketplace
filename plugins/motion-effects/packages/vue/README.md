@@ -1,6 +1,6 @@
 # @motion-effects/vue
 
-`motion-effects` 的 Vue 3 实装包（0.1）。当前包含 22 个已完成移植并有 Vitest 覆盖的组件：
+`motion-effects` 的 Vue 3 实装包（0.1）。当前包含 23 个已完成移植并有 Vitest 覆盖的组件：
 
 | 组件 | 说明 | 依赖 |
 |---|---|---|
@@ -26,8 +26,9 @@
 | `PaperCrumple` | three.js 纸张揉皱：按住揉成团 / 拖拽移动 / 键盘操作 / 折痕残留 | `three` |
 | `ReflectiveCard` | 金属反射证件卡：WebGL2 环境反射 / 倾斜眩光 / 可选摄像头反射 | Hugeicons（内置内容） |
 | `PillNav` | 胶囊导航：弹簧滑动指示条 / 悬停填充 / 窄屏折叠菜单 | Hugeicons（仅项目图标） |
+| `MagicBento` | 功能磁贴 Bento：聚光 / 边框光 / 粒子 / 倾斜磁吸 / 六种内置可视化 | Hugeicons（仅内置可视化） |
 
-其余 3 个特效仍以 React 源码 + vanilla 演示为真源，按需按 `references/vue-porting.md` 移植。
+其余 2 个特效仍以 React 源码 + vanilla 演示为真源，按需按 `references/vue-porting.md` 移植。
 
 > `TerminalReplay`、`ScrollLockedVideoHero`、`PeakChart`、`GlassyDashboard` 和 `LiquidNavbar` 按 Vue 习惯设计：没有 `className` prop，`class` / `style` 自动透传到根元素；受控状态只走 `v-model`，不另发 `xxx-change` 事件。前三个组件仍保留 React 式的 `className` 与 `open-change`；`SplashCursor` / `GlassSurface` / `AnimatedList` 保留了 React 原件的 `className` / `style` props；`Shredder` 保留 React 的 `className` prop，但用 `#item` 插槽替代 `renderItem`，事件改走 `shred` / `reorder`；`SpotlightCard` 保留 `className` 与默认插槽，其余 div 属性自动透传。
 
@@ -306,9 +307,18 @@ CSS 随 SFC 自动引入，不需要单独 import CSS 文件。根类名前缀�
 - `collapse="auto"` 按父容器可用宽度自动折叠，折叠后显示汉堡按钮与弹出菜单；Escape / 外部点击关闭菜单
 - 根类名前缀 `.pill-nav`
 
+### MagicBento
+
+- props：`items`（`MagicBentoItem[]`，默认 6 个带内置可视化的磁贴）、`columns`（`4`）、`rowHeight`（`200`）、`gap`、`radius`、`theme`、`glowColor`、`textAutoHide`、`enableBorderGlow`、`enableSpotlight`、`spotlightRadius`、`enableStars`、`particleCount`、`enableTilt`、`enableMagnetism`、`clickEffect`、`intro`、`disableAnimations`、`className`、`style`
+- `MagicBentoItem`：`id?` / `title` / `description` / `label` / `icon` / `image` / `href` / `target` / `rel` / `visual` / `content` / `colSpan` / `rowSpan`；`visual` 传内置名（`analytics` / `dashboard` / `collaboration` / `automation` / `integration` / `security`）或 Vue 组件
+- 插槽：`#item`（`{ item, index }`）替换整个磁贴内容
+- emits：`item-click`（`[item, index]`）
+- 聚光跟随指针，边框光沿卡片边缘扩散；粒子层用 canvas 2d，倾斜与磁吸按指针位置驱动；点击触发波纹与内置可视化的重播动画
+- 根类名前缀 `.magic-bento`
+
 ## 与 React 原件的差异
 
-前三个组件是 1:1 直译。后十九个在移植时处理了上游的几处问题或按 Vue 习惯调整，行为上有意不同（`SplashCursor` / `Shredder` / `SpotlightCard` / `GlassSurface` / `AnimatedList` / `FlipCard` / `GhostCursor` / `GridMotion` / `RubberSegment` / `TiltedCard` / `Signature` / `PaperCrumple` 的引擎是 1:1 抽取，差异只在框架胶水与 DOM 归属）：
+前三个组件是 1:1 直译。后二十个在移植时处理了上游的几处问题或按 Vue 习惯调整，行为上有意不同（`SplashCursor` / `Shredder` / `SpotlightCard` / `GlassSurface` / `AnimatedList` / `FlipCard` / `GhostCursor` / `GridMotion` / `RubberSegment` / `TiltedCard` / `Signature` / `PaperCrumple` 的引擎是 1:1 抽取，差异只在框架胶水与 DOM 归属）：
 
 - `TerminalReplay` 的行内标签：上游的正则要求闭合标签带名字（`[/success]`），而它的数据全用 `[/]`，所以标签从来没有被解析过，是原样打印的。这里两种闭合都认。
 - `TerminalReplay` 跳过 spinner / progress 步骤时立即结束；上游会原地空转到该步骤的时长走完。
@@ -343,6 +353,7 @@ CSS 随 SFC 自动引入，不需要单独 import CSS 文件。根类名前缀�
 - `PaperCrumple` 的布料求解与 three.js 场景逐段搬到 `paperCrumplePhysics.ts` / `usePaperCrumple.ts`（`// @ts-nocheck` 保留原始数值算法，不引入类型注解改动计算）；`onStateChange` / `onError` 换成 `state-change` / `error` 事件。运行中改场景参数会重建整个 three.js 场景（上游的 effect 依赖也是这些 props）。
 - `ReflectiveCard` 的着色器 / WebGL 渲染器逐段搬到 `reflectiveCardEngine.ts`，生命周期在 `useReflectiveCard.ts`；`children` 换成默认插槽，`onWebcamError` 换成 `webcam-error` 事件。上下文恢复用 `generation` ref + `watch` 重建渲染器。
 - `PillNav` 的 `linkComponent` 换成 `<a>` / `<button>`（按 `item.href` 决定），`logo` 节点换成 `#logo` 插槽；`activeHref` 用 `v-model:activeHref` 受控并另发 `item-click` / `menu-toggle`。折叠检测、入场与菜单动画按 Vue 生命周期重写，WAAPI 不可用时直接落终态。
+- `MagicBento` 的六个内置可视化逐段搬成 `MagicBentoVisual.vue`（JSX → Vue 模板 + `<component :is>`）；`renderItem` 换成 `#item` 插槽，`onItemClick` 换成 `item-click`。引擎 / 常量 / WAAPI 重播集合放在 `magicBentoHelpers.ts` / `useMagicBento.ts`（`// @ts-nocheck` 保留原始数值逻辑）。
 
 ## 测试
 
@@ -360,7 +371,7 @@ pnpm check       # test + typecheck
 - `ScrollLockedVideoHero` 没有 poster：视频数据加载前显示深色背景和标题。
 - `TerminalReplay` 的无障碍文案、复制按钮标题和默认脚本沿用上游的写法，没有做本地化。
 - `PeakChart` 运行中修改 `width` 会重建画布并重播揭示动画（上游 effect 依赖 `[width, u]` 的语义）；`fontStretch` 的实际效果随平台字体支持变化。
-- 二十二个组件都做了 SSR 安全处理：浏览器 API 只在 `onMounted` 或用户事件中访问；`LiquidNavbar` 的 `getContext` / `matchMedia` / `AudioContext` 同样如此。`GlassyDashboard` 的 `matchMedia` / `ResizeObserver` / `history` 也在挂载后才用；`SplashCursor` 的 `getContext` / `matchMedia`、`Shredder` 的 `ResizeObserver` / canvas 上下文、`SpotlightCard` 的 `matchMedia` / `IntersectionObserver` 同样只在挂载后访问；`GlassSurface` 的 `getContext` / `Image` / `ResizeObserver` / `IntersectionObserver` / `canvas 2d` 也都在挂载后；`AnimatedList` 的 `matchMedia` / `CSS.supports` / `IntersectionObserver` / `ResizeObserver` / `window` 监听同样只在挂载后；`FlipCard` 的 `useReducedMotion` / 指针捕获同样只在挂载与事件中；`GhostCursor` 的 `getContext` / `matchMedia` / `window` 指针监听 / `IntersectionObserver` 同样只在挂载后；`GridMotion` 的 `ResizeObserver` / `IntersectionObserver` / `window` 监听同样只在挂载后；`RubberSegment` 的 `ResizeObserver` / `document.fonts` / 指针捕获同样只在挂载后；`TiltedCard` 的 `matchMedia` / `IntersectionObserver` / 陀螺仪权限同样只在挂载后；`Signature` 的 canvas 2d / `devicePixelRatio` / `IntersectionObserver` 同样只在挂载后；`PaperCrumple` 的 `WebGLRenderer` / `TextureLoader` / `matchMedia` 同样只在挂载后；`ReflectiveCard` 的 `getContext` / `getUserMedia` / `matchMedia` 同样只在挂载后；`PillNav` 的 `matchMedia` / `ResizeObserver` / `document.fonts` 同样只在挂载后。
+- 二十三个组件都做了 SSR 安全处理：浏览器 API 只在 `onMounted` 或用户事件中访问；`LiquidNavbar` 的 `getContext` / `matchMedia` / `AudioContext` 同样如此。`GlassyDashboard` 的 `matchMedia` / `ResizeObserver` / `history` 也在挂载后才用；`SplashCursor` 的 `getContext` / `matchMedia`、`Shredder` 的 `ResizeObserver` / canvas 上下文、`SpotlightCard` 的 `matchMedia` / `IntersectionObserver` 同样只在挂载后访问；`GlassSurface` 的 `getContext` / `Image` / `ResizeObserver` / `IntersectionObserver` / `canvas 2d` 也都在挂载后；`AnimatedList` 的 `matchMedia` / `CSS.supports` / `IntersectionObserver` / `ResizeObserver` / `window` 监听同样只在挂载后；`FlipCard` 的 `useReducedMotion` / 指针捕获同样只在挂载与事件中；`GhostCursor` 的 `getContext` / `matchMedia` / `window` 指针监听 / `IntersectionObserver` 同样只在挂载后；`GridMotion` 的 `ResizeObserver` / `IntersectionObserver` / `window` 监听同样只在挂载后；`RubberSegment` 的 `ResizeObserver` / `document.fonts` / 指针捕获同样只在挂载后；`TiltedCard` 的 `matchMedia` / `IntersectionObserver` / 陀螺仪权限同样只在挂载后；`Signature` 的 canvas 2d / `devicePixelRatio` / `IntersectionObserver` 同样只在挂载后；`PaperCrumple` 的 `WebGLRenderer` / `TextureLoader` / `matchMedia` 同样只在挂载后；`ReflectiveCard` 的 `getContext` / `getUserMedia` / `matchMedia` 同样只在挂载后；`PillNav` 的 `matchMedia` / `ResizeObserver` / `document.fonts` 同样只在挂载后；`MagicBento` 的 `matchMedia` / `ResizeObserver` / `getAnimations` / `canvas 2d` 同样只在挂载后。
 - `GlassyDashboard` 的示例数据固定三个周期（7/30/90 天）与四视图；CSV 只在浏览器本地生成，不上传。背景图为 Unsplash 远程资源，离线时只有底色。
 - `SplashCursor` 需要 WebGL2 与浮点纹理扩展；不支持时只显示静态降级提示。弱机建议 `quality="low"`，主题切到 `light` 时要配浅色背景。
 - `Shredder` 的行快照依赖 `SVG foreignObject` + canvas，跨域图片会被污染；同页多实例时各自独立（引擎状态不共享）。
@@ -377,3 +388,4 @@ pnpm check       # test + typecheck
 - `PaperCrumple` 依赖 `three`；揉皱路径按尺寸 / 折数缓存，首次生成会占用一些主线程时间。移动端建议降低 `detail`。
 - `ReflectiveCard` 需要 WebGL2；无 WebGL 时只有 CSS 卡面（没有金属反射）。摄像头反射依赖 HTTPS 与授权，弱机建议关掉 `webcam`。
 - `PillNav` 的 `collapse="auto"` 依赖父容器宽度与 CSS 变量计算，父容器需要有明确宽度；`intro` 动画用 Web Animations API，不支持时直接显示终态。
+- `MagicBento` 的粒子层需要 canvas 2d；内置可视化是静态演示，不依赖真实数据。`items` 里的 `icon` / `visual` 若为组件，放进响应式数据时要 `markRaw`。
