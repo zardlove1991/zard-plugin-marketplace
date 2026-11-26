@@ -254,7 +254,7 @@ CSS 随 SFC 自动引入，不需要单独 import CSS 文件。根类名前缀�
 
 - props：`items`（`string` 或 `{ value, label, icon }`）、`value`（`v-model`）、`defaultValue`、`trackColor`、`thumbColor`、`textColor`、`activeTextColor`、`size`（`sm` / `md` / `lg`）、`radius`（`10`）、`inset`（`3`）、`equalSlots`、`stretch`、`squash`、`speed`、`glide`、`draggable`、`disabled`、`className`、`ariaLabel`
 - emits：`update:modelValue`、`change`（`[value, index]`）
-- 拖拽滑块越过两端会按橡皮筋公式回拉；快速甩动按最近 100ms 速度投影落点，必要时多跳一格；静止轻点another 格子时会先挤压再交接
+- 拖拽滑块越过两端会按橡皮筋公式回拉；快速甩动按最近 100ms 速度投影落点，必要时多跳一格；静止轻点另一个格子时会先挤压再交接
 - 键盘：↑ / ↓ / ← / → / Home / End 切换，焦点跟随当前项；`prefers-reduced-motion` 下直接跳位
 - 根类名前缀 `.rubber-segment`；滑块用 `clipPath` MotionValue 裁切两份文本，逐帧位置不进响应式
 

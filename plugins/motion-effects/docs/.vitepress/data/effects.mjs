@@ -87,7 +87,7 @@ export const EFFECTS = [
     note: '摄像头默认关闭，必须用户手势触发并在卸载时 stop tracks；无 WebGL2 要静态降级。'
   },
   {
-    id: 'rubber-segment', name: 'RubberSegment', zh: '橡皮筋分段', cat: '操作与反馈', vue: 'mid', height: 360,
+    id: 'rubber-segment', name: 'RubberSegment', zh: '橡皮筋分段', cat: '操作与反馈', vue: 'mid', vueReady: true, height: 360,
     desc: '可拖拽的分段控件，切换时滑块拉伸、挤压、回弹，带橡皮筋边界手感。',
     deps: ['motion-v'], demo: 'rubber-segment.html', source: 'react/components/ui/RubberSegment.jsx',
     props: ['items', 'v-model', 'draggable', 'stretch', 'squash', 'glide'],

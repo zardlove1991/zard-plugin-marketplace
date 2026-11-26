@@ -73,10 +73,11 @@
 | `FlipCard` | `../../packages/vue/src/components/FlipCard.vue` | `../../packages/vue/tests/flip-card.spec.ts` |
 | `GhostCursor` | `../../packages/vue/src/components/GhostCursor.vue` | `../../packages/vue/tests/ghost-cursor.spec.ts` |
 | `GridMotion` | `../../packages/vue/src/components/GridMotion.vue` | `../../packages/vue/tests/grid-motion.spec.ts` |
+| `RubberSegment` | `../../packages/vue/src/components/RubberSegment.vue` | `../../packages/vue/tests/rubber-segment.spec.ts` |
 
-其余 9 个仍以 React 源码 + vanilla 演示为真源，按需按 `vue-porting.md` 移植。
+其余 8 个仍以 React 源码 + vanilla 演示为真源，按需按 `vue-porting.md` 移植。
 
-后十三个（`TerminalReplay`、`ScrollLockedVideoHero`、`PeakChart`、`GlassyDashboard`、`SplashCursor`、`Shredder`、`SpotlightCard`、`LiquidNavbar`、`GlassSurface`、`AnimatedList`、`FlipCard`、`GhostCursor`、`GridMotion`）与 React 原件有几处有意的行为差异，见 `../../packages/vue/README.md` 的「与 React 原件的差异」。
+后十四个（`TerminalReplay`、`ScrollLockedVideoHero`、`PeakChart`、`GlassyDashboard`、`SplashCursor`、`Shredder`、`SpotlightCard`、`LiquidNavbar`、`GlassSurface`、`AnimatedList`、`FlipCard`、`GhostCursor`、`GridMotion`、`RubberSegment`）与 React 原件有几处有意的行为差异，见 `../../packages/vue/README.md` 的「与 React 原件的差异」。
 
 > Vue 实装自带 CSS，不依赖 Tailwind；需要安装的依赖见下面「依赖安装」。
 
@@ -193,6 +194,7 @@ React 项目对应：`motion` + `@hugeicons/react`；`glassy-dashboard` 另需 `
 ## 11. RubberSegment · 橡皮筋分段
 
 - **源码**：`RubberSegment.jsx` + `RubberSegment.css`；**演示**：`rubber-segment.html`
+- **Vue 实装**：`../../packages/vue/src/components/RubberSegment.vue`（已测试；引擎在 `../../packages/vue/src/composables/useRubberSegment.ts`）
 - **适用**：移动端 Tab 切换、筛选器、视图切换；拖拽时有橡皮筋手感。
 - **关键 API**：`items`（字符串或 `{ value, label }`）、`value`（受控 → `v-model`）、`defaultValue`、`onChange`、`trackColor`、`thumbColor`、`textColor`、`activeTextColor`、`size`、`radius`、`inset`、`equalSlots`、`stretch`、`squash`、`speed`、`glide`、`draggable`、`disabled`、`aria-label`。
 - **移植要点**：`motion/react` → `motion-v`；拖拽/速度/回弹的手感常量（`DILATE`、`HANDOFF`、`FLICK`、`RUBBER`）不要改。`value` 用 `defineModel`。

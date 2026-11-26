@@ -1,6 +1,6 @@
 # Vue 组件（0.1）
 
-已有 16 个特效移植成 Vue 3 组件，详情页的预览台里直接渲染真实组件。其中 12 个（`HoldButton`、`SwipeRow`、`SpecularButton`、`TerminalReplay`、`PeakChart`、`SpotlightCard`、`LiquidNavbar`、`GlassSurface`、`AnimatedList`、`FlipCard`、`GhostCursor`、`GridMotion`）带「自定义」面板：改参数，预览实时跟着变，「代码」页签的用法片段只写出你改过的项。另外 4 个需要独占文档，放在 iframe 里加载：
+已有 17 个特效移植成 Vue 3 组件，详情页的预览台里直接渲染真实组件。其中 13 个（`HoldButton`、`SwipeRow`、`SpecularButton`、`TerminalReplay`、`PeakChart`、`SpotlightCard`、`LiquidNavbar`、`GlassSurface`、`AnimatedList`、`FlipCard`、`GhostCursor`、`GridMotion`、`RubberSegment`）带「自定义」面板：改参数，预览实时跟着变，「代码」页签的用法片段只写出你改过的项。另外 4 个需要独占文档，放在 iframe 里加载：
 
 | 组件 | 详情页 | 测试 |
 |---|---|---|
@@ -20,13 +20,14 @@
 | `FlipCard` | [3D 翻面卡片](/effects/flip-card) | `packages/vue/tests/flip-card.spec.ts` |
 | `GhostCursor` | [流体光标](/effects/ghost-cursor) | `packages/vue/tests/ghost-cursor.spec.ts` |
 | `GridMotion` | [动感网格墙](/effects/grid-motion) | `packages/vue/tests/grid-motion.spec.ts` |
+| `RubberSegment` | [橡皮筋分段](/effects/rubber-segment) | `packages/vue/tests/rubber-segment.spec.ts` |
 
 `ScrollLockedVideoHero` 会锁定所在页面的滚动，`GlassyDashboard` 是整屏工作区，`SplashCursor` 会铺满整个视口跟随光标，`Shredder` 需要一个固定宽度的父容器，四者的预览都放在 iframe 里；iframe 里跑的仍是同一个真实组件。
 
 ## 导入
 
 ```ts
-import { AnimatedList, FlipCard, GhostCursor, GlassSurface, GridMotion, GlassyDashboard, HoldButton, LiquidNavbar, PeakChart, ScrollLockedVideoHero, Shredder, SpecularButton, SpotlightCard, SplashCursor, SwipeRow, TerminalReplay } from '@motion-effects/vue'
+import { AnimatedList, FlipCard, GhostCursor, GlassSurface, GridMotion, RubberSegment, GlassyDashboard, HoldButton, LiquidNavbar, PeakChart, ScrollLockedVideoHero, Shredder, SpecularButton, SpotlightCard, SplashCursor, SwipeRow, TerminalReplay } from '@motion-effects/vue'
 import type { SwipeAction } from '@motion-effects/vue'
 ```
 
@@ -315,6 +316,23 @@ const items = ['/a.jpg', { src: '/b.jpg', alt: 'B' }, 'Hello']
 
 不依赖 Tailwind（随包自带 `.gm-*` CSS）。相邻行反向漂移、指针聚光与视差；`#tile` 插槽可渲染自定义节点。父容器要有明确高度，移动端降低 `rows` / `speed`。
 
+### RubberSegment
+
+```vue
+<script setup lang="ts">
+import { ref } from 'vue'
+import { RubberSegment } from '@motion-effects/vue'
+
+const value = ref('Day')
+</script>
+
+<template>
+  <RubberSegment v-model="value" :items="['Day', 'Week', 'Month']" @change="onChange" />
+</template>
+```
+
+拖拽滑块越界会橡皮筋回拉，快速甩动按速度投影落点；键盘方向键 / Home / End 可达。`icon` 传 Vue 组件，`v-model` 受控并另发 `change`。
+
 指针扫过卡片时打出一团柔光，边缘在靠近时被照亮。`shape="beam"` 把光从顶边打下来；`proximity` 让指针还没进入卡片就开始照亮（相邻卡片共享一团光）；`ambient` 让无指针时缓慢漂移；`flare` 在按住时膨胀变亮；`grain` 叠加胶片颗粒。零第三方依赖，主题用 `theme` 或 `--spotlight-card-surface` / `--spotlight-card-border` 覆盖。
 
 ## 契约与限制
@@ -336,8 +354,9 @@ const items = ['/a.jpg', { src: '/b.jpg', alt: 'B' }, 'Hello']
 - `FlipCard` 用 `#front` / `#back` 放两面内容，`flipped` 走 `v-model:flipped`，另发 `flip-change`；拖拽甩动按角速度吸附到 180° 的整数倍，reduced-motion 下直接切面。
 - `GhostCursor` 零依赖、整屏 fixed；WebGL2 不可用时静默降级，弱机调低 `maxDevicePixelRatio` / `targetPixels`；上下文恢复重放引擎。
 - `GridMotion` 不依赖 Tailwind（自带 `.gm-*` CSS）；节点项用 `#tile` 插槽替代 React 的 VNode item；父容器要有明确高度。
-- 后十三个与 React 原件有几处有意的行为差异，清单见上面那份 README 的「与 React 原件的差异」。
-- 十六个组件都做了 SSR 安全处理，浏览器 API 只在 `onMounted` 或用户事件中访问。
+- `RubberSegment` 用 `v-model` 受控、另发 `change`；拖拽橡皮筋回弹、甩动投影落点；键盘 ↑ / ↓ / ← / → / Home / End 可达。
+- 后十四个与 React 原件有几处有意的行为差异，清单见上面那份 README 的「与 React 原件的差异」。
+- 十七个组件都做了 SSR 安全处理，浏览器 API 只在 `onMounted` 或用户事件中访问。
 - 当前是 workspace 私有包，未发布 npm；外部项目可复制 `packages/vue/src` 或等待发布。
 
 ## 本地测试
