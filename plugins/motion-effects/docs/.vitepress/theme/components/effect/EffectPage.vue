@@ -18,6 +18,7 @@ import FlipCardStage from '../../demos/FlipCardStage.vue'
 import GhostCursorStage from '../../demos/GhostCursorStage.vue'
 import GridMotionStage from '../../demos/GridMotionStage.vue'
 import RubberSegmentStage from '../../demos/RubberSegmentStage.vue'
+import TiltedCardStage from '../../demos/TiltedCardStage.vue'
 import StageFrame from './StageFrame.vue'
 import CustomizePanel from './CustomizePanel.vue'
 import PropTable from './PropTable.vue'
@@ -58,7 +59,8 @@ const STAGES = {
   'flip-card': FlipCardStage,
   'ghost-cursor': GhostCursorStage,
   'grid-motion': GridMotionStage,
-  'rubber-segment': RubberSegmentStage
+  'rubber-segment': RubberSegmentStage,
+  'tilted-card': TiltedCardStage
 }
 
 /** 会劫持全局输入或需要整屏的组件：放进只渲染它自己的独立页面，再用 iframe 加载 */

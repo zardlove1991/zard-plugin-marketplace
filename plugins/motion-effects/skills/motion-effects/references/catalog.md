@@ -74,10 +74,11 @@
 | `GhostCursor` | `../../packages/vue/src/components/GhostCursor.vue` | `../../packages/vue/tests/ghost-cursor.spec.ts` |
 | `GridMotion` | `../../packages/vue/src/components/GridMotion.vue` | `../../packages/vue/tests/grid-motion.spec.ts` |
 | `RubberSegment` | `../../packages/vue/src/components/RubberSegment.vue` | `../../packages/vue/tests/rubber-segment.spec.ts` |
+| `TiltedCard` | `../../packages/vue/src/components/TiltedCard.vue` | `../../packages/vue/tests/tilted-card.spec.ts` |
 
-其余 8 个仍以 React 源码 + vanilla 演示为真源，按需按 `vue-porting.md` 移植。
+其余 7 个仍以 React 源码 + vanilla 演示为真源，按需按 `vue-porting.md` 移植。
 
-后十四个（`TerminalReplay`、`ScrollLockedVideoHero`、`PeakChart`、`GlassyDashboard`、`SplashCursor`、`Shredder`、`SpotlightCard`、`LiquidNavbar`、`GlassSurface`、`AnimatedList`、`FlipCard`、`GhostCursor`、`GridMotion`、`RubberSegment`）与 React 原件有几处有意的行为差异，见 `../../packages/vue/README.md` 的「与 React 原件的差异」。
+后十五个（`TerminalReplay`、`ScrollLockedVideoHero`、`PeakChart`、`GlassyDashboard`、`SplashCursor`、`Shredder`、`SpotlightCard`、`LiquidNavbar`、`GlassSurface`、`AnimatedList`、`FlipCard`、`GhostCursor`、`GridMotion`、`RubberSegment`、`TiltedCard`）与 React 原件有几处有意的行为差异，见 `../../packages/vue/README.md` 的「与 React 原件的差异」。
 
 > Vue 实装自带 CSS，不依赖 Tailwind；需要安装的依赖见下面「依赖安装」。
 
@@ -221,6 +222,7 @@ React 项目对应：`motion` + `@hugeicons/react`；`glassy-dashboard` 另需 `
 ## 14. TiltedCard · 3D 倾斜卡片
 
 - **源码**：`TiltedCard.jsx` + `TiltedCard.css`；**演示**：`tilted-card.html`
+- **Vue 实装**：`../../packages/vue/src/components/TiltedCard.vue`（已测试；引擎在 `../../packages/vue/src/composables/useTiltedCard.ts`，视差层 `TiltedCardLayer.vue`）
 - **适用**：图片卡、团队成员、商品卡、作品封面；鼠标跟随倾斜 + 眩光 + 可选翻面。
 - **关键 API**：`imageSrc`、`altText`、`captionText`、`containerHeight`、`containerWidth`、`imageHeight`、`imageWidth`、`scaleOnHover`、`rotateAmplitude`、`showTooltip`、`overlayContent`、`displayOverlayContent`、`overlayDepth`、`children`、`backContent`、`flipOnClick`、`flipped`、`onFlip`、`radius`、`perspective`、`smoothness`、`glare`、`glareColor`、`shadow`、`parallax`、`axis`、`reverse`、`trackWindow`、`floating`、`gyroscope`、`intro`、`introDelay`、`onClick`。
 - **移植要点**：纯指针/陀螺仪数学，无第三方依赖；Vue 直接把 rAF 引擎搬进 `onMounted`，DOM 引用用模板 ref。`overlayContent`/`backContent` → 插槽。

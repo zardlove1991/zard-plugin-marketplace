@@ -108,7 +108,7 @@ export const EFFECTS = [
     note: 'React 源码无独立 CSS，样式在 JSX 的 Tailwind 任意值类里；不用 Tailwind 时复用 demo 的 .sr-* CSS（Vue 实装自带 CSS，不需要 Tailwind）。桌面端要有可见操作入口；touch-action: pan-y 保垂直滚动。'
   },
   {
-    id: 'tilted-card', name: 'TiltedCard', zh: '3D 倾斜卡片', cat: '卡片与容器', vue: 'mid', height: 620,
+    id: 'tilted-card', name: 'TiltedCard', zh: '3D 倾斜卡片', cat: '卡片与容器', vue: 'mid', vueReady: true, height: 620,
     desc: '3D 倾斜卡片：鼠标 / 陀螺仪跟随、眩光、视差与可选翻面，适合图片与作品封面。',
     deps: [], demo: 'tilted-card.html', source: 'react/components/ui/TiltedCard.jsx',
     props: ['imageSrc', 'rotateAmplitude', 'glare', 'gyroscope', 'backContent'],

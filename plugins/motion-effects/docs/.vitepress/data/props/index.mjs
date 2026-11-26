@@ -15,6 +15,7 @@ import flipCard from './flip-card.mjs'
 import ghostCursor from './ghost-cursor.mjs'
 import gridMotion from './grid-motion.mjs'
 import rubberSegment from './rubber-segment.mjs'
+import tiltedCard from './tilted-card.mjs'
 
 export const PROP_SCHEMAS = {
   'hold-button': holdButton,
@@ -29,5 +30,6 @@ export const PROP_SCHEMAS = {
   'flip-card': flipCard,
   'ghost-cursor': ghostCursor,
   'grid-motion': gridMotion,
-  'rubber-segment': rubberSegment
+  'rubber-segment': rubberSegment,
+  'tilted-card': tiltedCard
 }
