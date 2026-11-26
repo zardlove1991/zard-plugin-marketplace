@@ -20,6 +20,7 @@ import GridMotionStage from '../../demos/GridMotionStage.vue'
 import RubberSegmentStage from '../../demos/RubberSegmentStage.vue'
 import TiltedCardStage from '../../demos/TiltedCardStage.vue'
 import SignatureStage from '../../demos/SignatureStage.vue'
+import PaperCrumpleStage from '../../demos/PaperCrumpleStage.vue'
 import StageFrame from './StageFrame.vue'
 import CustomizePanel from './CustomizePanel.vue'
 import PropTable from './PropTable.vue'
@@ -62,7 +63,8 @@ const STAGES = {
   'grid-motion': GridMotionStage,
   'rubber-segment': RubberSegmentStage,
   'tilted-card': TiltedCardStage,
-  'signature': SignatureStage
+  'signature': SignatureStage,
+  'paper-crumple': PaperCrumpleStage
 }
 
 /** 会劫持全局输入或需要整屏的组件：放进只渲染它自己的独立页面，再用 iframe 加载 */

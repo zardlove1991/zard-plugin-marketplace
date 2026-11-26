@@ -76,10 +76,11 @@
 | `RubberSegment` | `../../packages/vue/src/components/RubberSegment.vue` | `../../packages/vue/tests/rubber-segment.spec.ts` |
 | `TiltedCard` | `../../packages/vue/src/components/TiltedCard.vue` | `../../packages/vue/tests/tilted-card.spec.ts` |
 | `Signature` | `../../packages/vue/src/components/Signature.vue` | `../../packages/vue/tests/signature.spec.ts` |
+| `PaperCrumple` | `../../packages/vue/src/components/PaperCrumple.vue` | `../../packages/vue/tests/paper-crumple.spec.ts` |
 
-其余 6 个仍以 React 源码 + vanilla 演示为真源，按需按 `vue-porting.md` 移植。
+其余 5 个仍以 React 源码 + vanilla 演示为真源，按需按 `vue-porting.md` 移植。
 
-后十六个（`TerminalReplay`、`ScrollLockedVideoHero`、`PeakChart`、`GlassyDashboard`、`SplashCursor`、`Shredder`、`SpotlightCard`、`LiquidNavbar`、`GlassSurface`、`AnimatedList`、`FlipCard`、`GhostCursor`、`GridMotion`、`RubberSegment`、`TiltedCard`、`Signature`）与 React 原件有几处有意的行为差异，见 `../../packages/vue/README.md` 的「与 React 原件的差异」。
+后十七个（`TerminalReplay`、`ScrollLockedVideoHero`、`PeakChart`、`GlassyDashboard`、`SplashCursor`、`Shredder`、`SpotlightCard`、`LiquidNavbar`、`GlassSurface`、`AnimatedList`、`FlipCard`、`GhostCursor`、`GridMotion`、`RubberSegment`、`TiltedCard`、`Signature`、`PaperCrumple`）与 React 原件有几处有意的行为差异，见 `../../packages/vue/README.md` 的「与 React 原件的差异」。
 
 > Vue 实装自带 CSS，不依赖 Tailwind；需要安装的依赖见下面「依赖安装」。
 
@@ -172,6 +173,7 @@ React 项目对应：`motion` + `@hugeicons/react`；`glassy-dashboard` 另需 `
 ## 8. PaperCrumple · 纸张揉皱
 
 - **源码**：`PaperCrumple.jsx` + `PaperCrumple.css`；**演示**：`paper-crumple.html`
+- **Vue 实装**：`../../packages/vue/src/components/PaperCrumple.vue`（已测试；布料求解在 `paperCrumplePhysics.ts`，three.js 引擎在 `usePaperCrumple.ts`）
 - **适用**：图片"揉皱/展开"的戏剧化揭示、失败/删除反馈、艺术化产品图。
 - **关键 API**：`src`、`alt`、`backSrc`、`width`、`height`、`sceneHeight`、`imageFit`、`releaseBehavior`（`restore`/`stay`）、`crumpleAmount`、`crumpleDuration`、`releaseDuration`、`foldCount`、`foldSharpness`、`wrinkleDepth`、`creaseStrength`、`paperColor`、`roughness`、`paperTexture`、`lightIntensity`、`lightAngle`、`shadow`、`shadowOpacity`、`draggable`、`dragRotation`、`dragRadius`、`returnToOrigin`、`rotation`、`seed`、`detail`、`disabled`、`resetKey`、`onStateChange`、`onError`。
 - **移植要点**：three.js 场景与几何生成逻辑原样保留；Vue 用 `shallowRef`/`markRaw` 存 renderer/scene，`onMounted` 初始化，`onBeforeUnmount` 里 `dispose()` 几何/材质/renderer 并移除 canvas。`three` 建议动态 `import()`。

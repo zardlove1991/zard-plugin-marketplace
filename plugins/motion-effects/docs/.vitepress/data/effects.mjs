@@ -66,7 +66,7 @@ export const EFFECTS = [
     note: '库内最大组件（1100+ 行 JS/JSX + 1100+ 行 CSS）；移动端建议关粒子与倾斜。'
   },
   {
-    id: 'paper-crumple', name: 'PaperCrumple', zh: '纸张揉皱', cat: '氛围与装饰', vue: 'hard', height: 720,
+    id: 'paper-crumple', name: 'PaperCrumple', zh: '纸张揉皱', cat: '氛围与装饰', vue: 'hard', vueReady: true, height: 720,
     desc: 'three.js 纸张揉皱 / 展开：图片被揉成纸团再展开，带折痕、光照与拖拽旋转。',
     deps: ['three'], demo: 'paper-crumple.html', source: 'react/components/ui/PaperCrumple.jsx',
     props: ['src', 'crumpleAmount', 'foldCount', 'seed', 'releaseBehavior'],
