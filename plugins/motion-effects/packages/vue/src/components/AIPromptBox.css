@@ -1,0 +1,522 @@
+/*
+ * AIPromptBox · 样式
+ * 由 React 原件的 Tailwind 工具类逐条翻译而来（rounded-3xl / bg-[#1F2023] / text-gray-100 …），
+ * 颜色收进 --aip-* 变量，方便跟随项目主题。全局引入，不依赖 Tailwind。
+ */
+.aip {
+  --aip-surface: #1f2023;
+  --aip-surface-2: #2e3033;
+  --aip-border: #444444;
+  --aip-border-soft: #333333;
+  --aip-text: #f3f4f6; /* gray-100 */
+  --aip-muted: #9ca3af; /* gray-400 */
+  --aip-muted-hover: #d1d5db; /* gray-300 */
+  --aip-hover: rgba(75, 85, 99, 0.3); /* gray-600/30 */
+  --aip-danger: #ef4444; /* red-500 */
+  --aip-danger-soft: #f87171; /* red-400 */
+  --aip-search: #1eaedb;
+  --aip-think: #8b5cf6;
+  --aip-canvas: #f97316;
+  --aip-divider: rgba(155, 135, 245, 0.7);
+  --aip-radius: 24px; /* rounded-3xl */
+  --aip-shadow: 0 8px 30px rgba(0, 0, 0, 0.24);
+
+  position: relative;
+  width: 100%;
+  padding: 8px;
+  border: 1px solid var(--aip-border);
+  border-radius: var(--aip-radius);
+  background: var(--aip-surface);
+  color: var(--aip-text);
+  box-shadow: var(--aip-shadow);
+  transition: border-color 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
+  font-family: inherit;
+}
+.aip.is-loading,
+.aip.is-recording {
+  border-color: rgba(239, 68, 68, 0.7);
+}
+.aip.is-dragging {
+  border-color: var(--aip-muted-hover);
+  box-shadow: 0 0 0 3px rgba(156, 163, 175, 0.18), var(--aip-shadow);
+}
+.aip *,
+.aip *::before,
+.aip *::after {
+  box-sizing: border-box;
+}
+.aip button {
+  font-family: inherit;
+}
+.aip button:focus-visible,
+.aip .aip__textarea:focus-visible {
+  outline: 2px solid rgba(156, 163, 175, 0.8);
+  outline-offset: 2px;
+}
+.aip button:disabled {
+  pointer-events: none;
+  opacity: 0.5;
+}
+
+/* ---------- 附件缩略图 ---------- */
+.aip__files {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 0 0 4px;
+  transition: all 0.3s ease-in-out;
+}
+.aip__file {
+  position: relative;
+}
+.aip__file-hit {
+  display: block;
+  width: 64px;
+  height: 64px;
+  padding: 0;
+  border: 0;
+  border-radius: 12px;
+  overflow: hidden;
+  background: var(--aip-surface-2);
+  cursor: pointer;
+  transition: all 0.3s ease-in-out;
+}
+.aip__file-hit img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.aip__file-pending {
+  display: block;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, var(--aip-surface-2) 25%, #3a3a40 50%, var(--aip-surface-2) 75%);
+  background-size: 200% 100%;
+  animation: aip-shimmer 1.2s linear infinite;
+}
+.aip__file-remove {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2px;
+  border: 0;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.7);
+  color: #fff;
+  cursor: pointer;
+  transition: opacity 0.15s;
+}
+.aip__file-remove:hover {
+  opacity: 0.85;
+}
+
+/* ---------- 输入框 ---------- */
+.aip__field {
+  transition: all 0.3s ease-in-out;
+}
+.aip__field.is-hidden {
+  height: 0;
+  overflow: hidden;
+  opacity: 0;
+}
+.aip__textarea {
+  display: flex;
+  width: 100%;
+  min-height: 44px;
+  padding: 10px 12px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--aip-text);
+  font-family: inherit;
+  font-size: 16px;
+  line-height: 1.5;
+  resize: none;
+  outline: none;
+}
+.aip__textarea::placeholder {
+  color: var(--aip-muted);
+}
+.aip__textarea:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+.aip__textarea::-webkit-scrollbar {
+  width: 6px;
+}
+.aip__textarea::-webkit-scrollbar-track {
+  background: transparent;
+}
+.aip__textarea::-webkit-scrollbar-thumb {
+  background-color: #444444;
+  border-radius: 3px;
+}
+.aip__textarea::-webkit-scrollbar-thumb:hover {
+  background-color: #555555;
+}
+
+/* ---------- 录音 ---------- */
+.aip__recorder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  padding: 12px 0;
+  transition: all 0.3s ease-in-out;
+}
+.aip__recorder-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+.aip__dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: var(--aip-danger);
+  animation: aip-pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+.aip__clock {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.8);
+  font-variant-numeric: tabular-nums;
+}
+.aip__bars {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  width: 100%;
+  height: 40px;
+  padding: 0 16px;
+}
+.aip__bar {
+  display: block;
+  width: 2px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.5);
+  transform-origin: center;
+  animation-name: aip-bar;
+  animation-timing-function: ease-in-out;
+  animation-iteration-count: infinite;
+  animation-direction: alternate;
+}
+
+/* ---------- 底部操作区 ---------- */
+.aip__actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 8px 0 0;
+}
+.aip__tools {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+  transition: opacity 0.3s ease-in-out;
+}
+.aip__tools.is-hidden {
+  height: 0;
+  overflow: hidden;
+  opacity: 0;
+  visibility: hidden;
+}
+.aip__input {
+  display: none;
+}
+.aip__toggles {
+  display: flex;
+  align-items: center;
+}
+
+/* 按钮：对应 Button size="icon"（h-8 w-8 rounded-full） */
+.aip-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--aip-muted);
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.15s, color 0.15s, transform 0.2s;
+}
+.aip-btn:hover:not(:disabled) {
+  background: var(--aip-hover);
+  color: var(--aip-muted-hover);
+}
+.aip-btn--main {
+  transition: all 0.2s;
+}
+.aip-btn--solid {
+  background: #fff;
+  color: var(--aip-surface);
+}
+.aip-btn--solid:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.8);
+  color: var(--aip-surface);
+}
+.aip-btn--recording {
+  background: transparent;
+  color: var(--aip-danger);
+}
+.aip-btn--recording:hover:not(:disabled) {
+  background: var(--aip-hover);
+  color: var(--aip-danger-soft);
+}
+.aip-btn--idle {
+  background: transparent;
+  color: var(--aip-muted);
+}
+.aip-btn--idle:hover:not(:disabled) {
+  background: var(--aip-hover);
+  color: var(--aip-muted-hover);
+}
+.aip-glyph {
+  display: block;
+}
+.aip-glyph--ink {
+  color: inherit;
+}
+.aip-glyph--fill {
+  fill: var(--aip-surface);
+}
+.aip-glyph--danger {
+  color: var(--aip-danger);
+}
+.aip-glyph.is-pulse {
+  animation: aip-pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* 模式切换：rounded-full px-2 py-1 border h-8，激活时染上各自的主题色 */
+.aip-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  height: 32px;
+  padding: 4px 8px;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--aip-muted);
+  font-size: 12px;
+  line-height: 16px;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+.aip-toggle:hover:not(:disabled) {
+  color: var(--aip-muted-hover);
+}
+.aip-toggle.is-on {
+  border-color: currentColor;
+}
+.aip-toggle--search.is-on {
+  background: rgba(30, 174, 219, 0.15);
+  color: var(--aip-search);
+}
+.aip-toggle--think.is-on {
+  background: rgba(139, 92, 246, 0.15);
+  color: var(--aip-think);
+}
+.aip-toggle--canvas.is-on {
+  background: rgba(249, 115, 22, 0.15);
+  color: var(--aip-canvas);
+}
+.aip-toggle__icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+}
+.aip-toggle__glyph {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.aip-toggle__label {
+  display: block;
+  overflow: hidden;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+/* 分隔线：渐变 + clip-path 做出的双箭头形状（对应 CustomDivider） */
+.aip-divider {
+  position: relative;
+  width: 1.5px;
+  height: 24px;
+  margin: 0 4px;
+}
+.aip-divider::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 999px;
+  background: linear-gradient(to top, transparent, var(--aip-divider), transparent);
+  clip-path: polygon(
+    0% 0%,
+    100% 0%,
+    100% 40%,
+    140% 50%,
+    100% 60%,
+    100% 100%,
+    0% 100%,
+    0% 60%,
+    -40% 50%,
+    0% 40%
+  );
+}
+
+/* ---------- Tooltip（替代 Radix Tooltip 的外观） ---------- */
+.aip-tip {
+  position: relative;
+  display: inline-flex;
+}
+.aip-tip::after {
+  content: attr(data-tip);
+  position: absolute;
+  left: 50%;
+  bottom: calc(100% + 4px);
+  z-index: 50;
+  padding: 6px 12px;
+  border: 1px solid var(--aip-border-soft);
+  border-radius: 6px;
+  background: var(--aip-surface);
+  color: #fff;
+  font-size: 14px;
+  line-height: 20px;
+  white-space: nowrap;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
+  opacity: 0;
+  pointer-events: none;
+  transform: translateX(-50%) translateY(2px) scale(0.96);
+  transform-origin: bottom center;
+  transition: opacity 0.12s ease-out, transform 0.12s ease-out;
+}
+.aip-tip:hover::after,
+.aip-tip:focus-within::after {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0) scale(1);
+}
+
+/* ---------- 图片预览弹层（Teleport 到 body） ---------- */
+.aip-dialog {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: grid;
+  place-items: center;
+  padding: 16px;
+  background: rgba(0, 0, 0, 0.6);
+  -webkit-backdrop-filter: blur(4px);
+  backdrop-filter: blur(4px);
+}
+.aip-dialog__panel {
+  position: relative;
+  width: 100%;
+  max-width: min(800px, 90vw);
+  border-radius: 16px;
+  background: var(--aip-surface, #1f2023);
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  overflow: hidden;
+}
+.aip-dialog__inner {
+  position: relative;
+  outline: none;
+}
+.aip-dialog__inner:focus-visible {
+  outline: 2px solid rgba(156, 163, 175, 0.8);
+  outline-offset: -2px;
+}
+.aip-dialog__img {
+  display: block;
+  width: 100%;
+  max-height: 80vh;
+  object-fit: contain;
+}
+.aip-dialog__close {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px;
+  border: 0;
+  border-radius: 999px;
+  background: rgba(46, 48, 51, 0.8); /* #2E3033/80 */
+  color: #e5e7eb; /* gray-200 */
+  cursor: pointer;
+  transition: background-color 0.15s, color 0.15s;
+}
+.aip-dialog__close:hover {
+  background: #2e3033;
+  color: #fff;
+}
+
+/* ---------- 动画 ---------- */
+@keyframes aip-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+@keyframes aip-bar {
+  from {
+    transform: scaleY(0.35);
+  }
+  to {
+    transform: scaleY(1);
+  }
+}
+@keyframes aip-shimmer {
+  from {
+    background-position: 200% 0;
+  }
+  to {
+    background-position: -200% 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .aip,
+  .aip__files,
+  .aip__field,
+  .aip__recorder,
+  .aip__tools,
+  .aip-btn,
+  .aip-toggle,
+  .aip-tip::after {
+    transition-duration: 0.01ms !important;
+  }
+  .aip__dot,
+  .aip__bar,
+  .aip__file-pending,
+  .aip-glyph.is-pulse {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+  }
+  .aip__bar {
+    transform: scaleY(1);
+  }
+}

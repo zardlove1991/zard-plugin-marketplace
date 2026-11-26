@@ -26,13 +26,23 @@ export { default as MagicBento } from './components/MagicBento.vue'
 export { default as GlassFolder } from './components/GlassFolder.vue'
 export { default as GlassIconReveal } from './components/GlassIconReveal.vue'
 export { default as GlassReveal21st } from './components/GlassReveal21st.vue'
+export { default as AIPromptBox } from './components/AIPromptBox.vue'
 export { MARK_21ST } from './composables/liquidGlassMark'
 export { ANIMATED_LIST_ITEMS, ANIMATED_LIST_ICONS } from './components/animatedListIcons'
+export {
+  DEFAULT_LABELS as AI_PROMPT_BOX_LABELS,
+  DEFAULT_MAX_FILE_SIZE as AI_PROMPT_BOX_MAX_FILE_SIZE
+} from './composables/useAIPromptBox'
 
 export type {
   AnimatedListAnimation,
   AnimatedListItem,
   AnimatedListEntry,
+  AIPromptMode,
+  AIPromptBoxLabels,
+  AIPromptBoxSettings,
+  PromptAttachment,
+  PromptFileError,
   GhostCursorSettings,
   GridMotionDirection,
   GridMotionItem,

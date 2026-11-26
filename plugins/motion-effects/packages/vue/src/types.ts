@@ -3,6 +3,61 @@ import type { Component, Ref } from 'vue'
 export type HoldButtonSize = 'sm' | 'md' | 'lg'
 export type HoldButtonDirection = 'right' | 'up'
 
+/** AIPromptBox 的三种模式：联网搜索 / 深度思考 / 画板 */
+export type AIPromptMode = 'search' | 'think' | 'canvas'
+
+/** AIPromptBox 的全部文案；只覆盖需要改的字段即可 */
+export interface AIPromptBoxLabels {
+  /** 输入框的无障碍名称 */
+  inputLabel: string
+  upload: string
+  search: string
+  think: string
+  canvas: string
+  stopGeneration: string
+  stopRecording: string
+  sendMessage: string
+  voiceMessage: string
+  /** 录音状态的屏幕阅读器文案 */
+  recording: string
+  imagePreview: string
+  close: string
+  removeFile: string
+  searchPlaceholder: string
+  thinkPlaceholder: string
+  canvasPlaceholder: string
+  /** 语音占位消息模板，`{duration}` 会换成秒数 */
+  voiceMessageTemplate: string
+}
+
+/** AIPromptBox 的 props（`v-model` / `v-model:mode` 由 defineModel 声明，不在这里） */
+export interface AIPromptBoxSettings {
+  isLoading?: boolean
+  placeholder?: string
+  maxHeight?: number | string
+  disabled?: boolean
+  /** 文件选择框的 accept 规则，默认只收图片 */
+  accept?: string
+  /** 单文件体积上限（字节），默认 10MB */
+  maxFileSize?: number
+  showUpload?: boolean
+  showVoice?: boolean
+  showToggles?: boolean
+  /** 录音可视化柱数量 */
+  visualizerBars?: number
+  labels?: Partial<AIPromptBoxLabels>
+}
+
+export type PromptFileError = 'type' | 'size' | 'read'
+
+/** AIPromptBox 内部的一条附件（当前只保留一张图） */
+export interface PromptAttachment {
+  id: string
+  file: File
+  /** FileReader 读出的 data URL；读取失败或环境不支持时为 null */
+  preview: string | null
+}
+
 export type SwipeDirection = 'left' | 'right'
 
 export interface SwipeAction {
