@@ -75,10 +75,11 @@
 | `GridMotion` | `../../packages/vue/src/components/GridMotion.vue` | `../../packages/vue/tests/grid-motion.spec.ts` |
 | `RubberSegment` | `../../packages/vue/src/components/RubberSegment.vue` | `../../packages/vue/tests/rubber-segment.spec.ts` |
 | `TiltedCard` | `../../packages/vue/src/components/TiltedCard.vue` | `../../packages/vue/tests/tilted-card.spec.ts` |
+| `Signature` | `../../packages/vue/src/components/Signature.vue` | `../../packages/vue/tests/signature.spec.ts` |
 
-其余 7 个仍以 React 源码 + vanilla 演示为真源，按需按 `vue-porting.md` 移植。
+其余 6 个仍以 React 源码 + vanilla 演示为真源，按需按 `vue-porting.md` 移植。
 
-后十五个（`TerminalReplay`、`ScrollLockedVideoHero`、`PeakChart`、`GlassyDashboard`、`SplashCursor`、`Shredder`、`SpotlightCard`、`LiquidNavbar`、`GlassSurface`、`AnimatedList`、`FlipCard`、`GhostCursor`、`GridMotion`、`RubberSegment`、`TiltedCard`）与 React 原件有几处有意的行为差异，见 `../../packages/vue/README.md` 的「与 React 原件的差异」。
+后十六个（`TerminalReplay`、`ScrollLockedVideoHero`、`PeakChart`、`GlassyDashboard`、`SplashCursor`、`Shredder`、`SpotlightCard`、`LiquidNavbar`、`GlassSurface`、`AnimatedList`、`FlipCard`、`GhostCursor`、`GridMotion`、`RubberSegment`、`TiltedCard`、`Signature`）与 React 原件有几处有意的行为差异，见 `../../packages/vue/README.md` 的「与 React 原件的差异」。
 
 > Vue 实装自带 CSS，不依赖 Tailwind；需要安装的依赖见下面「依赖安装」。
 
@@ -265,6 +266,7 @@ React 项目对应：`motion` + `@hugeicons/react`；`glassy-dashboard` 另需 `
 ## 19. signature · 手写签名
 
 - **源码**：`signature.tsx`；**演示**：`signature.html`
+- **Vue 实装**：`../../packages/vue/src/components/Signature.vue`（已测试；引擎在 `../../packages/vue/src/composables/useSignature.ts`，默认笔迹在 `signatureStrokes.ts`）
 - **适用**：电子签名、合同确认、证书、品牌手写标语。
 - **关键 API**：`mode`（`play`/`sign`）、`strokes`、`text`、`pen`（`fountain`/`ballpoint`/`marker`）、`thickness`、`speed`、`autoplay`、`loop`、`pause`、`frame`、`line`、`name`、`role`、`placeholder`、`aspect`、`intro`、`theme`、`inkColor`、`surfaceColor`、`onChange`、`onComplete`；暴露 `play` / `clear` / `undo` / `getStrokes` / `toSVG` / `toDataURL`。
 - **移植要点**：SVG path + 指针绘制；Vue 用 `defineExpose` 暴露同样的方法，`ref` 调用。`sign` 模式要处理高 DPI 与坐标归一化。

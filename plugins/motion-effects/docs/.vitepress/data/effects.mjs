@@ -143,7 +143,7 @@ export const EFFECTS = [
     note: 'iOS 需 playsInline + muted；准备 poster 与 reduced-motion 静态首帧；视频走 CDN 分段。演示使用远程视频，离线时只有 poster。Vue 实装在挂载期间会锁定页面滚动且不会自行解锁，只适合放在独立页面的首屏，或用 iframe 承载。'
   },
   {
-    id: 'signature', name: 'Signature', zh: '手写签名', cat: '列表与内容', vue: 'mid', height: 720,
+    id: 'signature', name: 'Signature', zh: '手写签名', cat: '列表与内容', vue: 'mid', vueReady: true, height: 720,
     desc: '手写签名：可播放预设笔迹，也可直接手写；支持撤销、清除与导出 SVG / PNG。',
     deps: [], demo: 'signature.html', source: 'react/components/ui/signature.tsx',
     props: ['mode', 'text', 'pen', 'autoplay', 'inkColor', 'toSVG / toDataURL'],

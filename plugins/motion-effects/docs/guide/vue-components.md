@@ -1,6 +1,6 @@
 # Vue 组件（0.1）
 
-已有 18 个特效移植成 Vue 3 组件，详情页的预览台里直接渲染真实组件。其中 14 个（`HoldButton`、`SwipeRow`、`SpecularButton`、`TerminalReplay`、`PeakChart`、`SpotlightCard`、`LiquidNavbar`、`GlassSurface`、`AnimatedList`、`FlipCard`、`GhostCursor`、`GridMotion`、`RubberSegment`、`TiltedCard`）带「自定义」面板：改参数，预览实时跟着变，「代码」页签的用法片段只写出你改过的项。另外 4 个需要独占文档，放在 iframe 里加载：
+已有 19 个特效移植成 Vue 3 组件，详情页的预览台里直接渲染真实组件。其中 15 个（`HoldButton`、`SwipeRow`、`SpecularButton`、`TerminalReplay`、`PeakChart`、`SpotlightCard`、`LiquidNavbar`、`GlassSurface`、`AnimatedList`、`FlipCard`、`GhostCursor`、`GridMotion`、`RubberSegment`、`TiltedCard`、`Signature`）带「自定义」面板：改参数，预览实时跟着变，「代码」页签的用法片段只写出你改过的项。另外 4 个需要独占文档，放在 iframe 里加载：
 
 | 组件 | 详情页 | 测试 |
 |---|---|---|
@@ -22,13 +22,14 @@
 | `GridMotion` | [动感网格墙](/effects/grid-motion) | `packages/vue/tests/grid-motion.spec.ts` |
 | `RubberSegment` | [橡皮筋分段](/effects/rubber-segment) | `packages/vue/tests/rubber-segment.spec.ts` |
 | `TiltedCard` | [3D 倾斜卡片](/effects/tilted-card) | `packages/vue/tests/tilted-card.spec.ts` |
+| `Signature` | [手写签名](/effects/signature) | `packages/vue/tests/signature.spec.ts` |
 
 `ScrollLockedVideoHero` 会锁定所在页面的滚动，`GlassyDashboard` 是整屏工作区，`SplashCursor` 会铺满整个视口跟随光标，`Shredder` 需要一个固定宽度的父容器，四者的预览都放在 iframe 里；iframe 里跑的仍是同一个真实组件。
 
 ## 导入
 
 ```ts
-import { AnimatedList, FlipCard, GhostCursor, GlassSurface, GridMotion, RubberSegment, TiltedCard, GlassyDashboard, HoldButton, LiquidNavbar, PeakChart, ScrollLockedVideoHero, Shredder, SpecularButton, SpotlightCard, SplashCursor, SwipeRow, TerminalReplay } from '@motion-effects/vue'
+import { AnimatedList, FlipCard, GhostCursor, GlassSurface, GridMotion, RubberSegment, Signature, TiltedCard, GlassyDashboard, HoldButton, LiquidNavbar, PeakChart, ScrollLockedVideoHero, Shredder, SpecularButton, SpotlightCard, SplashCursor, SwipeRow, TerminalReplay } from '@motion-effects/vue'
 import type { SwipeAction } from '@motion-effects/vue'
 ```
 
@@ -351,6 +352,25 @@ import { TiltedCard, TiltedCardLayer } from '@motion-effects/vue'
 
 指针 / 陀螺仪 / 自动漂浮三种输入自动切换，逐帧状态不进响应式。默认 / `#back` / `#overlay` 插槽分别放正面、背面与浮层；提供 `#back` 才获得按钮语义与翻面交互。
 
+### Signature
+
+```vue
+<script setup lang="ts">
+import { ref } from 'vue'
+import { Signature } from '@motion-effects/vue'
+
+const sig = ref<InstanceType<typeof Signature> | null>(null)
+</script>
+
+<template>
+  <Signature ref="sig" mode="sign" name="Ada" role="Designer" />
+  <button @click="sig?.undo()">撤销</button>
+  <button @click="console.log(sig?.toSVG())">导出 SVG</button>
+</template>
+```
+
+`play` 模式逐点写出归一化笔迹（传 `text` 写文字），`sign` 模式按住指针手写。通过 ref 暴露 `play` / `clear` / `undo` / `getStrokes` / `toSVG` / `toDataURL`，并发出 `change` / `complete` 事件。
+
 指针扫过卡片时打出一团柔光，边缘在靠近时被照亮。`shape="beam"` 把光从顶边打下来；`proximity` 让指针还没进入卡片就开始照亮（相邻卡片共享一团光）；`ambient` 让无指针时缓慢漂移；`flare` 在按住时膨胀变亮；`grain` 叠加胶片颗粒。零第三方依赖，主题用 `theme` 或 `--spotlight-card-surface` / `--spotlight-card-border` 覆盖。
 
 ## 契约与限制
@@ -374,8 +394,9 @@ import { TiltedCard, TiltedCardLayer } from '@motion-effects/vue'
 - `GridMotion` 不依赖 Tailwind（自带 `.gm-*` CSS）；节点项用 `#tile` 插槽替代 React 的 VNode item；父容器要有明确高度。
 - `RubberSegment` 用 `v-model` 受控、另发 `change`；拖拽橡皮筋回弹、甩动投影落点；键盘 ↑ / ↓ / ← / → / Home / End 可达。
 - `TiltedCard` 用默认 / `#back` / `#overlay` 插槽替代 React 节点 props，`v-model:flipped` 受控另发 `flip`；`TiltedCardLayer` 用 `depth` 做视差层。
-- 后十五个与 React 原件有几处有意的行为差异，清单见上面那份 README 的「与 React 原件的差异」。
-- 十八个组件都做了 SSR 安全处理，浏览器 API 只在 `onMounted` 或用户事件中访问。
+- `Signature` 通过 ref 暴露 `play` / `clear` / `undo` / `getStrokes` / `toSVG` / `toDataURL`；`play` 模式逐点画示例笔迹，`sign` 模式手写；`theme="auto"` 从父背景推断明暗。
+- 后十六个与 React 原件有几处有意的行为差异，清单见上面那份 README 的「与 React 原件的差异」。
+- 十九个组件都做了 SSR 安全处理，浏览器 API 只在 `onMounted` 或用户事件中访问。
 - 当前是 workspace 私有包，未发布 npm；外部项目可复制 `packages/vue/src` 或等待发布。
 
 ## 本地测试

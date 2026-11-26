@@ -16,6 +16,7 @@ import ghostCursor from './ghost-cursor.mjs'
 import gridMotion from './grid-motion.mjs'
 import rubberSegment from './rubber-segment.mjs'
 import tiltedCard from './tilted-card.mjs'
+import signature from './signature.mjs'
 
 export const PROP_SCHEMAS = {
   'hold-button': holdButton,
@@ -31,5 +32,6 @@ export const PROP_SCHEMAS = {
   'ghost-cursor': ghostCursor,
   'grid-motion': gridMotion,
   'rubber-segment': rubberSegment,
-  'tilted-card': tiltedCard
+  'tilted-card': tiltedCard,
+  'signature': signature
 }
