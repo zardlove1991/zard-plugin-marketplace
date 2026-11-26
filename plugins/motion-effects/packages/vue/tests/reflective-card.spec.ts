@@ -57,4 +57,11 @@ describe('ReflectiveCard', () => {
     // jsdom 没有 mediaDevices；组件只发事件，不应抛异常
     expect(wrapper.find('.reflective-card').exists()).toBe(true)
   })
+
+  it('applies an initial videoSrc after mount', () => {
+    // 回归：immediate watch 在 setup 期以 null ref 触发，初始 videoSrc 曾被吞掉。
+    const wrapper = mountCard({ videoSrc: '/bg.mp4' })
+    const video = wrapper.find('video.reflective-card__media').element as HTMLVideoElement
+    expect(video.getAttribute('src')).toBe('/bg.mp4')
+  })
 })

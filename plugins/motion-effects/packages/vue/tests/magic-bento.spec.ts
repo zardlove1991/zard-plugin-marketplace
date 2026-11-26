@@ -71,6 +71,32 @@ describe('MagicBento', () => {
     expect(wrapper.emitted('item-click')?.[0]?.[1]).toBe(0)
   })
 
+  it('re-syncs the engine on runtime prop changes without throwing', async () => {
+    // 回归：watch 里曾调用不存在的 hostEngine.reveal()，改任何 prop 都会抛 TypeError。
+    const wrapper = mountBento({ intro: false, disableAnimations: true })
+    await wrapper.setProps({ gap: 20, radius: 12 })
+    await nextTick()
+    // 引擎重启后组件仍在，且新样式已应用
+    const el = wrapper.find('.magic-bento').element as HTMLElement
+    expect(el.style.gap).toBe('20px')
+    expect(el.style.getPropertyValue('--mb-radius')).toBe('12px')
+    expect(wrapper.findAll('.magic-bento__card')).toHaveLength(6)
+  })
+
+  it('marks href-less cards clickable when an item-click listener is attached', () => {
+    // 回归：clickable 曾误查 slots['item-click']（emit 不是 slot），
+    // 导致有 @item-click 时卡片仍拿不到 role/tabindex。
+    const wrapper = mount(MagicBento, {
+      attachTo: document.body,
+      props: { items: [{ title: 'A' }], intro: false, disableAnimations: true, onItemClick: () => {} }
+    })
+    mounted.push(wrapper)
+    const card = wrapper.find('.magic-bento__card')
+    expect(card.attributes('data-clickable')).toBe('')
+    expect(card.attributes('role')).toBe('button')
+    expect(card.attributes('tabindex')).toBe('0')
+  })
+
   it('lets a scoped item slot replace the card content', () => {
     const wrapper = mountBento(
       { items: [{ title: 'A' }] },

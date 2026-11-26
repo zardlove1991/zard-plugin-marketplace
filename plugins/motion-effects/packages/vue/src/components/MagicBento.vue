@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref, useSlots, useTemplateRef } from 'vue'
+import { computed, getCurrentInstance, ref, useSlots, useTemplateRef } from 'vue'
 import { useMagicBento } from '../composables/useMagicBento'
 import { DEFAULT_ITEMS, INK, clamp, inkFor, parseRgb, vars } from '../composables/magicBentoHelpers'
 import MagicBentoVisual from './MagicBentoVisual.vue'
@@ -123,7 +123,10 @@ const cellStyle = (entry: MagicBentoItem) => ({
   gridColumn: `span ${Math.min(span.value, Math.max(1, Math.round(entry.colSpan ?? 1)))}`,
   gridRow: `span ${Math.max(1, Math.round(entry.rowSpan ?? 1))}`
 })
-const clickable = (entry: MagicBentoItem) => Boolean(entry.href || slots['item-click'])
+// 对齐 React 的 Boolean(entry.href || entry.onClick || onItemClick)：
+// 在 Vue 里 item-click 是 emit，监听器落在实例 vnode props 的 onItemClick 上。
+const hasItemClick = Boolean(getCurrentInstance()?.vnode.props?.onItemClick)
+const clickable = (entry: MagicBentoItem) => Boolean(entry.href || hasItemClick)
 const onCardClick = (entry: MagicBentoItem, index: number) => emit('item-click', entry, index)
 </script>
 

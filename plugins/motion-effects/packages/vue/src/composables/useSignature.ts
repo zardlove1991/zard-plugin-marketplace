@@ -241,26 +241,30 @@ export function useSignature(options: UseSignatureOptions) {
     onChange(drawing.map(s => s.map(p => ({ ...p }))))
   }
 
-  onMounted(() => {
-    fit()
-    startAutoplay()
-    const el = root.value
-    if (!el) return
-    const parent = el.parentElement
+  // theme="auto" 时从父元素背景推断明暗；挂载与运行中改 theme 都要重算。
+  const syncDark = () => {
     if (theme() !== 'auto') {
       dark.value = theme() === 'dark'
       return
     }
+    const el = root.value
+    const parent = el?.parentElement
     const bg = parent ? getComputedStyle(parent).backgroundColor : ''
     const m = bg.match(/[\d.]+/g)
     const lum = m && m.length >= 3 ? (0.2126 * +m[0] + 0.7152 * +m[1] + 0.0722 * +m[2]) / 255 : 1
     dark.value = lum < 0.5
+  }
+
+  onMounted(() => {
+    fit()
+    syncDark()
+    startAutoplay()
   })
 
   watch(
     () => [mode(), pen(), ink(), thickness(), drawn.value, text(), theme()] as const,
     () => {
-      if (theme() !== 'auto') dark.value = theme() === 'dark'
+      syncDark()
       fit()
     }
   )

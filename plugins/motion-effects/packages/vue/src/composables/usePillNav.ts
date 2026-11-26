@@ -350,7 +350,7 @@ export function usePillNav(options: UsePillNavOptions) {
 
   onMounted(() => {
     start()
-    evaluateCollapse()
+    attachCollapseObserver()
   })
   watch([collapsed, () => options.itemEls.length], start, { flush: 'post' })
   watch([activeIndex, hoverEffect, indicator, bounce, stretch], () => hostEngine?.refresh(), { flush: 'post' })
@@ -380,13 +380,16 @@ export function usePillNav(options: UsePillNavOptions) {
     collapsed.value = next
   }
   const collapseObserver = typeof ResizeObserver !== 'undefined' ? new ResizeObserver(evaluateCollapse) : null
-  watch([collapse, joined, hasLogo, () => options.itemEls.length], () => {
+  // 模板 ref 在 mounted 后才就绪；immediate watch 在 setup 期看到的是 null，
+  // 所以观察器的挂载放到 onMounted，watch 只负责 props / 列表变化后的重挂。
+  function attachCollapseObserver() {
     collapseObserver?.disconnect()
     const root = rootRef.value
     if (root?.parentElement) collapseObserver?.observe(root.parentElement)
     if (measureRef.value) collapseObserver?.observe(measureRef.value)
     evaluateCollapse()
-  }, { immediate: true, flush: 'post' })
+  }
+  watch([collapse, joined, hasLogo, () => options.itemEls.length], attachCollapseObserver, { flush: 'post' })
 
   function introAnimate() {
     const root = rootRef.value

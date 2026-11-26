@@ -89,4 +89,23 @@ describe('Signature', () => {
     const canvas = wrapper.find('canvas').element as HTMLElement
     expect(canvas.style.clipPath).toContain('inset(')
   })
+
+  it('recomputes auto theme from the parent background at runtime', async () => {
+    // 回归：theme=auto 的明暗只在 onMounted 推断，运行时从 dark 切回 auto 曾保留旧的暗色。
+    const wrapper = mountSignature({ theme: 'dark', autoplay: false, text: 'Ada' })
+    const stage = () => wrapper.find('.signature > div').element as HTMLElement
+    const parent = (wrapper.find('.signature').element as HTMLElement).parentElement!
+    parent.style.backgroundColor = 'rgb(255, 255, 255)' // 亮背景 → auto 应推断为 light
+    expect(stage().style.background).toBe('rgb(20, 20, 22)') // 初始 dark
+
+    // 运行时切到 auto：必须按父背景重新推断为 light（回归点：旧实现会停在 dark）
+    await wrapper.setProps({ theme: 'auto' })
+    expect(stage().style.background).toBe('rgb(255, 255, 255)')
+
+    await wrapper.setProps({ theme: 'dark' })
+    expect(stage().style.background).toBe('rgb(20, 20, 22)')
+
+    await wrapper.setProps({ theme: 'auto' })
+    expect(stage().style.background).toBe('rgb(255, 255, 255)')
+  })
 })

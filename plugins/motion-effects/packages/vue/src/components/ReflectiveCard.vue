@@ -121,7 +121,8 @@ useReflectiveCard({
   enableTilt: () => props.enableTilt,
   tiltStrength: () => props.tiltStrength,
   intro: () => props.intro,
-  radius: () => props.radius
+  radius: () => props.radius,
+  theme: () => props.theme
 })
 
 const palette = computed(() => THEMES[props.theme] ?? THEMES.dark)

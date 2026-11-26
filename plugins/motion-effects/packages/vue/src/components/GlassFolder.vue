@@ -59,6 +59,7 @@ const props = withDefaults(defineProps<Props>(), {
 })
 
 const emit = defineEmits<{
+  'update:open': [open: boolean]
   'files-change': [files: GlassFolderFile[]]
   'open-change': [open: boolean]
   'file-select': [file: GlassFolderFile, index: number]
@@ -96,6 +97,7 @@ const menuItems = computed<GlassFolderMenuItem[]>(() => [
 
 function setOpen(next: boolean) {
   if (props.open === undefined) innerOpen.value = next
+  emit('update:open', next)
   props.onOpenChange?.(next)
   emit('open-change', next)
 }

@@ -1,6 +1,6 @@
 import { mount, type VueWrapper } from '@vue/test-utils'
 import { nextTick } from 'vue'
-import { afterEach, describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import PillNav from '../src/components/PillNav.vue'
 
 const mounted: VueWrapper[] = []
@@ -74,5 +74,21 @@ describe('PillNav', () => {
   it('renders a custom logo slot', () => {
     const wrapper = mountNav({ collapse: 'always' }, { logo: '<span class="custom-logo">Z</span>' })
     expect(wrapper.find('.custom-logo').text()).toBe('Z')
+  })
+
+  it('attaches the collapse ResizeObserver to the parent after mount', async () => {
+    // 回归：观察器此前只在 immediate watch（setup 期、ref 为 null）里挂载，
+    // 结果只有引擎自己的 track 观察器生效，父容器尺寸变化不会触发折叠重算。
+    const observe = vi.spyOn(ResizeObserver.prototype, 'observe')
+    const host = document.createElement('div')
+    document.body.appendChild(host)
+    const wrapper = mount(PillNav, { attachTo: host, props: { collapse: 'auto' } })
+    mounted.push(wrapper)
+    await nextTick()
+    const targets = observe.mock.calls.map(call => call[0] as HTMLElement)
+    const nav = wrapper.find('.pill-nav').element as HTMLElement
+    // 折叠观察器（区别于引擎自己的 track 观察器）必须在挂载后把父容器和测量节点接上
+    expect(targets).toContain(nav.parentElement)
+    expect(targets).toContain(nav.querySelector('.pill-nav__measure'))
   })
 })

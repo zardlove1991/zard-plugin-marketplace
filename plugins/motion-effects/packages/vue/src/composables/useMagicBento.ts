@@ -35,7 +35,7 @@ export function useMagicBento(options: UseMagicBentoOptions) {
     intro, disableAnimations, glow, onItemClick
   } = options
 
-  let hostEngine: { refresh: () => void; resize: () => void; reveal: () => void } | null = null
+  let hostEngine: { sync: () => void } | null = null
   let teardown: (() => void) | null = null
   const opts = () => ({
     items: items(), columns: Math.max(1, Math.round(columns())), gap: Math.max(0, gap()),
@@ -537,7 +537,7 @@ export function useMagicBento(options: UseMagicBentoOptions) {
       teardown?.()
       teardown = null
       start()
-      hostEngine?.reveal()
+      hostEngine?.sync()
     },
     { flush: 'post' }
   )

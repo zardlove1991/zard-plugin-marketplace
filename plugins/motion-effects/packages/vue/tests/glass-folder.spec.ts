@@ -60,6 +60,16 @@ describe('GlassFolder', () => {
     expect(wrapper.emitted('open-change')?.[0]).toEqual([true])
   })
 
+  it('emits update:open so v-model:open stays in sync', async () => {
+    // 回归：曾只发 open-change，v-model:open 的父级 ref 永远不会更新。
+    const wrapper = mountFolder({ open: false, art: 'none', appear: false })
+    await wrapper.find('button.gf-hit').trigger('click')
+    await nextTick()
+    expect(wrapper.emitted('update:open')?.[0]).toEqual([true])
+    // 受控模式下，父级未更新 prop 时组件保持关闭（不自行改内部状态）
+    expect(wrapper.emitted('open-change')?.[0]).toEqual([true])
+  })
+
   it('adds a file through the add key', async () => {
     const wrapper = mountFolder({ art: 'none', appear: false })
     await wrapper.find('button.gf-key').trigger('click')

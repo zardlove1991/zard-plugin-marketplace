@@ -18,16 +18,20 @@ const ready = ref(false)
 const pw = Math.max(1, Math.round(props.w * props.density))
 const ph = Math.max(1, Math.round(props.h * props.density))
 let alive = true
+let generation = 0
 
 watch(
   () => [JSON.stringify(recipeOf(props.art as never)), props.seed, pw, ph, props.priority] as const,
   ([recipe, seed]) => {
     if (typeof document === 'undefined') return
     alive = true
+    const token = ++generation
     ready.value = false
     paint(JSON.parse(recipe) as never, seed, pw, ph, props.priority).then(src => {
+      // 旧请求后完成时不许覆盖新封面的画布
+      if (!alive || token !== generation) return
       const element = canvas.value
-      if (!alive || !element) return
+      if (!element) return
       element.width = src.width
       element.height = src.height
       element.getContext('2d')?.drawImage(src, 0, 0)

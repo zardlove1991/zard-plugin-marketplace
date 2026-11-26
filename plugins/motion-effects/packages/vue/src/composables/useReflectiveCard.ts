@@ -26,6 +26,7 @@ export interface UseReflectiveCardOptions {
   tiltStrength: () => number
   intro: () => boolean
   radius: () => number
+  theme: () => 'dark' | 'light'
 }
 
 
@@ -33,7 +34,7 @@ export function useReflectiveCard(options: UseReflectiveCardOptions) {
   const {
     root: rootRef, body: bodyRef, canvas: canvasRef, video: videoRef, cam: camRef,
     videoSrc, webcam, onWebcamError, tint, metalness, roughness, blurStrength,
-    grayscale, warp, warpScale, shine, bevel, glare, enableTilt, tiltStrength, intro, radius
+    grayscale, warp, warpScale, shine, bevel, glare, enableTilt, tiltStrength, intro, radius, theme
   } = options
 
   const generation = ref(0)
@@ -57,7 +58,7 @@ export function useReflectiveCard(options: UseReflectiveCardOptions) {
     enableTilt: enableTilt(),
     tiltStrength: clamp(tiltStrength(), 0, 30),
     radius: Math.max(0, radius()),
-    theme: 0,
+    theme: theme() === 'light' ? 1 : 0,
     intro: intro()
   })
 
@@ -383,6 +384,21 @@ export function useReflectiveCard(options: UseReflectiveCardOptions) {
 
   }
 
+  const applyVideoSrc = () => {
+    const video = videoRef.value
+    if (!video) return
+    const src = videoSrc()
+    if (!src) {
+      video.removeAttribute('src')
+      video.load()
+    } else {
+      video.src = src
+      // play() 在部分环境（jsdom / 自动播放被拒）返回 undefined，需判空再接 catch
+      if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) video.play()?.catch(() => {})
+    }
+    wakeRef.current?.()
+  }
+
   onMounted(() => {
     start()
     const host = rootRef.value
@@ -390,27 +406,20 @@ export function useReflectiveCard(options: UseReflectiveCardOptions) {
       host.style.setProperty('--rc-presence', '0')
       host.style.setProperty('--rc-lift', '14px')
     }
+    // 模板 ref 在 mounted 后才就绪，初始 videoSrc / webcam 必须在这里应用，
+    // 不能靠 immediate watch（它在 setup 期以 null ref 触发后不会重跑）。
+    applyVideoSrc()
+    if (webcam()) startCamera()
   })
   watch(generation, start, { flush: 'post' })
   watch(
     () => [tint(), metalness(), roughness(), blurStrength(), grayscale(), warp(), warpScale(),
-      shine(), bevel(), glare(), enableTilt(), tiltStrength(), intro(), radius()],
+      shine(), bevel(), glare(), enableTilt(), tiltStrength(), intro(), radius(), theme()],
     () => wakeRef.current?.(),
     { flush: 'post' }
   )
 
-  watch(videoSrc, src => {
-    const video = videoRef.value
-    if (!video) return
-    if (!src) {
-      video.removeAttribute('src')
-      video.load()
-    } else {
-      video.src = src
-      if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) video.play().catch(() => {})
-    }
-    wakeRef.current?.()
-  }, { immediate: true, flush: 'post' })
+  watch(videoSrc, applyVideoSrc, { flush: 'post' })
 
   const stopCamera = () => {
     camCancelled = true
@@ -442,7 +451,7 @@ export function useReflectiveCard(options: UseReflectiveCardOptions) {
       })
       .catch(error => { if (!camCancelled) onWebcamError(error) })
   }
-  watch(webcam, active => { if (active) startCamera(); else stopCamera() }, { immediate: true, flush: 'post' })
+  watch(webcam, active => { if (active) startCamera(); else stopCamera() }, { flush: 'post' })
 
   onBeforeUnmount(() => {
     stopCamera()
