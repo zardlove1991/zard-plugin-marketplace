@@ -40,3 +40,17 @@ export interface ScrollLockedVideoSignature {
 }
 
 export type PeakChartTrend = 'up' | 'down' | 'none'
+
+export type LiquidNavbarFx = 'plane' | 'drop' | 'spin' | 'glow' | 'wave' | 'pop' | 'none'
+
+export type LiquidNavbarTone = 'light' | 'dark'
+
+export interface LiquidNavItem {
+  label: string
+  /** 传了就渲染成链接，否则是按钮 */
+  href?: string
+  /** 图标组件。放进响应式数据时要 markRaw，否则 <component :is> 拿到的是被代理的组件 */
+  icon?: Component
+  /** 点击时图标播放的小动画；不传时，有图标用 pop，没图标用 none */
+  fx?: LiquidNavbarFx
+}

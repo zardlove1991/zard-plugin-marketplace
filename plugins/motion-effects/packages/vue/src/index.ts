@@ -8,10 +8,15 @@ export { default as GlassyDashboard } from './components/GlassyDashboard.vue'
 export { default as SplashCursor } from './components/SplashCursor.vue'
 export { default as Shredder } from './components/Shredder.vue'
 export { default as SpotlightCard } from './components/SpotlightCard.vue'
+export { default as LiquidNavbar } from './components/LiquidNavbar.vue'
+export { LIQUID_NAVBAR_ITEMS, NimbusIcons } from './components/liquidNavbarIcons'
 
 export type {
   HoldButtonDirection,
   HoldButtonSize,
+  LiquidNavbarFx,
+  LiquidNavbarTone,
+  LiquidNavItem,
   PeakChartTrend,
   ScrollLockedVideoSignature,
   SpecularButtonSize,
