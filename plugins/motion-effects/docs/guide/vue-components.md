@@ -1,6 +1,6 @@
 # Vue 组件（0.1）
 
-已有 21 个特效移植成 Vue 3 组件，详情页的预览台里直接渲染真实组件。其中 17 个（`HoldButton`、`SwipeRow`、`SpecularButton`、`TerminalReplay`、`PeakChart`、`SpotlightCard`、`LiquidNavbar`、`GlassSurface`、`AnimatedList`、`FlipCard`、`GhostCursor`、`GridMotion`、`RubberSegment`、`TiltedCard`、`Signature`、`PaperCrumple`、`ReflectiveCard`）带「自定义」面板：改参数，预览实时跟着变，「代码」页签的用法片段只写出你改过的项。另外 4 个需要独占文档，放在 iframe 里加载：
+已有 22 个特效移植成 Vue 3 组件，详情页的预览台里直接渲染真实组件。其中 18 个（`HoldButton`、`SwipeRow`、`SpecularButton`、`TerminalReplay`、`PeakChart`、`SpotlightCard`、`LiquidNavbar`、`GlassSurface`、`AnimatedList`、`FlipCard`、`GhostCursor`、`GridMotion`、`RubberSegment`、`TiltedCard`、`Signature`、`PaperCrumple`、`ReflectiveCard`、`PillNav`）带「自定义」面板：改参数，预览实时跟着变，「代码」页签的用法片段只写出你改过的项。另外 4 个需要独占文档，放在 iframe 里加载：
 
 | 组件 | 详情页 | 测试 |
 |---|---|---|
@@ -25,13 +25,14 @@
 | `Signature` | [手写签名](/effects/signature) | `packages/vue/tests/signature.spec.ts` |
 | `PaperCrumple` | [纸张揉皱](/effects/paper-crumple) | `packages/vue/tests/paper-crumple.spec.ts` |
 | `ReflectiveCard` | [金属反射卡](/effects/reflective-card) | `packages/vue/tests/reflective-card.spec.ts` |
+| `PillNav` | [胶囊导航](/effects/pill-nav) | `packages/vue/tests/pill-nav.spec.ts` |
 
 `ScrollLockedVideoHero` 会锁定所在页面的滚动，`GlassyDashboard` 是整屏工作区，`SplashCursor` 会铺满整个视口跟随光标，`Shredder` 需要一个固定宽度的父容器，四者的预览都放在 iframe 里；iframe 里跑的仍是同一个真实组件。
 
 ## 导入
 
 ```ts
-import { AnimatedList, FlipCard, GhostCursor, GlassSurface, GridMotion, PaperCrumple, ReflectiveCard, RubberSegment, Signature, TiltedCard, GlassyDashboard, HoldButton, LiquidNavbar, PeakChart, ScrollLockedVideoHero, Shredder, SpecularButton, SpotlightCard, SplashCursor, SwipeRow, TerminalReplay } from '@motion-effects/vue'
+import { AnimatedList, FlipCard, GhostCursor, GlassSurface, GridMotion, PaperCrumple, PillNav, ReflectiveCard, RubberSegment, Signature, TiltedCard, GlassyDashboard, HoldButton, LiquidNavbar, PeakChart, ScrollLockedVideoHero, Shredder, SpecularButton, SpotlightCard, SplashCursor, SwipeRow, TerminalReplay } from '@motion-effects/vue'
 import type { SwipeAction } from '@motion-effects/vue'
 ```
 
@@ -401,6 +402,27 @@ import { ReflectiveCard } from '@motion-effects/vue'
 
 WebGL2 金属反射证件卡：视频 / 摄像头画面经模糊后成为环境贴图，按指针姿态反射。默认插槽可替换卡面；摄像头需 HTTPS 与授权，失败时发 `webcam-error`。无 WebGL2 时只显示 CSS 卡面。
 
+### PillNav
+
+```vue
+<script setup lang="ts">
+import { ref } from 'vue'
+import { PillNav } from '@motion-effects/vue'
+
+const active = ref('#')
+const items = [
+  { label: 'Home', href: '#' },
+  { label: 'Work', href: '#work' }
+]
+</script>
+
+<template>
+  <PillNav v-model:active-href="active" :items="items" logo="/logo.svg" />
+</template>
+```
+
+`v-model:activeHref` 受控当前项，另发 `item-click` / `menu-toggle`；`#logo` 插槽可替换 logo。指示条是两组弹簧状态驱动的拉伸动画，窄屏自动折叠成汉堡菜单。
+
 指针扫过卡片时打出一团柔光，边缘在靠近时被照亮。`shape="beam"` 把光从顶边打下来；`proximity` 让指针还没进入卡片就开始照亮（相邻卡片共享一团光）；`ambient` 让无指针时缓慢漂移；`flare` 在按住时膨胀变亮；`grain` 叠加胶片颗粒。零第三方依赖，主题用 `theme` 或 `--spotlight-card-surface` / `--spotlight-card-border` 覆盖。
 
 ## 契约与限制
@@ -427,8 +449,9 @@ WebGL2 金属反射证件卡：视频 / 摄像头画面经模糊后成为环境�
 - `Signature` 通过 ref 暴露 `play` / `clear` / `undo` / `getStrokes` / `toSVG` / `toDataURL`；`play` 模式逐点画示例笔迹，`sign` 模式手写；`theme="auto"` 从父背景推断明暗。
 - `PaperCrumple` 通过 ref 暴露 `reset` / `cancel`，发出 `state-change` / `error`；依赖 `three`，图片需同源或 CORS，无 WebGL 时显示静态图。
 - `ReflectiveCard` 用默认插槽替换卡面内容，发 `webcam-error`；WebGL2 环境反射，摄像头需 HTTPS 与授权。
-- 后十八个与 React 原件有几处有意的行为差异，清单见上面那份 README 的「与 React 原件的差异」。
-- 二十一个组件都做了 SSR 安全处理，浏览器 API 只在 `onMounted` 或用户事件中访问。
+- `PillNav` 用 `v-model:activeHref` 受控、另发 `item-click` / `menu-toggle`；`#logo` 插槽替换 logo 节点，窄屏自动折叠成汉堡菜单。
+- 后十九个与 React 原件有几处有意的行为差异，清单见上面那份 README 的「与 React 原件的差异」。
+- 二十二个组件都做了 SSR 安全处理，浏览器 API 只在 `onMounted` 或用户事件中访问。
 - 当前是 workspace 私有包，未发布 npm；外部项目可复制 `packages/vue/src` 或等待发布。
 
 ## 本地测试

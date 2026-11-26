@@ -19,6 +19,7 @@ import tiltedCard from './tilted-card.mjs'
 import signature from './signature.mjs'
 import paperCrumple from './paper-crumple.mjs'
 import reflectiveCard from './reflective-card.mjs'
+import pillNav from './pill-nav.mjs'
 
 export const PROP_SCHEMAS = {
   'hold-button': holdButton,
@@ -37,5 +38,6 @@ export const PROP_SCHEMAS = {
   'tilted-card': tiltedCard,
   'signature': signature,
   'paper-crumple': paperCrumple,
-  'reflective-card': reflectiveCard
+  'reflective-card': reflectiveCard,
+  'pill-nav': pillNav
 }

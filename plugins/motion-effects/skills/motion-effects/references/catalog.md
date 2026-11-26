@@ -78,10 +78,11 @@
 | `Signature` | `../../packages/vue/src/components/Signature.vue` | `../../packages/vue/tests/signature.spec.ts` |
 | `PaperCrumple` | `../../packages/vue/src/components/PaperCrumple.vue` | `../../packages/vue/tests/paper-crumple.spec.ts` |
 | `ReflectiveCard` | `../../packages/vue/src/components/ReflectiveCard.vue` | `../../packages/vue/tests/reflective-card.spec.ts` |
+| `PillNav` | `../../packages/vue/src/components/PillNav.vue` | `../../packages/vue/tests/pill-nav.spec.ts` |
 
-其余 4 个仍以 React 源码 + vanilla 演示为真源，按需按 `vue-porting.md` 移植。
+其余 3 个仍以 React 源码 + vanilla 演示为真源，按需按 `vue-porting.md` 移植。
 
-后十八个（`TerminalReplay`、`ScrollLockedVideoHero`、`PeakChart`、`GlassyDashboard`、`SplashCursor`、`Shredder`、`SpotlightCard`、`LiquidNavbar`、`GlassSurface`、`AnimatedList`、`FlipCard`、`GhostCursor`、`GridMotion`、`RubberSegment`、`TiltedCard`、`Signature`、`PaperCrumple`、`ReflectiveCard`）与 React 原件有几处有意的行为差异，见 `../../packages/vue/README.md` 的「与 React 原件的差异」。
+后十九个（`TerminalReplay`、`ScrollLockedVideoHero`、`PeakChart`、`GlassyDashboard`、`SplashCursor`、`Shredder`、`SpotlightCard`、`LiquidNavbar`、`GlassSurface`、`AnimatedList`、`FlipCard`、`GhostCursor`、`GridMotion`、`RubberSegment`、`TiltedCard`、`Signature`、`PaperCrumple`、`ReflectiveCard`、`PillNav`）与 React 原件有几处有意的行为差异，见 `../../packages/vue/README.md` 的「与 React 原件的差异」。
 
 > Vue 实装自带 CSS，不依赖 Tailwind；需要安装的依赖见下面「依赖安装」。
 
@@ -183,6 +184,7 @@ React 项目对应：`motion` + `@hugeicons/react`；`glassy-dashboard` 另需 `
 ## 9. PillNav · 胶囊导航
 
 - **源码**：`PillNav.jsx` + `PillNav.css`；**演示**：`pill-nav.html`
+- **Vue 实装**：`../../packages/vue/src/components/PillNav.vue`（已测试；引擎在 `../../packages/vue/src/composables/usePillNav.ts`，默认项在 `pillNavItems.ts`）
 - **适用**：官网顶部导航、产品页分区切换、移动端折叠菜单。
 - **关键 API**：`logo`、`logoAlt`、`logoHref`、`items`（`{ label, href, icon }`）、`activeHref`、`defaultActiveIndex`、`onItemClick`、`linkComponent`、`theme`、`layout`（`split`/`center`）、`size`、`surface`（`glass`/`solid`）、`itemStyle`、`hoverEffect`、`indicator`、`highlightColor`、`highlightTextColor`、`barColor`、`textColor`、`bounce`、`stretch`、`intro`、`collapse`、`onMenuToggle`、`ariaLabel`。
 - **移植要点**：`linkComponent` → Vue 用 `component :is` 或插槽；内部有测量克隆节点（`MEASURE`），CSS 必须全局引入（scoped 样式加不到克隆节点上）。折叠菜单的 focus trap 与 `Esc` 要保留。

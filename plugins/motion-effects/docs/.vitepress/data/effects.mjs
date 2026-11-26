@@ -73,7 +73,7 @@ export const EFFECTS = [
     note: 'three 体积大，动态 import；纹理需 CORS；移动端降低 detail；卸载必须 dispose。演示依赖真实 GPU，无硬件加速的 headless 环境可能白屏。'
   },
   {
-    id: 'pill-nav', name: 'PillNav', zh: '胶囊导航', cat: '导航与页面', vue: 'mid', height: 420,
+    id: 'pill-nav', name: 'PillNav', zh: '胶囊导航', cat: '导航与页面', vue: 'mid', vueReady: true, height: 420,
     desc: '胶囊导航：桌面滑动高亮胶囊、移动端折叠菜单，支持玻璃 / 实心表面与指示点。',
     deps: [], demo: 'pill-nav.html', source: 'react/components/ui/PillNav.jsx',
     props: ['items', 'activeHref', 'layout', 'surface', 'collapse', 'indicator'],
