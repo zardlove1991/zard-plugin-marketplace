@@ -23,6 +23,7 @@ import SignatureStage from '../../demos/SignatureStage.vue'
 import PaperCrumpleStage from '../../demos/PaperCrumpleStage.vue'
 import ReflectiveCardStage from '../../demos/ReflectiveCardStage.vue'
 import PillNavStage from '../../demos/PillNavStage.vue'
+import MagicBentoStage from '../../demos/MagicBentoStage.vue'
 import StageFrame from './StageFrame.vue'
 import CustomizePanel from './CustomizePanel.vue'
 import PropTable from './PropTable.vue'
@@ -68,7 +69,8 @@ const STAGES = {
   'signature': SignatureStage,
   'paper-crumple': PaperCrumpleStage,
   'reflective-card': ReflectiveCardStage,
-  'pill-nav': PillNavStage
+  'pill-nav': PillNavStage,
+  'magic-bento': MagicBentoStage
 }
 
 /** 会劫持全局输入或需要整屏的组件：放进只渲染它自己的独立页面，再用 iframe 加载 */

@@ -59,7 +59,7 @@ export const EFFECTS = [
     note: '必须阻止右键菜单与文本选择；按住移出要取消；建议 holdTime 1.2–2.5s。'
   },
   {
-    id: 'magic-bento', name: 'MagicBento', zh: '功能磁贴', cat: '卡片与容器', vue: 'hard', height: 720,
+    id: 'magic-bento', name: 'MagicBento', zh: '功能磁贴', cat: '卡片与容器', vue: 'hard', vueReady: true, height: 720,
     desc: '功能磁贴 Bento：聚光、边框光、粒子、倾斜与点击反馈，内置多种数据可视化预设。',
     deps: ['Hugeicons'], demo: 'magic-bento.html', source: 'react/components/ui/MagicBento.jsx',
     props: ['items', 'columns', 'enableSpotlight', 'enableStars', 'enableTilt'],

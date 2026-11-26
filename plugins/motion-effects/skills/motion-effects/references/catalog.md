@@ -79,10 +79,11 @@
 | `PaperCrumple` | `../../packages/vue/src/components/PaperCrumple.vue` | `../../packages/vue/tests/paper-crumple.spec.ts` |
 | `ReflectiveCard` | `../../packages/vue/src/components/ReflectiveCard.vue` | `../../packages/vue/tests/reflective-card.spec.ts` |
 | `PillNav` | `../../packages/vue/src/components/PillNav.vue` | `../../packages/vue/tests/pill-nav.spec.ts` |
+| `MagicBento` | `../../packages/vue/src/components/MagicBento.vue` | `../../packages/vue/tests/magic-bento.spec.ts` |
 
-其余 3 个仍以 React 源码 + vanilla 演示为真源，按需按 `vue-porting.md` 移植。
+其余 2 个仍以 React 源码 + vanilla 演示为真源，按需按 `vue-porting.md` 移植。
 
-后十九个（`TerminalReplay`、`ScrollLockedVideoHero`、`PeakChart`、`GlassyDashboard`、`SplashCursor`、`Shredder`、`SpotlightCard`、`LiquidNavbar`、`GlassSurface`、`AnimatedList`、`FlipCard`、`GhostCursor`、`GridMotion`、`RubberSegment`、`TiltedCard`、`Signature`、`PaperCrumple`、`ReflectiveCard`、`PillNav`）与 React 原件有几处有意的行为差异，见 `../../packages/vue/README.md` 的「与 React 原件的差异」。
+后二十个（`TerminalReplay`、`ScrollLockedVideoHero`、`PeakChart`、`GlassyDashboard`、`SplashCursor`、`Shredder`、`SpotlightCard`、`LiquidNavbar`、`GlassSurface`、`AnimatedList`、`FlipCard`、`GhostCursor`、`GridMotion`、`RubberSegment`、`TiltedCard`、`Signature`、`PaperCrumple`、`ReflectiveCard`、`PillNav`、`MagicBento`）与 React 原件有几处有意的行为差异，见 `../../packages/vue/README.md` 的「与 React 原件的差异」。
 
 > Vue 实装自带 CSS，不依赖 Tailwind；需要安装的依赖见下面「依赖安装」。
 
@@ -167,6 +168,7 @@ React 项目对应：`motion` + `@hugeicons/react`；`glassy-dashboard` 另需 `
 ## 7. MagicBento · 功能磁贴
 
 - **源码**：`MagicBento.jsx` + `MagicBento.css`；**演示**：`magic-bento.html`
+- **Vue 实装**：`../../packages/vue/src/components/MagicBento.vue`（已测试；可视化在 `MagicBentoVisual.vue`，引擎在 `useMagicBento.ts`，常量在 `magicBentoHelpers.ts`）
 - **适用**：SaaS 功能总览、后台看板、营销页能力矩阵。
 - **关键 API**：`items`（`{ title, description, visual, icon, image, content, colSpan, rowSpan, href, onClick, id }`）、`columns`、`rowHeight`、`gap`、`radius`、`theme`、`glowColor`、`textAutoHide`、`enableBorderGlow`、`enableSpotlight`、`spotlightRadius`、`enableStars`、`particleCount`、`enableTilt`、`enableMagnetism`、`clickEffect`、`intro`、`disableAnimations`、`onItemClick`。
 - **移植要点**：1131 行 JSX + 1126 行 CSS，是库里最大的组件。建议**整文件 1:1 直译**：模板结构、CSS、rAF 引擎、视觉子组件（`AnalyticsVisual` 等）都保留；把 `items` 的节点字段换成插槽。`useIsomorphicLayoutEffect` → `onMounted` + `nextTick`。
