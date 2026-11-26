@@ -10,8 +10,13 @@ export { default as Shredder } from './components/Shredder.vue'
 export { default as SpotlightCard } from './components/SpotlightCard.vue'
 export { default as LiquidNavbar } from './components/LiquidNavbar.vue'
 export { LIQUID_NAVBAR_ITEMS, NimbusIcons } from './components/liquidNavbarIcons'
+export { default as GlassSurface } from './components/GlassSurface.vue'
 
 export type {
+  GlassBackdrop,
+  GlassSurfaceChannel,
+  GlassSurfaceRenderer,
+  GlassSurfaceSettings,
   HoldButtonDirection,
   HoldButtonSize,
   LiquidNavbarFx,

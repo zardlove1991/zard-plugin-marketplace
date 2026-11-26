@@ -1,4 +1,4 @@
-import type { Component } from 'vue'
+import type { Component, Ref } from 'vue'
 
 export type HoldButtonSize = 'sm' | 'md' | 'lg'
 export type HoldButtonDirection = 'right' | 'up'
@@ -53,4 +53,46 @@ export interface LiquidNavItem {
   icon?: Component
   /** 点击时图标播放的小动画；不传时，有图标用 pop，没图标用 none */
   fx?: LiquidNavbarFx
+}
+
+/** 折射通道；A 只作占位，SVG/WebGL 都把它当 0 用 */
+export type GlassSurfaceChannel = 'R' | 'G' | 'B' | 'A'
+
+export type GlassSurfaceRenderer = 'auto' | 'webgl' | 'svg'
+
+/** 玻璃背后的同源图 / 视频 / canvas。Vue 的模板 ref 在模板里会自动解包成 DOM。 */
+export type GlassBackdrop =
+  | HTMLImageElement
+  | HTMLVideoElement
+  | HTMLCanvasElement
+  | Ref<HTMLImageElement | HTMLVideoElement | HTMLCanvasElement | null>
+  | { current: HTMLImageElement | HTMLVideoElement | HTMLCanvasElement | null }
+  | null
+
+/** GlassSurface 的全部入参，composable 直接读这个响应式 props 对象 */
+export interface GlassSurfaceSettings {
+  width?: number | string
+  height?: number | string
+  borderRadius?: number
+  borderWidth?: number
+  brightness?: number
+  opacity?: number
+  blur?: number
+  displace?: number
+  backgroundOpacity?: number
+  saturation?: number
+  distortionScale?: number
+  redOffset?: number
+  greenOffset?: number
+  blueOffset?: number
+  xChannel?: GlassSurfaceChannel
+  yChannel?: GlassSurfaceChannel
+  mixBlendMode?: string
+  refraction?: boolean
+  renderer?: GlassSurfaceRenderer
+  backdrop?: GlassBackdrop
+  /** 自定义轮廓图（同源 data URL / 图片地址）；描边、发光与遮罩都从它生成 */
+  shape?: string | null
+  className?: string
+  style?: Record<string, string | number>
 }

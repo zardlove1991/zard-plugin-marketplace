@@ -1,6 +1,6 @@
 # @motion-effects/vue
 
-`motion-effects` 的 Vue 3 实装包（0.1）。当前包含 11 个已完成移植并有 Vitest 覆盖的组件：
+`motion-effects` 的 Vue 3 实装包（0.1）。当前包含 12 个已完成移植并有 Vitest 覆盖的组件：
 
 | 组件 | 说明 | 依赖 |
 |---|---|---|
@@ -15,10 +15,11 @@
 | `Shredder` | 可拖拽碎纸机：切条卷曲飘落 / 重排 / 循环 / 键盘 shred | 无 |
 | `SpotlightCard` | 光斑卡片：跟随指针的柔光 / 边缘邻近发光 / 光束形态 / 按压 flare | 无 |
 | `LiquidNavbar` | 液态玻璃导航：WebGL 水体滑向当前项、点击波纹、图标小动画、合成音效；无 WebGL 时退回 CSS 水滴 | 无 |
+| `GlassSurface` | 折射玻璃面板：SVG 色散折射 / WebGL2 双路径，按形状描边发光，无 GPU 时退回雾面玻璃 | 无 |
 
-其余 14 个特效仍以 React 源码 + vanilla 演示为真源，按需按 `references/vue-porting.md` 移植。
+其余 13 个特效仍以 React 源码 + vanilla 演示为真源，按需按 `references/vue-porting.md` 移植。
 
-> `TerminalReplay`、`ScrollLockedVideoHero`、`PeakChart`、`GlassyDashboard` 和 `LiquidNavbar` 按 Vue 习惯设计：没有 `className` prop，`class` / `style` 自动透传到根元素；受控状态只走 `v-model`，不另发 `xxx-change` 事件。前三个组件仍保留 React 式的 `className` 与 `open-change`；`SplashCursor` 保留了 React 原件的 `className` / `style` props；`Shredder` 保留 React 的 `className` prop，但用 `#item` 插槽替代 `renderItem`，事件改走 `shred` / `reorder`；`SpotlightCard` 保留 `className` 与默认插槽，其余 div 属性自动透传。
+> `TerminalReplay`、`ScrollLockedVideoHero`、`PeakChart`、`GlassyDashboard` 和 `LiquidNavbar` 按 Vue 习惯设计：没有 `className` prop，`class` / `style` 自动透传到根元素；受控状态只走 `v-model`，不另发 `xxx-change` 事件。前三个组件仍保留 React 式的 `className` 与 `open-change`；`SplashCursor` / `GlassSurface` 保留了 React 原件的 `className` / `style` props；`Shredder` 保留 React 的 `className` prop，但用 `#item` 插槽替代 `renderItem`，事件改走 `shred` / `reorder`；`SpotlightCard` 保留 `className` 与默认插槽，其余 div 属性自动透传。
 
 ## 使用
 
@@ -99,7 +100,25 @@ const items: LiquidNavItem[] = [
 </template>
 ```
 
-CSS 随 SFC 自动引入，不需要单独 import CSS 文件。根类名前缀分别为 `.hold-button`、`.sr-root`、`.specular-button`、`.tr-root`、`.slvh`、`.pc-root`、`.nimbus-nav`。
+`GlassSurface` 是容器组件：背后的画面决定折射效果，`backdrop` 传图片 / 视频 / canvas 元素（或其模板 ref）才会走 WebGL2 路径。Chromium 上默认走 SVG 滤镜折射：
+
+```vue
+<script setup lang="ts">
+import { ref } from 'vue'
+import { GlassSurface } from '@motion-effects/vue'
+
+const photo = ref<HTMLImageElement | null>(null)
+</script>
+
+<template>
+  <img ref="photo" src="/sunset.jpg" alt="" />
+  <GlassSurface :backdrop="photo" :width="320" :height="190" :displace="0.35" :background-opacity="0.08">
+    <strong>折射玻璃面板</strong>
+  </GlassSurface>
+</template>
+```
+
+CSS 随 SFC 自动引入，不需要单独 import CSS 文件。根类名前缀分别为 `.hold-button`、`.sr-root`、`.specular-button`、`.tr-root`、`.slvh`、`.pc-root`、`.nimbus-nav`、`.glass-surface`。
 
 ## 组件契约
 
@@ -183,9 +202,18 @@ CSS 随 SFC 自动引入，不需要单独 import CSS 文件。根类名前缀�
 - 随包导出内置图标 `NimbusIcons`（`home` / `globe` / `plane` / `drop` / `user`）和默认条目 `LIQUID_NAVBAR_ITEMS`
 - 根类名前缀 `.nimbus-nav`；水体是 WebGL（1）着色器，拿不到上下文时自动退回 CSS 水滴，不用写第二套
 
+### GlassSurface
+
+- props：`width`（`number | string`，默认 `200`）、`height`（默认 `80`）、`borderRadius`（`20`）、`borderWidth`（`0.07`，相对短边的比例）、`brightness`（`50`）、`opacity`（`0.93`）、`blur`（`11`）、`displace`（`0`）、`backgroundOpacity`（`0`）、`saturation`（`1`）、`distortionScale`（`-180`）、`redOffset`（`0`）、`greenOffset`（`10`）、`blueOffset`（`20`）、`xChannel` / `yChannel`（`R` / `G` / `B` / `A`）、`mixBlendMode`（`difference`）、`refraction`（`true`）、`renderer`（`auto` / `webgl` / `svg`）、`backdrop`、`shape`、`className`、`style`
+- 插槽：默认插槽放玻璃背后的内容
+- `renderer="auto"`：Chromium 走 SVG 滤镜折射（无 GPU 也可用）；其它浏览器给了 `backdrop` 才走 WebGL2；两者都不可用时退回雾面玻璃。`renderer` 可强制其中一条路径
+- `backdrop` 传同源图片 / 视频 / canvas 或其模板 ref；跨域纹理会污染画布，WebGL 路径失败后自动退回 SVG / 雾面
+- `shape` 传同源轮廓图（data URL 或图片地址）：从 alpha 通道描出距离场，生成弯折贴图 + 描边 / 发光遮罩；加载完成前容器透明，失败则退回普通玻璃
+- 根类名前缀 `.glass-surface`；置换贴图经 `ResizeObserver` 随容器尺寸重算；CSS 全局引入（滤镜原语由 `h()` 生成，写进模板会变成未解析组件）
+
 ## 与 React 原件的差异
 
-前三个组件是 1:1 直译。后八个在移植时处理了上游的几处问题或按 Vue 习惯调整，行为上有意不同（`SplashCursor` / `Shredder` / `SpotlightCard` 的引擎是 1:1 抽取，差异只在框架胶水与 DOM 归属）：
+前三个组件是 1:1 直译。后九个在移植时处理了上游的几处问题或按 Vue 习惯调整，行为上有意不同（`SplashCursor` / `Shredder` / `SpotlightCard` / `GlassSurface` 的引擎是 1:1 抽取，差异只在框架胶水与 DOM 归属）：
 
 - `TerminalReplay` 的行内标签：上游的正则要求闭合标签带名字（`[/success]`），而它的数据全用 `[/]`，所以标签从来没有被解析过，是原样打印的。这里两种闭合都认。
 - `TerminalReplay` 跳过 spinner / progress 步骤时立即结束；上游会原地空转到该步骤的时长走完。
@@ -206,6 +234,9 @@ CSS 随 SFC 自动引入，不需要单独 import CSS 文件。根类名前缀�
 - `LiquidNavbar` 的帧时间统一取 `performance.now()`，并给 dt 加了 0 的下限。上游用 rAF 的时间戳算 dt、却用 `performance.now()` 记上一帧和延迟起点；真实浏览器里两者同源，行为不变。
 - `LiquidNavbar` 卸载时关闭 AudioContext 并清掉水滴图标的延时波纹；上游两处都不清理。
 - `LiquidNavbar` 的折射滤镜用渲染函数生成，不写进模板。`feTurbulence` 这类原语不在 Vue 的 SVG 标签表里，写成 `<fe-turbulence>` 会被当成未解析的组件，建出来的元素名是错的，滤镜静默失效。
+- `GlassSurface` 的 `feImage` / `feDisplacementMap` 等滤镜原语同样由 `h()` 生成，节点用函数式 ref 登记给 composable；SVG 属性按 spec 写（`stdDeviation`、`xChannelSelector` 是驼峰，`color-interpolation-filters` 是连字符）。上游用 `useId()` 拼三组渐变 / 滤镜 id，Vue 版把它们收进自包含的 data URL 里，不需要给文档注入唯一 id。
+- `GlassSurface` 在 `webglcontextlost` 后保留 WebGL 模式，浏览器恢复上下文时重新编译着色器、重建纹理 / buffer / VAO 并继续渲染。上游调了 `preventDefault()` 却把 `webglFailed` 永久置为 `true`，之后再也回不到 WebGL 路径。
+- `GlassSurface` 把置换贴图、通道选择器等高频 DOM 更新放在普通变量 / 命令式 `setAttribute` 里，不进响应式；`backdrop` 同时接受 DOM、Vue `Ref` 与 React 风格的 `{ current }` 对象。
 
 ## 测试
 
@@ -223,9 +254,10 @@ pnpm check       # test + typecheck
 - `ScrollLockedVideoHero` 没有 poster：视频数据加载前显示深色背景和标题。
 - `TerminalReplay` 的无障碍文案、复制按钮标题和默认脚本沿用上游的写法，没有做本地化。
 - `PeakChart` 运行中修改 `width` 会重建画布并重播揭示动画（上游 effect 依赖 `[width, u]` 的语义）；`fontStretch` 的实际效果随平台字体支持变化。
-- 十一个组件都做了 SSR 安全处理：浏览器 API 只在 `onMounted` 或用户事件中访问；`LiquidNavbar` 的 `getContext` / `matchMedia` / `AudioContext` 同样如此。`GlassyDashboard` 的 `matchMedia` / `ResizeObserver` / `history` 也在挂载后才用；`SplashCursor` 的 `getContext` / `matchMedia`、`Shredder` 的 `ResizeObserver` / canvas 上下文、`SpotlightCard` 的 `matchMedia` / `IntersectionObserver` 同样只在挂载后访问。
+- 十二个组件都做了 SSR 安全处理：浏览器 API 只在 `onMounted` 或用户事件中访问；`LiquidNavbar` 的 `getContext` / `matchMedia` / `AudioContext` 同样如此。`GlassyDashboard` 的 `matchMedia` / `ResizeObserver` / `history` 也在挂载后才用；`SplashCursor` 的 `getContext` / `matchMedia`、`Shredder` 的 `ResizeObserver` / canvas 上下文、`SpotlightCard` 的 `matchMedia` / `IntersectionObserver` 同样只在挂载后访问；`GlassSurface` 的 `getContext` / `Image` / `ResizeObserver` / `IntersectionObserver` / `canvas 2d` 也都在挂载后。
 - `GlassyDashboard` 的示例数据固定三个周期（7/30/90 天）与四视图；CSV 只在浏览器本地生成，不上传。背景图为 Unsplash 远程资源，离线时只有底色。
 - `SplashCursor` 需要 WebGL2 与浮点纹理扩展；不支持时只显示静态降级提示。弱机建议 `quality="low"`，主题切到 `light` 时要配浅色背景。
 - `Shredder` 的行快照依赖 `SVG foreignObject` + canvas，跨域图片会被污染；同页多实例时各自独立（引擎状态不共享）。
 - `SpotlightCard` 依赖 `color-mix` 与 `mask-composite`；`grain` 用 `mix-blend-overlay`，在纯黑 / 纯白表面上颗粒偏弱，需要明显颗粒时把 `grain` 调到 0.2 以上。
 - `LiquidNavbar` 的水体需要 WebGL（1）；拿不到上下文（含着色器编译失败）时退回 CSS 水滴，观感简化但没有功能损失。玻璃的折射（`backdrop-filter: url(#…)`）目前只有 Chromium 支持，其它浏览器只有模糊与提亮。移动端贴底放置时自己留出 `env(safe-area-inset-bottom)`。
+- `GlassSurface` 的 SVG 折射依赖 Chromium 的 `backdrop-filter: url(#…)`，其它浏览器走 WebGL2（需 `backdrop`）或雾面兜底；容器背后必须有内容才看得出折射。`shape` 与 `backdrop` 的图片必须同源或带 CORS；形状描摹在挂载与尺寸变化时同步计算，很大的 `shape` 会占一些主线程时间。
