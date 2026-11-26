@@ -19,6 +19,7 @@ export { default as RubberSegment } from './components/RubberSegment.vue'
 export { default as TiltedCard } from './components/TiltedCard.vue'
 export { default as TiltedCardLayer } from './components/TiltedCardLayer.vue'
 export { default as Signature } from './components/Signature.vue'
+export { default as PaperCrumple } from './components/PaperCrumple.vue'
 export { ANIMATED_LIST_ITEMS, ANIMATED_LIST_ICONS } from './components/animatedListIcons'
 
 export type {
