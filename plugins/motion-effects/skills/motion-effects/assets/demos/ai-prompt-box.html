@@ -47,6 +47,7 @@
   }
   .aip textarea::placeholder { color: var(--aip-muted); }
   .aip__files { display: flex; flex-wrap: wrap; gap: 8px; padding: 4px 2px 8px; }
+  .aip__files[hidden], .aip__recorder[hidden] { display: none !important; }
   .aip__file { position: relative; width: 64px; height: 64px; border-radius: 12px; overflow: hidden; background: #2a2b30; }
   .aip__file img { width: 100%; height: 100%; object-fit: cover; }
   .aip__file-remove {

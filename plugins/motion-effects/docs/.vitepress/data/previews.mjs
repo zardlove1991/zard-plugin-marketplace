@@ -28,4 +28,5 @@ export const PREVIEWS = {
   'splash-cursor': { webm: '/previews/splash-cursor.webm', mp4: '/previews/splash-cursor.mp4', poster: '/previews/splash-cursor.webp' },
   'shredder': { webm: '/previews/shredder.webm', mp4: '/previews/shredder.mp4', poster: '/previews/shredder.webp' },
   'spotlight-card': { webm: '/previews/spotlight-card.webm', mp4: '/previews/spotlight-card.mp4', poster: '/previews/spotlight-card.webp' },
+  'ai-prompt-box': { webm: '/previews/ai-prompt-box.webm', mp4: '/previews/ai-prompt-box.mp4', poster: '/previews/ai-prompt-box.webp' },
 }

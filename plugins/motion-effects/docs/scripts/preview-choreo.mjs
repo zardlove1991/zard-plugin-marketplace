@@ -176,5 +176,30 @@ export const CHOREO = {
 
   'spotlight-card': { zoom: 1.25, css: hide('.eyebrow, .lede, h1') },
 
-  'terminal-replay': { zoom: 1.25, css: hide('.intro') }
+  'terminal-replay': { zoom: 1.25, css: hide('.intro') },
+
+  // AI 输入框：打一段字 → 开联网模式 → 发送，展示输入 / 模式前缀 / 清空三步
+  'ai-prompt-box': {
+    zoom: 1.25,
+    css: hide('.status'),
+    async run(page, { width, height }) {
+      const box = await page.locator('#text').boundingBox()
+      const toggles = await page.locator('.aip-toggle--search').boundingBox()
+      const main = await page.locator('#main').boundingBox()
+      if (!box || !toggles || !main) return
+      // 点输入框打字（鼠标聚焦不再有描边，靠光标体现）
+      await page.mouse.click(box.x + box.width / 2, box.y + box.height / 2)
+      await page.keyboard.type('Design a landing page for our launch', { delay: 45 })
+      await pause(page, 700)
+      // 开「联网搜索」模式，placeholder 与按钮随之变化
+      await page.mouse.click(toggles.x + toggles.width / 2, toggles.y + toggles.height / 2)
+      await pause(page, 900)
+      // 发送：文本带 [Search: …] 前缀被记录，输入框清空
+      await page.mouse.click(main.x + main.width / 2, main.y + main.height / 2)
+      await pause(page, 1200)
+      // 回到输入框，让循环首尾衔接自然
+      await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2, { steps: 6 })
+      await pause(page, 500)
+    }
+  }
 }
