@@ -70,10 +70,11 @@
 | `LiquidNavbar` | `../../packages/vue/src/components/LiquidNavbar.vue` | `../../packages/vue/tests/liquid-navbar.spec.ts` |
 | `GlassSurface` | `../../packages/vue/src/components/GlassSurface.vue` | `../../packages/vue/tests/glass-surface.spec.ts` |
 | `AnimatedList` | `../../packages/vue/src/components/AnimatedList.vue` | `../../packages/vue/tests/animated-list.spec.ts` |
+| `FlipCard` | `../../packages/vue/src/components/FlipCard.vue` | `../../packages/vue/tests/flip-card.spec.ts` |
 
-其余 12 个仍以 React 源码 + vanilla 演示为真源，按需按 `vue-porting.md` 移植。
+其余 11 个仍以 React 源码 + vanilla 演示为真源，按需按 `vue-porting.md` 移植。
 
-后十个（`TerminalReplay`、`ScrollLockedVideoHero`、`PeakChart`、`GlassyDashboard`、`SplashCursor`、`Shredder`、`SpotlightCard`、`LiquidNavbar`、`GlassSurface`、`AnimatedList`）与 React 原件有几处有意的行为差异，见 `../../packages/vue/README.md` 的「与 React 原件的差异」。
+后十一个（`TerminalReplay`、`ScrollLockedVideoHero`、`PeakChart`、`GlassyDashboard`、`SplashCursor`、`Shredder`、`SpotlightCard`、`LiquidNavbar`、`GlassSurface`、`AnimatedList`、`FlipCard`）与 React 原件有几处有意的行为差异，见 `../../packages/vue/README.md` 的「与 React 原件的差异」。
 
 > Vue 实装自带 CSS，不依赖 Tailwind；需要安装的依赖见下面「依赖安装」。
 
@@ -113,6 +114,7 @@ React 项目对应：`motion` + `@hugeicons/react`；`glassy-dashboard` 另需 `
 ## 2. FlipCard · 3D 翻面卡片
 
 - **源码**：`FlipCard.jsx` + `FlipCard.css`；**演示**：`flip-card.html`
+- **Vue 实装**：`../../packages/vue/src/components/FlipCard.vue`（已测试；引擎在 `../../packages/vue/src/composables/useFlipCard.ts`）
 - **适用**：前后信息卡、价格卡翻面、产品详情、抽奖/刮奖式揭示。
 - **关键 API**：`front` / `back`（节点 → Vue 插槽）、`flipped`（受控 → `v-model:flipped`）、`defaultFlipped`、`onFlipChange`、`axis`（`x`/`y`）、`flipOnClick`、`draggable`、`dragDistance`、`tilt`、`tiltMax`、`glare`、`glareOpacity`、`hoverScale`、`perspective`、`stiffness`、`damping`、`width`、`height`、`radius`、`background`、`color`、`shadow`、`disabled`、`ariaLabel`。
 - **移植要点**：`motion/react` → `motion-v`；`useMotionValue` / `useSpring` / `useTransform` 同名可用。拖拽用 `@pointerdown/move/up` + `setPointerCapture`。翻面角度 `turn` 用 `computed` 派生 `rotate`。

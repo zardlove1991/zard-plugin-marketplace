@@ -24,11 +24,11 @@ export const EFFECTS = [
     note: '不是虚拟列表；数据量大时外层分页或虚拟滚动。默认图标可直接换项目图标。Vue 实装的 renderItem 换成 #item 作用域插槽，onItemSelect 换成 select 事件；选中条用弹簧逼近，逐帧状态不进响应式。'
   },
   {
-    id: 'flip-card', name: 'FlipCard', zh: '3D 翻面卡片', cat: '卡片与容器', vue: 'mid', height: 660,
+    id: 'flip-card', name: 'FlipCard', zh: '3D 翻面卡片', cat: '卡片与容器', vue: 'mid', vueReady: true, height: 660,
     desc: '3D 翻面卡片，可拖拽翻转、悬停倾斜、叠加眩光；支持前后两面与受控翻转。',
     deps: ['motion-v'], demo: 'flip-card.html', source: 'react/components/ui/FlipCard.jsx',
     props: ['front / back', 'flipped', 'axis', 'draggable', 'tilt', 'glare'],
-    note: 'reduced-motion 下应直接切面，不做旋转；Safari 需保留 backface-visibility 与 translateZ。'
+    note: 'reduced-motion 下应直接切面，不做旋转；Safari 需保留 backface-visibility 与 translateZ。Vue 实装的 front / back 换成具名插槽，flipped 走 v-model:flipped，并保留 flip-change 事件。'
   },
   {
     id: 'ghost-cursor', name: 'GhostCursor', zh: '流体光标', cat: '氛围与装饰', vue: 'mid', height: 560,

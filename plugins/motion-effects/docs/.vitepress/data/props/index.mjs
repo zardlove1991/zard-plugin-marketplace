@@ -11,6 +11,7 @@ import spotlightCard from './spotlight-card.mjs'
 import liquidGlassNavbar from './liquid-glass-navbar.mjs'
 import glassSurface from './glass-surface.mjs'
 import animatedList from './animated-list.mjs'
+import flipCard from './flip-card.mjs'
 
 export const PROP_SCHEMAS = {
   'hold-button': holdButton,
@@ -21,5 +22,6 @@ export const PROP_SCHEMAS = {
   'spotlight-card': spotlightCard,
   'liquid-glass-navbar': liquidGlassNavbar,
   'glass-surface': glassSurface,
-  'animated-list': animatedList
+  'animated-list': animatedList,
+  'flip-card': flipCard
 }

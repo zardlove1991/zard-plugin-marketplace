@@ -1,6 +1,6 @@
 # Vue 组件（0.1）
 
-已有 13 个特效移植成 Vue 3 组件，详情页的预览台里直接渲染真实组件。其中 9 个（`HoldButton`、`SwipeRow`、`SpecularButton`、`TerminalReplay`、`PeakChart`、`SpotlightCard`、`LiquidNavbar`、`GlassSurface`、`AnimatedList`）带「自定义」面板：改参数，预览实时跟着变，「代码」页签的用法片段只写出你改过的项。另外 4 个需要独占文档，放在 iframe 里加载：
+已有 14 个特效移植成 Vue 3 组件，详情页的预览台里直接渲染真实组件。其中 10 个（`HoldButton`、`SwipeRow`、`SpecularButton`、`TerminalReplay`、`PeakChart`、`SpotlightCard`、`LiquidNavbar`、`GlassSurface`、`AnimatedList`、`FlipCard`）带「自定义」面板：改参数，预览实时跟着变，「代码」页签的用法片段只写出你改过的项。另外 4 个需要独占文档，放在 iframe 里加载：
 
 | 组件 | 详情页 | 测试 |
 |---|---|---|
@@ -17,13 +17,14 @@
 | `LiquidNavbar` | [液态玻璃导航](/effects/liquid-glass-navbar) | `packages/vue/tests/liquid-navbar.spec.ts` |
 | `GlassSurface` | [折射玻璃面板](/effects/glass-surface) | `packages/vue/tests/glass-surface.spec.ts` |
 | `AnimatedList` | [动态列表](/effects/animated-list) | `packages/vue/tests/animated-list.spec.ts` |
+| `FlipCard` | [3D 翻面卡片](/effects/flip-card) | `packages/vue/tests/flip-card.spec.ts` |
 
 `ScrollLockedVideoHero` 会锁定所在页面的滚动，`GlassyDashboard` 是整屏工作区，`SplashCursor` 会铺满整个视口跟随光标，`Shredder` 需要一个固定宽度的父容器，四者的预览都放在 iframe 里；iframe 里跑的仍是同一个真实组件。
 
 ## 导入
 
 ```ts
-import { AnimatedList, GlassSurface, GlassyDashboard, HoldButton, LiquidNavbar, PeakChart, ScrollLockedVideoHero, Shredder, SpecularButton, SpotlightCard, SplashCursor, SwipeRow, TerminalReplay } from '@motion-effects/vue'
+import { AnimatedList, FlipCard, GlassSurface, GlassyDashboard, HoldButton, LiquidNavbar, PeakChart, ScrollLockedVideoHero, Shredder, SpecularButton, SpotlightCard, SplashCursor, SwipeRow, TerminalReplay } from '@motion-effects/vue'
 import type { SwipeAction } from '@motion-effects/vue'
 ```
 
@@ -263,6 +264,23 @@ const items: AnimatedListItem[] = [
 
 `renderItem` 换成 `#item` 作用域插槽，`onItemSelect` 换成 `select` 事件。选中项跟着弹簧指示条平滑移动，悬停 / 键盘都能切换；`animation="none"` 关掉入场动画。默认图标可直接换项目图标。
 
+### FlipCard
+
+```vue
+<script setup lang="ts">
+import { FlipCard } from '@motion-effects/vue'
+</script>
+
+<template>
+  <FlipCard axis="y" :width="300" :height="400">
+    <template #front><strong>Front</strong></template>
+    <template #back><strong>Back</strong></template>
+  </FlipCard>
+</template>
+```
+
+`front` / `back` 换成具名插槽，`flipped` 用 `v-model:flipped` 受控（另发 `flip-change`）。支持点击、Enter / 空格与拖拽甩动翻面；`prefers-reduced-motion` 下直接切面、不做旋转。
+
 指针扫过卡片时打出一团柔光，边缘在靠近时被照亮。`shape="beam"` 把光从顶边打下来；`proximity` 让指针还没进入卡片就开始照亮（相邻卡片共享一团光）；`ambient` 让无指针时缓慢漂移；`flare` 在按住时膨胀变亮；`grain` 叠加胶片颗粒。零第三方依赖，主题用 `theme` 或 `--spotlight-card-surface` / `--spotlight-card-border` 覆盖。
 
 ## 契约与限制
@@ -281,8 +299,9 @@ const items: AnimatedListItem[] = [
 - `LiquidNavbar` 的当前项走 `v-model:active`；`items` 里 `href` 有值渲染成链接、`icon` 传 Vue 组件；`compact` 不传时 520px 以下自动收成纯图标；没有 WebGL 时退回 CSS 水滴。
 - `GlassSurface` 的默认插槽放内容；`className` / `style` 保留为 props，其余 div 属性自动透传到根元素；`backdrop` 接受 DOM 或模板 ref，`renderer` 可强制 `auto` / `webgl` / `svg`。
 - `AnimatedList` 用 `#item` 作用域插槽替代 `renderItem`、`select` 事件替代 `onItemSelect`；键盘 ↑ / ↓ / Home / End 切换、Enter 确认；`items` 很大时仍要外层分页。
-- 后九个与 React 原件有几处有意的行为差异，清单见上面那份 README 的「与 React 原件的差异」。
-- 十三个组件都做了 SSR 安全处理，浏览器 API 只在 `onMounted` 或用户事件中访问。
+- `FlipCard` 用 `#front` / `#back` 放两面内容，`flipped` 走 `v-model:flipped`，另发 `flip-change`；拖拽甩动按角速度吸附到 180° 的整数倍，reduced-motion 下直接切面。
+- 后十个与 React 原件有几处有意的行为差异，清单见上面那份 README 的「与 React 原件的差异」。
+- 十四个组件都做了 SSR 安全处理，浏览器 API 只在 `onMounted` 或用户事件中访问。
 - 当前是 workspace 私有包，未发布 npm；外部项目可复制 `packages/vue/src` 或等待发布。
 
 ## 本地测试
