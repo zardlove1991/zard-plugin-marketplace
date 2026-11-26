@@ -73,6 +73,29 @@ export type GlassBackdrop =
 export type RubberSegmentSize = 'sm' | 'md' | 'lg'
 
 
+
+export type GlassFolderArtPreset = 'aurora' | 'ember' | 'dusk' | 'glacier' | 'verdant'
+
+export interface GlassFolderArtRecipe {
+  [key: string]: unknown
+}
+
+export type GlassFolderArt = GlassFolderArtPreset | GlassFolderArtRecipe | 'none'
+
+export interface GlassFolderFile {
+  name: string
+  meta?: string
+  art?: GlassFolderArtPreset | GlassFolderArtRecipe
+  image?: string
+  href?: string
+}
+
+export interface GlassFolderMenuItem {
+  label: string
+  onSelect?: () => void
+  danger?: boolean
+}
+
 export interface MagicBentoItem {
   id?: string | number
   title?: string
