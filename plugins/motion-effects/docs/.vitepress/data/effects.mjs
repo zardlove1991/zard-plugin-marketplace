@@ -115,7 +115,7 @@ export const EFFECTS = [
     note: 'iOS 陀螺仪需用户手势授权；reduced-motion 下关倾斜；触屏用滚动位置而不是鼠标。'
   },
   {
-    id: 'glass-folder-cards', name: 'GlassFolder', zh: '玻璃文件夹', cat: '卡片与容器', vue: 'hard', height: 620,
+    id: 'glass-folder-cards', name: 'GlassFolder', zh: '玻璃文件夹', cat: '卡片与容器', vue: 'hard', vueReady: true, height: 620,
     desc: '玻璃文件夹卡片：打开后文件扇形展开，可添加 / 选择文件；封底画由 canvas 程序化生成。',
     deps: [], demo: 'folders.html', source: 'react/components/ui/glass-folder-cards.tsx',
     props: ['label', 'art', 'files', 'action', 'open', 'width'],

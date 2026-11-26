@@ -22,6 +22,7 @@ let alive = true
 watch(
   () => [JSON.stringify(recipeOf(props.art as never)), props.seed, pw, ph, props.priority] as const,
   ([recipe, seed]) => {
+    if (typeof document === 'undefined') return
     alive = true
     ready.value = false
     paint(JSON.parse(recipe) as never, seed, pw, ph, props.priority).then(src => {

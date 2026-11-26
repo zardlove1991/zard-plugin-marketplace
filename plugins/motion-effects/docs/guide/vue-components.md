@@ -1,6 +1,6 @@
 # Vue 组件（0.1）
 
-已有 23 个特效移植成 Vue 3 组件，详情页的预览台里直接渲染真实组件。其中 19 个（`HoldButton`、`SwipeRow`、`SpecularButton`、`TerminalReplay`、`PeakChart`、`SpotlightCard`、`LiquidNavbar`、`GlassSurface`、`AnimatedList`、`FlipCard`、`GhostCursor`、`GridMotion`、`RubberSegment`、`TiltedCard`、`Signature`、`PaperCrumple`、`ReflectiveCard`、`PillNav`、`MagicBento`）带「自定义」面板：改参数，预览实时跟着变，「代码」页签的用法片段只写出你改过的项。另外 4 个需要独占文档，放在 iframe 里加载：
+已有 24 个特效移植成 Vue 3 组件，详情页的预览台里直接渲染真实组件。其中 20 个（`HoldButton`、`SwipeRow`、`SpecularButton`、`TerminalReplay`、`PeakChart`、`SpotlightCard`、`LiquidNavbar`、`GlassSurface`、`AnimatedList`、`FlipCard`、`GhostCursor`、`GridMotion`、`RubberSegment`、`TiltedCard`、`Signature`、`PaperCrumple`、`ReflectiveCard`、`PillNav`、`MagicBento`、`GlassFolder`）带「自定义」面板：改参数，预览实时跟着变，「代码」页签的用法片段只写出你改过的项。另外 4 个需要独占文档，放在 iframe 里加载：
 
 | 组件 | 详情页 | 测试 |
 |---|---|---|
@@ -27,13 +27,14 @@
 | `ReflectiveCard` | [金属反射卡](/effects/reflective-card) | `packages/vue/tests/reflective-card.spec.ts` |
 | `PillNav` | [胶囊导航](/effects/pill-nav) | `packages/vue/tests/pill-nav.spec.ts` |
 | `MagicBento` | [功能磁贴](/effects/magic-bento) | `packages/vue/tests/magic-bento.spec.ts` |
+| `GlassFolder` | [玻璃文件夹](/effects/glass-folder-cards) | `packages/vue/tests/glass-folder.spec.ts` |
 
 `ScrollLockedVideoHero` 会锁定所在页面的滚动，`GlassyDashboard` 是整屏工作区，`SplashCursor` 会铺满整个视口跟随光标，`Shredder` 需要一个固定宽度的父容器，四者的预览都放在 iframe 里；iframe 里跑的仍是同一个真实组件。
 
 ## 导入
 
 ```ts
-import { AnimatedList, FlipCard, GhostCursor, GlassSurface, GridMotion, MagicBento, PaperCrumple, PillNav, ReflectiveCard, RubberSegment, Signature, TiltedCard, GlassyDashboard, HoldButton, LiquidNavbar, PeakChart, ScrollLockedVideoHero, Shredder, SpecularButton, SpotlightCard, SplashCursor, SwipeRow, TerminalReplay } from '@motion-effects/vue'
+import { AnimatedList, FlipCard, GhostCursor, GlassFolder, GlassSurface, GridMotion, MagicBento, PaperCrumple, PillNav, ReflectiveCard, RubberSegment, Signature, TiltedCard, GlassyDashboard, HoldButton, LiquidNavbar, PeakChart, ScrollLockedVideoHero, Shredder, SpecularButton, SpotlightCard, SplashCursor, SwipeRow, TerminalReplay } from '@motion-effects/vue'
 import type { SwipeAction } from '@motion-effects/vue'
 ```
 
@@ -443,6 +444,23 @@ const items = [
 
 `renderItem` 换成 `#item` 作用域插槽，`onItemClick` 换成 `item-click`。六种内置可视化（analytics / dashboard / collaboration / automation / integration / security）可直接按名字引用；聚光、粒子、倾斜等动效都能单独关闭。
 
+### GlassFolder
+
+```vue
+<script setup lang="ts">
+import { ref } from 'vue'
+import { GlassFolder } from '@motion-effects/vue'
+
+const open = ref(false)
+</script>
+
+<template>
+  <GlassFolder v-model:open="open" label="My Files" art="aurora" action="add" />
+</template>
+```
+
+玻璃文件夹：封面画由 canvas 按配方实时生成，文件堆扇形展开；`open` 用 `v-model:open` 受控，另发 `files-change` / `file-select` 事件。`art="none"` 可关掉封面生成。
+
 指针扫过卡片时打出一团柔光，边缘在靠近时被照亮。`shape="beam"` 把光从顶边打下来；`proximity` 让指针还没进入卡片就开始照亮（相邻卡片共享一团光）；`ambient` 让无指针时缓慢漂移；`flare` 在按住时膨胀变亮；`grain` 叠加胶片颗粒。零第三方依赖，主题用 `theme` 或 `--spotlight-card-surface` / `--spotlight-card-border` 覆盖。
 
 ## 契约与限制
@@ -471,8 +489,9 @@ const items = [
 - `ReflectiveCard` 用默认插槽替换卡面内容，发 `webcam-error`；WebGL2 环境反射，摄像头需 HTTPS 与授权。
 - `PillNav` 用 `v-model:activeHref` 受控、另发 `item-click` / `menu-toggle`；`#logo` 插槽替换 logo 节点，窄屏自动折叠成汉堡菜单。
 - `MagicBento` 用 `#item` 插槽替代 `renderItem`、`item-click` 替代 `onItemClick`；六种内置可视化在 `MagicBentoVisual.vue` 里按 `visual` 名选择。
-- 后二十个与 React 原件有几处有意的行为差异，清单见上面那份 README 的「与 React 原件的差异」。
-- 二十三个组件都做了 SSR 安全处理，浏览器 API 只在 `onMounted` 或用户事件中访问。
+- `GlassFolder` 的 `open` 用 `v-model:open` 受控并另发 `open-change` / `files-change` / `file-select`；封面画由 canvas 生成，`art="none"` 可关闭。
+- 后二十一个与 React 原件有几处有意的行为差异，清单见上面那份 README 的「与 React 原件的差异」。
+- 二十四个组件都做了 SSR 安全处理，浏览器 API 只在 `onMounted` 或用户事件中访问。
 - 当前是 workspace 私有包，未发布 npm；外部项目可复制 `packages/vue/src` 或等待发布。
 
 ## 本地测试

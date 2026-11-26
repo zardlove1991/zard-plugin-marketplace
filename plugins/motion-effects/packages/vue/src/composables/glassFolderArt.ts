@@ -394,10 +394,15 @@ function pump() {
         head.done(c)
       }
     }
-    if (queue.length) requestAnimationFrame(tick)
+    if (queue.length) schedule(tick)
     else pumping = false
   }
-  requestAnimationFrame(tick)
+  schedule(tick)
+}
+
+function schedule(tick: () => void) {
+  if (typeof requestAnimationFrame === "function") requestAnimationFrame(tick)
+  else setTimeout(tick, 16)
 }
 
 /** Lower priority paints first: back panels (0) before the files tucked behind glass (1). */

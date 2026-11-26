@@ -21,6 +21,7 @@ import paperCrumple from './paper-crumple.mjs'
 import reflectiveCard from './reflective-card.mjs'
 import pillNav from './pill-nav.mjs'
 import magicBento from './magic-bento.mjs'
+import glassFolder from './glass-folder.mjs'
 
 export const PROP_SCHEMAS = {
   'hold-button': holdButton,
@@ -41,5 +42,6 @@ export const PROP_SCHEMAS = {
   'paper-crumple': paperCrumple,
   'reflective-card': reflectiveCard,
   'pill-nav': pillNav,
-  'magic-bento': magicBento
+  'magic-bento': magicBento,
+  'glass-folder-cards': glassFolder
 }

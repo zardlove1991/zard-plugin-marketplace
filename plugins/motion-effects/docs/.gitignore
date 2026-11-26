@@ -5,4 +5,4 @@ node_modules/
 # 构建期由 scripts/sync-assets.mjs 生成
 public/demos/
 public/source/
-public/gallery.html
+public/gallery.html.vitepress/.temp/
