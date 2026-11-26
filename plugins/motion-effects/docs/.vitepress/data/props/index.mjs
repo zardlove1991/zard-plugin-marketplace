@@ -22,6 +22,7 @@ import reflectiveCard from './reflective-card.mjs'
 import pillNav from './pill-nav.mjs'
 import magicBento from './magic-bento.mjs'
 import glassFolder from './glass-folder.mjs'
+import glassLogoReveal from './glass-logo-reveal.mjs'
 
 export const PROP_SCHEMAS = {
   'hold-button': holdButton,
@@ -43,5 +44,6 @@ export const PROP_SCHEMAS = {
   'reflective-card': reflectiveCard,
   'pill-nav': pillNav,
   'magic-bento': magicBento,
-  'glass-folder-cards': glassFolder
+  'glass-folder-cards': glassFolder,
+  'glass-logo-reveal': glassLogoReveal
 }

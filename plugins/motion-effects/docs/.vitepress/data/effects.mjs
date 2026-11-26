@@ -122,11 +122,11 @@ export const EFFECTS = [
     note: '封底画按 recipe 缓存，别每帧重画；文件是真实可聚焦按钮，不要用装饰替代。'
   },
   {
-    id: 'glass-logo-reveal', name: 'GlassLogoReveal', zh: '液态玻璃 Logo', cat: '氛围与装饰', vue: 'hard', height: 620,
+    id: 'glass-logo-reveal', name: 'GlassLogoReveal', zh: '液态玻璃 Logo', cat: '氛围与装饰', vue: 'hard', vueReady: true, height: 620,
     desc: '液态玻璃 Logo 揭示：玻璃把 Logo 弯折出色散，再退场留下干净的标志。',
     deps: ['cn'], demo: 'reveal.html', source: 'react/components/ui/liquid-glass-logo-reveal.tsx',
     props: ['logo', 'look', 'background', 'tileSize', 'loop', 'time'],
-    note: 'logo 纹理必须同源 / CORS；background 要匹配页面底色；time 可用于滚动驱动。'
+    note: 'logo 纹理必须同源 / CORS；background 要匹配页面底色；time 可用于滚动驱动。Vue 实装拆成 GlassIconReveal（任意 logo）与 GlassReveal21st（内置 21st 标记），无 WebGL2 时显示静态遮罩 logo。'
   },
   {
     id: 'liquid-glass-navbar', name: 'LiquidNavbar', zh: '液态玻璃导航', cat: '导航与页面', vue: 'hard', vueReady: true, height: 480,

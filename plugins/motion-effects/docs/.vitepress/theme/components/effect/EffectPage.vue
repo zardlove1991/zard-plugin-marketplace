@@ -25,6 +25,7 @@ import ReflectiveCardStage from '../../demos/ReflectiveCardStage.vue'
 import PillNavStage from '../../demos/PillNavStage.vue'
 import MagicBentoStage from '../../demos/MagicBentoStage.vue'
 import GlassFolderStage from '../../demos/GlassFolderStage.vue'
+import GlassLogoRevealStage from '../../demos/GlassLogoRevealStage.vue'
 import StageFrame from './StageFrame.vue'
 import CustomizePanel from './CustomizePanel.vue'
 import PropTable from './PropTable.vue'
@@ -72,7 +73,8 @@ const STAGES = {
   'reflective-card': ReflectiveCardStage,
   'pill-nav': PillNavStage,
   'magic-bento': MagicBentoStage,
-  'glass-folder-cards': GlassFolderStage
+  'glass-folder-cards': GlassFolderStage,
+  'glass-logo-reveal': GlassLogoRevealStage
 }
 
 /** 会劫持全局输入或需要整屏的组件：放进只渲染它自己的独立页面，再用 iframe 加载 */

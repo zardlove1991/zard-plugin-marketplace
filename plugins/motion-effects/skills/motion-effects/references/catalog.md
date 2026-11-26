@@ -81,10 +81,11 @@
 | `PillNav` | `../../packages/vue/src/components/PillNav.vue` | `../../packages/vue/tests/pill-nav.spec.ts` |
 | `MagicBento` | `../../packages/vue/src/components/MagicBento.vue` | `../../packages/vue/tests/magic-bento.spec.ts` |
 | `GlassFolder` | `../../packages/vue/src/components/GlassFolder.vue` | `../../packages/vue/tests/glass-folder.spec.ts` |
+| `GlassIconReveal` | `../../packages/vue/src/components/GlassIconReveal.vue` | `../../packages/vue/tests/liquid-glass-logo-reveal.spec.ts` |
 
-其余 1 个仍以 React 源码 + vanilla 演示为真源，按需按 `vue-porting.md` 移植。
+全部 25 个特效均已有 Vue 3 实装；React 源码与 vanilla 演示保留作对照真源。
 
-后二十一个（`TerminalReplay`、`ScrollLockedVideoHero`、`PeakChart`、`GlassyDashboard`、`SplashCursor`、`Shredder`、`SpotlightCard`、`LiquidNavbar`、`GlassSurface`、`AnimatedList`、`FlipCard`、`GhostCursor`、`GridMotion`、`RubberSegment`、`TiltedCard`、`Signature`、`PaperCrumple`、`ReflectiveCard`、`PillNav`、`MagicBento`、`GlassFolder`）与 React 原件有几处有意的行为差异，见 `../../packages/vue/README.md` 的「与 React 原件的差异」。
+后二十二个（`TerminalReplay`、`ScrollLockedVideoHero`、`PeakChart`、`GlassyDashboard`、`SplashCursor`、`Shredder`、`SpotlightCard`、`LiquidNavbar`、`GlassSurface`、`AnimatedList`、`FlipCard`、`GhostCursor`、`GridMotion`、`RubberSegment`、`TiltedCard`、`Signature`、`PaperCrumple`、`ReflectiveCard`、`PillNav`、`MagicBento`、`GlassFolder`、`GlassIconReveal`）与 React 原件有几处有意的行为差异，见 `../../packages/vue/README.md` 的「与 React 原件的差异」。
 
 > Vue 实装自带 CSS，不依赖 Tailwind；需要安装的依赖见下面「依赖安装」。
 
