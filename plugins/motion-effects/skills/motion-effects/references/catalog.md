@@ -77,10 +77,11 @@
 | `TiltedCard` | `../../packages/vue/src/components/TiltedCard.vue` | `../../packages/vue/tests/tilted-card.spec.ts` |
 | `Signature` | `../../packages/vue/src/components/Signature.vue` | `../../packages/vue/tests/signature.spec.ts` |
 | `PaperCrumple` | `../../packages/vue/src/components/PaperCrumple.vue` | `../../packages/vue/tests/paper-crumple.spec.ts` |
+| `ReflectiveCard` | `../../packages/vue/src/components/ReflectiveCard.vue` | `../../packages/vue/tests/reflective-card.spec.ts` |
 
-其余 5 个仍以 React 源码 + vanilla 演示为真源，按需按 `vue-porting.md` 移植。
+其余 4 个仍以 React 源码 + vanilla 演示为真源，按需按 `vue-porting.md` 移植。
 
-后十七个（`TerminalReplay`、`ScrollLockedVideoHero`、`PeakChart`、`GlassyDashboard`、`SplashCursor`、`Shredder`、`SpotlightCard`、`LiquidNavbar`、`GlassSurface`、`AnimatedList`、`FlipCard`、`GhostCursor`、`GridMotion`、`RubberSegment`、`TiltedCard`、`Signature`、`PaperCrumple`）与 React 原件有几处有意的行为差异，见 `../../packages/vue/README.md` 的「与 React 原件的差异」。
+后十八个（`TerminalReplay`、`ScrollLockedVideoHero`、`PeakChart`、`GlassyDashboard`、`SplashCursor`、`Shredder`、`SpotlightCard`、`LiquidNavbar`、`GlassSurface`、`AnimatedList`、`FlipCard`、`GhostCursor`、`GridMotion`、`RubberSegment`、`TiltedCard`、`Signature`、`PaperCrumple`、`ReflectiveCard`）与 React 原件有几处有意的行为差异，见 `../../packages/vue/README.md` 的「与 React 原件的差异」。
 
 > Vue 实装自带 CSS，不依赖 Tailwind；需要安装的依赖见下面「依赖安装」。
 
@@ -190,6 +191,7 @@ React 项目对应：`motion` + `@hugeicons/react`；`glassy-dashboard` 另需 `
 ## 10. ReflectiveCard · 金属反射卡
 
 - **源码**：`ReflectiveCard.jsx` + `ReflectiveCard.css`；**演示**：`reflective-card.html`
+- **Vue 实装**：`../../packages/vue/src/components/ReflectiveCard.vue`（已测试；着色器 / 渲染器在 `reflectiveCardEngine.ts`，生命周期在 `useReflectiveCard.ts`）
 - **适用**：会员卡、工牌、票券、产品防伪卡；金属反射 + 倾斜 + 可选摄像头。
 - **关键 API**：`name`、`role`、`badge`、`status`、`statusColor`、`idLabel`、`idValue`、`children`、`theme`、`videoSrc`、`webcam`、`onWebcamError`、`tint`、`metalness`、`roughness`、`blurStrength`、`grayscale`、`warp`、`warpScale`、`shine`、`bevel`、`glare`、`enableTilt`、`tiltStrength`、`intro`、`width`、`height`、`radius`。
 - **移植要点**：WebGL2 反射 shader 原样保留；`webcam` 用 `navigator.mediaDevices.getUserMedia`，Vue 在 `onBeforeUnmount` 必须 `track.stop()`；`videoSrc` 跨域视频会污染纹理。

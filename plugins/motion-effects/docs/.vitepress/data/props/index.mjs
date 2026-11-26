@@ -18,6 +18,7 @@ import rubberSegment from './rubber-segment.mjs'
 import tiltedCard from './tilted-card.mjs'
 import signature from './signature.mjs'
 import paperCrumple from './paper-crumple.mjs'
+import reflectiveCard from './reflective-card.mjs'
 
 export const PROP_SCHEMAS = {
   'hold-button': holdButton,
@@ -35,5 +36,6 @@ export const PROP_SCHEMAS = {
   'rubber-segment': rubberSegment,
   'tilted-card': tiltedCard,
   'signature': signature,
-  'paper-crumple': paperCrumple
+  'paper-crumple': paperCrumple,
+  'reflective-card': reflectiveCard
 }

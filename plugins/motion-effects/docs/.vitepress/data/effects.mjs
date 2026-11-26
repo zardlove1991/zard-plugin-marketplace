@@ -80,7 +80,7 @@ export const EFFECTS = [
     note: 'CSS 必须全局引入：组件内部有测量克隆节点，scoped 样式加不上去。'
   },
   {
-    id: 'reflective-card', name: 'ReflectiveCard', zh: '金属反射卡', cat: '卡片与容器', vue: 'hard', height: 680,
+    id: 'reflective-card', name: 'ReflectiveCard', zh: '金属反射卡', cat: '卡片与容器', vue: 'hard', vueReady: true, height: 680,
     desc: '金属反射证件卡：倾斜、眩光、反射扭曲，可选摄像头或视频作为反射源。',
     deps: ['Hugeicons'], demo: 'reflective-card.html', source: 'react/components/ui/ReflectiveCard.jsx',
     props: ['name / role', 'videoSrc', 'webcam', 'metalness', 'enableTilt'],
