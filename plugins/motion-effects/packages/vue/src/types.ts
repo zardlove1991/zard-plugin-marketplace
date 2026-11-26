@@ -69,6 +69,36 @@ export type GlassBackdrop =
   | { current: HTMLImageElement | HTMLVideoElement | HTMLCanvasElement | null }
   | null
 
+export interface AnimatedListEntry {
+  id?: string | number
+  /** 图标组件；与 image 二选一 */
+  icon?: Component | null
+  /** 缩略图地址 */
+  image?: string
+  title: string
+  description?: string
+  meta?: string
+}
+
+export type AnimatedListItem = AnimatedListEntry | string
+
+export type AnimatedListAnimation = 'pop' | 'slide' | 'fade' | 'none'
+
+/** useAnimatedList 直接读取的 props 子集 */
+export interface AnimatedListSettings {
+  items: AnimatedListItem[]
+  animation: AnimatedListAnimation
+  animateOnce: boolean
+  stagger: number
+  selectOnHover: boolean
+  enableArrowNavigation: boolean
+  loop: boolean
+  showGradients: boolean
+  fadeSize: number
+  maxHeight: number | string
+  gap: number
+}
+
 /** GlassSurface 的全部入参，composable 直接读这个响应式 props 对象 */
 export interface GlassSurfaceSettings {
   width?: number | string

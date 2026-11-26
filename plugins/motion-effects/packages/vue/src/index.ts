@@ -11,8 +11,13 @@ export { default as SpotlightCard } from './components/SpotlightCard.vue'
 export { default as LiquidNavbar } from './components/LiquidNavbar.vue'
 export { LIQUID_NAVBAR_ITEMS, NimbusIcons } from './components/liquidNavbarIcons'
 export { default as GlassSurface } from './components/GlassSurface.vue'
+export { default as AnimatedList } from './components/AnimatedList.vue'
+export { ANIMATED_LIST_ITEMS, ANIMATED_LIST_ICONS } from './components/animatedListIcons'
 
 export type {
+  AnimatedListAnimation,
+  AnimatedListItem,
+  AnimatedListEntry,
   GlassBackdrop,
   GlassSurfaceChannel,
   GlassSurfaceRenderer,
