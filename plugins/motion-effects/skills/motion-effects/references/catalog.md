@@ -71,10 +71,11 @@
 | `GlassSurface` | `../../packages/vue/src/components/GlassSurface.vue` | `../../packages/vue/tests/glass-surface.spec.ts` |
 | `AnimatedList` | `../../packages/vue/src/components/AnimatedList.vue` | `../../packages/vue/tests/animated-list.spec.ts` |
 | `FlipCard` | `../../packages/vue/src/components/FlipCard.vue` | `../../packages/vue/tests/flip-card.spec.ts` |
+| `GhostCursor` | `../../packages/vue/src/components/GhostCursor.vue` | `../../packages/vue/tests/ghost-cursor.spec.ts` |
 
-其余 11 个仍以 React 源码 + vanilla 演示为真源，按需按 `vue-porting.md` 移植。
+其余 10 个仍以 React 源码 + vanilla 演示为真源，按需按 `vue-porting.md` 移植。
 
-后十一个（`TerminalReplay`、`ScrollLockedVideoHero`、`PeakChart`、`GlassyDashboard`、`SplashCursor`、`Shredder`、`SpotlightCard`、`LiquidNavbar`、`GlassSurface`、`AnimatedList`、`FlipCard`）与 React 原件有几处有意的行为差异，见 `../../packages/vue/README.md` 的「与 React 原件的差异」。
+后十二个（`TerminalReplay`、`ScrollLockedVideoHero`、`PeakChart`、`GlassyDashboard`、`SplashCursor`、`Shredder`、`SpotlightCard`、`LiquidNavbar`、`GlassSurface`、`AnimatedList`、`FlipCard`、`GhostCursor`）与 React 原件有几处有意的行为差异，见 `../../packages/vue/README.md` 的「与 React 原件的差异」。
 
 > Vue 实装自带 CSS，不依赖 Tailwind；需要安装的依赖见下面「依赖安装」。
 
@@ -123,6 +124,7 @@ React 项目对应：`motion` + `@hugeicons/react`；`glassy-dashboard` 另需 `
 ## 3. GhostCursor · 流体光标
 
 - **源码**：`GhostCursor.jsx` + `GhostCursor.css`；**演示**：`ghost-cursor.html`
+- **Vue 实装**：`../../packages/vue/src/components/GhostCursor.vue`（已测试；引擎在 `../../packages/vue/src/composables/useGhostCursor.ts`，着色器在 `ghostCursorShaders.ts`）
 - **适用**：深色落地页、作品集、发布会页面的全局光标氛围；桌面端。
 - **关键 API**：`color`、`brightness`、`size`、`trailLength`、`inertia`、`turbulence`、`drift`、`detail`、`grainIntensity`、`bloomStrength`、`bloomRadius`、`bloomThreshold`、`edgeIntensity`、`clickPuff`、`intro`、`theme`、`mixBlendMode`、`fadeDelayMs`、`fadeDurationMs`、`maxDevicePixelRatio`、`zIndex`。
 - **移植要点**：整段 WebGL2 shader 原样保留；Vue 只需 `canvas` ref + `onMounted` 建 context、`onBeforeUnmount` 删 program/buffer/texture 并 `cancelAnimationFrame`。容器 `pointer-events: none; position: fixed; inset: 0`。

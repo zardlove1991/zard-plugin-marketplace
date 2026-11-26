@@ -12,6 +12,7 @@ import liquidGlassNavbar from './liquid-glass-navbar.mjs'
 import glassSurface from './glass-surface.mjs'
 import animatedList from './animated-list.mjs'
 import flipCard from './flip-card.mjs'
+import ghostCursor from './ghost-cursor.mjs'
 
 export const PROP_SCHEMAS = {
   'hold-button': holdButton,
@@ -23,5 +24,6 @@ export const PROP_SCHEMAS = {
   'liquid-glass-navbar': liquidGlassNavbar,
   'glass-surface': glassSurface,
   'animated-list': animatedList,
-  'flip-card': flipCard
+  'flip-card': flipCard,
+  'ghost-cursor': ghostCursor
 }

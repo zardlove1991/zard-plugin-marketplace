@@ -31,11 +31,11 @@ export const EFFECTS = [
     note: 'reduced-motion 下应直接切面，不做旋转；Safari 需保留 backface-visibility 与 translateZ。Vue 实装的 front / back 换成具名插槽，flipped 走 v-model:flipped，并保留 flip-change 事件。'
   },
   {
-    id: 'ghost-cursor', name: 'GhostCursor', zh: '流体光标', cat: '氛围与装饰', vue: 'mid', height: 560,
+    id: 'ghost-cursor', name: 'GhostCursor', zh: '流体光标', cat: '氛围与装饰', vue: 'mid', vueReady: true, height: 560,
     desc: 'WebGL2 流体光标拖尾：跟手、涡流、点击爆散，整屏氛围层。',
     deps: [], demo: 'ghost-cursor.html', source: 'react/components/ui/GhostCursor.jsx',
     props: ['color', 'size', 'trailLength', 'turbulence', 'clickPuff', 'maxDevicePixelRatio'],
-    note: '全局 fixed + pointer-events:none；移动端建议不渲染；弱机把 DPR 降到 1–1.5。headless 无 GPU 环境可能不显示光标。'
+    note: '全局 fixed + pointer-events:none；移动端建议不渲染；弱机把 DPR 降到 1–1.5。headless 无 GPU 环境可能不显示光标。Vue 实装零依赖，WebGL2 不可用时静默降级；上下文恢复会重放整个引擎。'
   },
   {
     id: 'glass-surface', name: 'GlassSurface', zh: '折射玻璃面板', cat: '卡片与容器', vue: 'mid', vueReady: true, height: 620,

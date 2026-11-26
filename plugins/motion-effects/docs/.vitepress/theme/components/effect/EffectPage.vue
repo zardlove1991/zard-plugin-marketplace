@@ -15,6 +15,7 @@ import LiquidNavbarStage from '../../demos/LiquidNavbarStage.vue'
 import GlassSurfaceStage from '../../demos/GlassSurfaceStage.vue'
 import AnimatedListStage from '../../demos/AnimatedListStage.vue'
 import FlipCardStage from '../../demos/FlipCardStage.vue'
+import GhostCursorStage from '../../demos/GhostCursorStage.vue'
 import StageFrame from './StageFrame.vue'
 import CustomizePanel from './CustomizePanel.vue'
 import PropTable from './PropTable.vue'
@@ -52,7 +53,8 @@ const STAGES = {
   'liquid-glass-navbar': LiquidNavbarStage,
   'glass-surface': GlassSurfaceStage,
   'animated-list': AnimatedListStage,
-  'flip-card': FlipCardStage
+  'flip-card': FlipCardStage,
+  'ghost-cursor': GhostCursorStage
 }
 
 /** 会劫持全局输入或需要整屏的组件：放进只渲染它自己的独立页面，再用 iframe 加载 */
