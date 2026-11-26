@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import { withBase } from 'vitepress'
 import { ReflectiveCard } from '@motion-effects/vue'
 import { pick, useValues } from '../composables/useValues'
 
@@ -17,8 +16,8 @@ const props = computed(() =>
 
 <template>
   <div class="rc-root">
-    <ReflectiveCard :video-src="withBase('/demos/assets/landscape.mp4')" v-bind="props" />
-    <p class="stage-status">移动指针：金属表面按姿态反射背景视频并产生眩光；无 WebGL2 时只显示卡面</p>
+    <ReflectiveCard v-bind="props" />
+    <p class="stage-status">移动指针：金属表面按姿态反射页面背景并产生眩光；可打开 webcam 用摄像头作为反射源，无 WebGL2 时只显示卡面</p>
   </div>
 </template>
 
