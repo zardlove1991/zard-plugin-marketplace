@@ -69,6 +69,35 @@ export type GlassBackdrop =
   | { current: HTMLImageElement | HTMLVideoElement | HTMLCanvasElement | null }
   | null
 
+export type GhostCursorTheme = 'dark' | 'light'
+
+export interface GhostCursorSettings {
+  color?: string
+  brightness?: number
+  size?: number
+  trailLength?: number
+  inertia?: number
+  turbulence?: number
+  drift?: number
+  detail?: number
+  grainIntensity?: number
+  bloomStrength?: number
+  bloomRadius?: number
+  bloomThreshold?: number
+  edgeIntensity?: number
+  clickPuff?: boolean
+  intro?: boolean
+  theme?: GhostCursorTheme
+  mixBlendMode?: string
+  fadeDelayMs?: number
+  fadeDurationMs?: number
+  maxDevicePixelRatio?: number
+  targetPixels?: number
+  zIndex?: number
+  className?: string
+  style?: Record<string, string | number>
+}
+
 export interface AnimatedListEntry {
   id?: string | number
   /** 图标组件；与 image 二选一 */
