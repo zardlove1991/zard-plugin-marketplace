@@ -1,4 +1,4 @@
-# 特效目录（25 个）
+# 特效目录（26 个）
 
 > 路径均相对 `skills/motion-effects/`。
 > **Vue 难度**：`易` ≈ 1–2 小时直译；`中` ≈ 半天，需处理 ref / 生命周期 / motion-v；`难` ≈ 1–2 天，含 WebGL / three.js / canvas 大组件。
@@ -20,6 +20,7 @@
 | 内容演示 | `terminal-replay` | `signature` |
 | 图片墙 / 自动滚动网格 | `GridMotion` | — |
 | 品牌 Logo 揭示 | `liquid-glass-logo-reveal` | — |
+| AI 对话输入框 | `AIPromptBox` | — |
 
 ## 总表
 
@@ -50,6 +51,7 @@
 | 23 | `SplashCursor` | 氛围与装饰 | WebGL2 流体墨迹光标：跟手拖尾 / 点击飞溅 / 彩虹渐变 / 明暗主题 | 无 | 内联 | 难 |
 | 24 | `Shredder` | 操作与反馈 | 可拖拽碎纸机：切条卷曲飘落 / 重排 / 循环 / 自动播放 / 键盘 shred | 无 | 内联 | 难 |
 | 25 | `SpotlightCard` | 卡片与容器 | 光斑卡片：跟随指针的柔光 / 边缘邻近发光 / 光束形态 / 按压 flare / 颗粒 | 无 | 内联 | 中 |
+| 26 | `AIPromptBox` | 操作与反馈 | AI 输入框：三种互斥模式 / 图片附件预览 / 语音录音 / 发送 | `motion-v` + `@lucide/vue` | CSS 文件 | 中 |
 
 ## Vue 实装进度（0.1）
 
@@ -335,3 +337,12 @@ React 项目对应：`motion` + `@hugeicons/react`；`glassy-dashboard` 另需 `
 - **关键 API**：`theme`（`dark`/`light`，默认 `dark`）、`spotlightColor`（任意 CSS 颜色，默认深色卡用白、浅色卡用近黑）、`intensity`（0–1，默认 0.15）、`spotlightSize`（px，默认 240）、`softness`（0–1，默认 0.7）、`shape`（`circle`/`beam`，默认 `circle`）、`borderGlow`（0–1，默认 0.6）、`proximity`（卡外多少 px 开始照到，默认 80）、`smoothing`（光斑落后指针的程度，默认 0.3）、`ambient`（无指针时缓慢漂移，默认 false）、`flare`（按住膨胀变亮，默认 true）、`grain`（0–1 胶片颗粒，默认 0）、`className`；其余 div 属性透传。可用 `--spotlight-card-surface` / `--spotlight-card-border` 覆盖表面与边框色。
 - **移植要点**：纯 DOM，无 canvas：两枚绝对定位 span 承载 `radial-gradient` 光斑与边缘光（颜色经 `color-mix` 生成 15 档渐隐），一枚 span 用 `mask-composite` 画 1px 边框，另一枚叠加 SVG 噪点颗粒。指针用窗口级 `pointermove` + `getBoundingClientRect` 换算到卡片局部坐标；`IntersectionObserver` 控制环境漂移是否运行。Vue 把引擎收进 `useSpotlightCard.ts`：`onMounted` 绑定监听 / observer，`onBeforeUnmount` 全部解绑并 `cancelAnimationFrame`；逐帧状态放普通对象，不进响应式。
 - **注意**：**零第三方依赖**，离线可跑；依赖 `color-mix` 与 `mask-composite`（现代浏览器均支持）；`proximity > 0` 时卡片在指针靠近但未进入时也会亮，相邻卡片会一起被照亮；`prefers-reduced-motion` 下关闭平滑 / environ 漂移、按压不 flare，光斑直接跟随；`grain` 用 `mix-blend-overlay`，在纯黑 / 纯白表面上颗粒会偏弱，需要明显颗粒时把 `grain` 调到 0.2 以上。
+
+## 26. AIPromptBox · AI 输入框
+
+- **源码**：`ai-prompt-box.tsx`（TypeScript + Tailwind 变体）；**演示**：`ai-prompt-box.html`
+- **Vue 实装**：`../../packages/vue/src/components/AIPromptBox.vue`（已测试；逻辑拆分在 `../../packages/vue/src/composables/useAIPromptBox.ts`）
+- **适用**：AI 对话 / 客服输入框、需要联网 / 深度思考 / 画板模式切换与图片附件的输入场景。
+- **关键 API**：`value` / `onValueChange`（Vue 用 `v-model`）、`isLoading`、`placeholder`、`onSend`（Vue 用 `send` 事件）、`onStop`、`className`。Vue 额外提供 `mode`（`v-model:mode`，`search` / `think` / `canvas` / `null`）、`showUpload` / `showVoice` / `showToggles`、`accept`、`maxFileSize`（10MB）、`labels`、`files-change` / `file-error` / `recording-start` / `recording-stop` / `mode-change` 事件，以及 `focus` / `submit` / `clear` ref 方法。
+- **移植要点**：React 的三个布尔 `showSearch` / `showThink` / `showCanvas` 合并成互斥 `mode`；`onSend` 换成 `send` 事件，`value` / `onValueChange` 换成 `v-model`。无 UI 逻辑拆成四个组合式函数：录音计时（`setInterval` + 随机可视化柱，开始录音时生成一次）、预览弹层（Escape / 锁滚动 / 焦点归还）、附件（accept + 体积校验 + FileReader data URL + 只保留一张）、拖拽（只认带文件的拖拽，depth 计数防抖）。浏览器 API 只在挂载后或事件处理器里访问，SSR 安全。
+- **注意**：**零 WebGL 依赖**，离线可跑；图片只保留一张（新图替换旧图），跨域图片不上传、仅本地预览；录音用计时模拟，不接真实 `MediaRecorder`，停录按上游语义自动发一条语音占位消息；`prefers-reduced-motion` 下弹层过渡时长为 0；Enter 发送、Shift+Enter / 输入法组字不发送。

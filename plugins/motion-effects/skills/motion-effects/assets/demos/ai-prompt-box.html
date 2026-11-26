@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>AI Prompt Box</title>
+<style>
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    min-height: 100svh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 20px;
+    padding: 24px 16px;
+    background: radial-gradient(120% 120% at 50% 0%, #2b2b31, #16161a 72%);
+    font-family: ui-sans-serif, -apple-system, "Segoe UI", system-ui, sans-serif;
+    color: #e7e7ea;
+  }
+  .status { margin: 0; font: 500 13px/1.5 ui-monospace, monospace; color: #9ca3af; }
+  .aip {
+    --aip-surface: #1f2023;
+    --aip-border: #444444;
+    --aip-ink: #e7e7ea;
+    --aip-muted: #9ca3af;
+    width: min(100%, 620px);
+    padding: 12px;
+    border: 1px solid var(--aip-border);
+    border-radius: 24px;
+    background: var(--aip-surface);
+    box-shadow: 0 8px 30px rgba(0,0,0,.24);
+  }
+  .aip textarea {
+    display: block;
+    width: 100%;
+    min-height: 44px;
+    max-height: 240px;
+    padding: 8px 10px;
+    border: 0;
+    outline: none;
+    resize: none;
+    background: transparent;
+    color: var(--aip-ink);
+    font: 400 15px/1.5 inherit;
+  }
+  .aip textarea::placeholder { color: var(--aip-muted); }
+  .aip__files { display: flex; flex-wrap: wrap; gap: 8px; padding: 4px 2px 8px; }
+  .aip__file { position: relative; width: 64px; height: 64px; border-radius: 12px; overflow: hidden; background: #2a2b30; }
+  .aip__file img { width: 100%; height: 100%; object-fit: cover; }
+  .aip__file-remove {
+    position: absolute; top: 2px; right: 2px; width: 20px; height: 20px;
+    display: grid; place-items: center; border: 0; border-radius: 50%;
+    background: rgba(0,0,0,.6); color: #fff; cursor: pointer; font-size: 12px;
+  }
+  .aip__actions { display: flex; align-items: center; justify-content: space-between; padding-top: 8px; }
+  .aip__tools { display: flex; align-items: center; gap: 4px; }
+  .aip-btn {
+    height: 32px; min-width: 32px; display: inline-flex; align-items: center; justify-content: center;
+    border: 0; border-radius: 50%; background: transparent; color: var(--aip-muted); cursor: pointer;
+  }
+  .aip-btn:hover { background: rgba(255,255,255,.08); color: var(--aip-ink); }
+  .aip-btn:disabled { opacity: .5; cursor: not-allowed; }
+  .aip-btn--main { background: #e7e7ea; color: #16161a; }
+  .aip-btn--main .is-recording { background: #ef4444; color: #fff; }
+  .aip-toggle {
+    display: inline-flex; align-items: center; gap: 6px; height: 32px; padding: 0 10px;
+    border: 1px solid transparent; border-radius: 999px; background: transparent;
+    color: var(--aip-muted); cursor: pointer; font: 500 13px/1 inherit;
+  }
+  .aip-toggle.is-on { border-color: currentColor; background: rgba(255,255,255,.08); }
+  .aip-toggle--search.is-on { color: #1eaedb; }
+  .aip-toggle--think.is-on { color: #8b5cf6; }
+  .aip-toggle--canvas.is-on { color: #34d399; }
+  .aip-divider { width: 1px; height: 16px; background: var(--aip-border); }
+  .aip__input { display: none; }
+  .aip__recorder { display: flex; align-items: center; gap: 10px; padding: 8px 2px; color: #ef4444; font: 500 13px/1 monospace; }
+  @media (max-width: 480px) { .aip { width: 100%; } }
+</style>
+</head>
+<body>
+  <div class="aip" id="root">
+    <div class="aip__files" id="files" hidden></div>
+    <textarea id="text" rows="1" placeholder="Type your message here..." aria-label="Message"></textarea>
+    <div class="aip__recorder" id="recorder" hidden>
+      <span class="aip__dot">●</span><span id="clock">00:00</span>
+    </div>
+    <div class="aip__actions">
+      <div class="aip__tools">
+        <button class="aip-btn" id="upload" title="Upload image" aria-label="Upload image">📎</button>
+        <input class="aip__input" id="input" type="file" accept="image/*" />
+        <button class="aip-toggle aip-toggle--search" data-mode="search" aria-pressed="false">🌐 <span>Search</span></button>
+        <span class="aip-divider"></span>
+        <button class="aip-toggle aip-toggle--think" data-mode="think" aria-pressed="false">🧠 <span>Think</span></button>
+        <span class="aip-divider"></span>
+        <button class="aip-toggle aip-toggle--canvas" data-mode="canvas" aria-pressed="false">🎨 <span>Canvas</span></button>
+      </div>
+      <button class="aip-btn aip-btn--main" id="main" aria-label="Voice message">🎤</button>
+    </div>
+  </div>
+  <p class="status" id="log">Enter 发送 · Shift+Enter 换行 · 点模式切换 · 📎 上传图片</p>
+
+<script>
+(() => {
+  const root = document.getElementById('root');
+  const text = document.getElementById('text');
+  const filesEl = document.getElementById('files');
+  const input = document.getElementById('input');
+  const main = document.getElementById('main');
+  const log = document.getElementById('log');
+  const recorder = document.getElementById('recorder');
+  const clock = document.getElementById('clock');
+  const toggles = Array.from(document.querySelectorAll('.aip-toggle'));
+
+  const placeholders = { search: 'Search the web...', think: 'Think deeply...', canvas: 'Create on canvas...' };
+  let mode = null;
+  let file = null;
+  let recording = false;
+  let timer = null;
+  let elapsed = 0;
+
+  function resize() {
+    text.style.height = 'auto';
+    text.style.height = Math.min(text.scrollHeight, 240) + 'px';
+  }
+  function syncMain() {
+    main.setAttribute('aria-label', recording ? 'Stop recording' : (text.value.trim() || file ? 'Send message' : 'Voice message'));
+    main.textContent = recording ? '⏹' : (text.value.trim() || file ? '↑' : '🎤');
+    main.classList.toggle('is-recording', recording);
+  }
+  function renderFile() {
+    filesEl.hidden = !file;
+    filesEl.innerHTML = '';
+    if (!file) return;
+    const wrap = document.createElement('div');
+    wrap.className = 'aip__file';
+    const img = document.createElement('img');
+    img.src = URL.createObjectURL(file);
+    img.alt = file.name;
+    const remove = document.createElement('button');
+    remove.className = 'aip__file-remove';
+    remove.textContent = '×';
+    remove.setAttribute('aria-label', 'Remove image');
+    remove.onclick = () => { file = null; renderFile(); syncMain(); };
+    wrap.append(img, remove);
+    filesEl.append(wrap);
+  }
+  function setMode(next) {
+    mode = next;
+    toggles.forEach(t => {
+      const on = t.dataset.mode === mode;
+      t.classList.toggle('is-on', on);
+      t.setAttribute('aria-pressed', String(on));
+    });
+    text.placeholder = mode ? placeholders[mode] : 'Type your message here...';
+  }
+  function send() {
+    const body = text.value.trim();
+    if (!body && !file) return;
+    const prefix = mode ? '[' + mode[0].toUpperCase() + mode.slice(1) + ': ' : '';
+    const message = prefix ? prefix + body + ']' : body;
+    log.textContent = 'send · "' + message + '" · ' + (file ? 1 : 0) + ' 个附件';
+    text.value = '';
+    file = null;
+    resize(); renderFile(); syncMain();
+  }
+  function stopRecording() {
+    if (!recording) return;
+    clearInterval(timer);
+    recording = false;
+    recorder.hidden = true;
+    log.textContent = 'send · "[Voice message - ' + elapsed + ' seconds]"';
+    elapsed = 0;
+    syncMain();
+  }
+  function startRecording() {
+    recording = true;
+    elapsed = 0;
+    recorder.hidden = false;
+    clock.textContent = '00:00';
+    timer = setInterval(() => {
+      elapsed += 1;
+      clock.textContent = String(Math.floor(elapsed / 60)).padStart(2, '0') + ':' + String(elapsed % 60).padStart(2, '0');
+    }, 1000);
+    syncMain();
+  }
+
+  text.addEventListener('input', () => { resize(); syncMain(); });
+  text.addEventListener('keydown', e => {
+    if (e.key === 'Enter' && !e.shiftKey && !e.isComposing) { e.preventDefault(); send(); }
+  });
+  toggles.forEach(t => t.addEventListener('click', () => setMode(t.dataset.mode === mode ? null : t.dataset.mode)));
+  document.getElementById('upload').addEventListener('click', () => input.click());
+  input.addEventListener('change', () => {
+    if (input.files && input.files[0]) { file = input.files[0]; renderFile(); syncMain(); }
+    input.value = '';
+  });
+  main.addEventListener('click', () => {
+    if (recording) stopRecording();
+    else if (text.value.trim() || file) send();
+    else startRecording();
+  });
+  root.addEventListener('dragover', e => e.preventDefault());
+  root.addEventListener('drop', e => {
+    e.preventDefault();
+    const dropped = Array.from(e.dataTransfer.files).find(f => f.type.startsWith('image/'));
+    if (dropped) { file = dropped; renderFile(); syncMain(); }
+  });
+  document.addEventListener('paste', e => {
+    const img = Array.from(e.clipboardData?.items ?? []).find(i => i.type.indexOf('image') !== -1);
+    if (img) { const f = img.getAsFile(); if (f) { e.preventDefault(); file = f; renderFile(); syncMain(); } }
+  });
+
+  resize();
+  syncMain();
+})();
+</script>
+</body>
+</html>

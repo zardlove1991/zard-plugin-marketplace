@@ -1,5 +1,5 @@
 /**
- * 23 个特效的站点数据。
+ * 26 个特效的站点数据。
  * 与 references/catalog.md 保持一致；新增/修改特效时同时更新这里。
  * 也供 scripts/sync-assets.mjs 做构建期文件校验。
  */
@@ -190,6 +190,13 @@ export const EFFECTS = [
     deps: [], demo: 'spotlight-card.html', source: 'react/components/ui/SpotlightCard.jsx',
     props: ['theme', 'spotlightColor', 'intensity', 'spotlightSize', 'softness', 'shape', 'borderGlow', 'proximity', 'smoothing', 'ambient', 'flare', 'grain', 'className'],
     note: '零第三方依赖（纯 DOM + radial-gradient + rAF）；两枚绝对定位 span 承载光斑与边缘光，mask 画 1px 边框，另一枚叠加颗粒；proximity 让相邻卡片共享一团光；prefers-reduced-motion 下关闭平滑与环境漂移、按压不 flare。Vue 实装引擎在 useSpotlightCard.ts，逐帧状态不进响应式。'
+  },
+  {
+    id: 'ai-prompt-box', name: 'AIPromptBox', zh: 'AI 输入框', cat: '操作与反馈', vue: 'mid', vueReady: true, height: 420,
+    desc: 'AI 对话输入框：文本 v-model、联网 / 思考 / 画板三种互斥模式、图片附件预览、语音录音与发送 / 停止。',
+    deps: ['motion-v', '@lucide/vue'], demo: 'ai-prompt-box.html', source: 'react/components/ui/ai-prompt-box.tsx',
+    props: ['modelValue', 'mode', 'isLoading', 'showUpload / showVoice / showToggles', 'accept / maxFileSize', 'labels'],
+    note: '图片只保留一张（新图替换旧图），支持选择 / 粘贴 / 拖拽，按 accept 与 maxFileSize 校验；录音停录后会按上游语义自动发一条语音占位消息。自定义文案用 labels 覆盖。Vue 用互斥的 mode 替代三个布尔开关，send / files-change 等事件替代回调。'
   }
 ]
 

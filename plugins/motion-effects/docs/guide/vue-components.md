@@ -1,6 +1,6 @@
 # Vue 组件（0.1）
 
-已有 25 个特效移植成 Vue 3 组件，详情页的预览台里直接渲染真实组件。其中 21 个（`HoldButton`、`SwipeRow`、`SpecularButton`、`TerminalReplay`、`PeakChart`、`SpotlightCard`、`LiquidNavbar`、`GlassSurface`、`AnimatedList`、`FlipCard`、`GhostCursor`、`GridMotion`、`RubberSegment`、`TiltedCard`、`Signature`、`PaperCrumple`、`ReflectiveCard`、`PillNav`、`MagicBento`、`GlassFolder`、`GlassIconReveal`）带「自定义」面板：改参数，预览实时跟着变，「代码」页签的用法片段只写出你改过的项。另外 4 个需要独占文档，放在 iframe 里加载：
+已有 26 个特效移植成 Vue 3 组件，详情页的预览台里直接渲染真实组件。其中 22 个（`HoldButton`、`SwipeRow`、`SpecularButton`、`TerminalReplay`、`PeakChart`、`SpotlightCard`、`LiquidNavbar`、`GlassSurface`、`AnimatedList`、`FlipCard`、`GhostCursor`、`GridMotion`、`RubberSegment`、`TiltedCard`、`Signature`、`PaperCrumple`、`ReflectiveCard`、`PillNav`、`MagicBento`、`GlassFolder`、`GlassIconReveal`、`AIPromptBox`）带「自定义」面板：改参数，预览实时跟着变，「代码」页签的用法片段只写出你改过的项。另外 4 个需要独占文档，放在 iframe 里加载：
 
 | 组件 | 详情页 | 测试 |
 |---|---|---|
@@ -29,13 +29,14 @@
 | `MagicBento` | [功能磁贴](/effects/magic-bento) | `packages/vue/tests/magic-bento.spec.ts` |
 | `GlassFolder` | [玻璃文件夹](/effects/glass-folder-cards) | `packages/vue/tests/glass-folder.spec.ts` |
 | `GlassIconReveal` | [液态玻璃 Logo](/effects/glass-logo-reveal) | `packages/vue/tests/liquid-glass-logo-reveal.spec.ts` |
+| `AIPromptBox` | [AI 输入框](/effects/ai-prompt-box) | `packages/vue/tests/ai-prompt-box.spec.ts` |
 
 `ScrollLockedVideoHero` 会锁定所在页面的滚动，`GlassyDashboard` 是整屏工作区，`SplashCursor` 会铺满整个视口跟随光标，`Shredder` 需要一个固定宽度的父容器，四者的预览都放在 iframe 里；iframe 里跑的仍是同一个真实组件。
 
 ## 导入
 
 ```ts
-import { AnimatedList, FlipCard, GhostCursor, GlassFolder, GlassIconReveal, GlassReveal21st, GlassSurface, GridMotion, MagicBento, PaperCrumple, PillNav, ReflectiveCard, RubberSegment, Signature, TiltedCard, GlassyDashboard, HoldButton, LiquidNavbar, PeakChart, ScrollLockedVideoHero, Shredder, SpecularButton, SpotlightCard, SplashCursor, SwipeRow, TerminalReplay } from '@motion-effects/vue'
+import { AIPromptBox, AnimatedList, FlipCard, GhostCursor, GlassFolder, GlassIconReveal, GlassReveal21st, GlassSurface, GridMotion, MagicBento, PaperCrumple, PillNav, ReflectiveCard, RubberSegment, Signature, TiltedCard, GlassyDashboard, HoldButton, LiquidNavbar, PeakChart, ScrollLockedVideoHero, Shredder, SpecularButton, SpotlightCard, SplashCursor, SwipeRow, TerminalReplay } from '@motion-effects/vue'
 import type { SwipeAction } from '@motion-effects/vue'
 ```
 
@@ -506,8 +507,28 @@ import { GlassReveal21st } from '@motion-effects/vue'
 - `MagicBento` 用 `#item` 插槽替代 `renderItem`、`item-click` 替代 `onItemClick`；六种内置可视化在 `MagicBentoVisual.vue` 里按 `visual` 名选择。
 - `GlassFolder` 的 `open` 用 `v-model:open` 受控并另发 `open-change` / `files-change` / `file-select`；封面画由 canvas 生成，`art="none"` 可关闭。
 - `GlassIconReveal` 支持任意 SVG / 图片 logo；`GlassReveal21st` 是内置 21st 标记的便捷封装。WebGL2 SDF 折射，`time` 可冻结到指定秒数做滚动驱动。
-- 后二十二个与 React 原件有几处有意的行为差异，清单见上面那份 README 的「与 React 原件的差异」。
-- 二十五个组件都做了 SSR 安全处理，浏览器 API 只在 `onMounted` 或用户事件中访问。
+
+### AIPromptBox
+
+```vue
+<script setup lang="ts">
+import { ref } from 'vue'
+import { AIPromptBox } from '@motion-effects/vue'
+import type { AIPromptMode } from '@motion-effects/vue'
+
+const text = ref('')
+const mode = ref<AIPromptMode | null>(null)
+</script>
+
+<template>
+  <AIPromptBox v-model="text" v-model:mode="mode" @send="onSend" />
+</template>
+```
+
+`mode` 为 `search` / `think` / `canvas` / `null`，互斥；选中后消息自动加 `[Search: …]` 等前缀。上传按钮支持图片选择 / 粘贴 / 拖拽，只保留一张；麦克风录音，停录后自动发一条语音占位消息。`labels` 可整体替换英文文案。
+- 后二十三个与 React 原件有几处有意的行为差异，清单见上面那份 README 的「与 React 原件的差异」。
+- 二十六个组件都做了 SSR 安全处理，浏览器 API 只在 `onMounted` 或用户事件中访问。
+- `AIPromptBox` 用互斥的 `v-model:mode` 替代 React 的三个布尔开关，发出 `send` / `files-change` / `recording-stop` 等事件；图片只留一张，支持选择 / 粘贴 / 拖拽，文案用 `labels` 覆盖。
 - 当前是 workspace 私有包，未发布 npm；外部项目可复制 `packages/vue/src` 或等待发布。
 
 ## 本地测试

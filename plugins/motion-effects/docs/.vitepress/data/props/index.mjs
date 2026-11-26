@@ -23,6 +23,7 @@ import pillNav from './pill-nav.mjs'
 import magicBento from './magic-bento.mjs'
 import glassFolder from './glass-folder.mjs'
 import glassLogoReveal from './glass-logo-reveal.mjs'
+import aiPromptBox from './ai-prompt-box.mjs'
 
 export const PROP_SCHEMAS = {
   'hold-button': holdButton,
@@ -45,5 +46,6 @@ export const PROP_SCHEMAS = {
   'pill-nav': pillNav,
   'magic-bento': magicBento,
   'glass-folder-cards': glassFolder,
-  'glass-logo-reveal': glassLogoReveal
+  'glass-logo-reveal': glassLogoReveal,
+  'ai-prompt-box': aiPromptBox
 }
