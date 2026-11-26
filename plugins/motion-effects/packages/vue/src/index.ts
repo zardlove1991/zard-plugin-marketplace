@@ -24,6 +24,9 @@ export { default as ReflectiveCard } from './components/ReflectiveCard.vue'
 export { default as PillNav } from './components/PillNav.vue'
 export { default as MagicBento } from './components/MagicBento.vue'
 export { default as GlassFolder } from './components/GlassFolder.vue'
+export { default as GlassIconReveal } from './components/GlassIconReveal.vue'
+export { default as GlassReveal21st } from './components/GlassReveal21st.vue'
+export { MARK_21ST } from './composables/liquidGlassMark'
 export { ANIMATED_LIST_ITEMS, ANIMATED_LIST_ICONS } from './components/animatedListIcons'
 
 export type {
