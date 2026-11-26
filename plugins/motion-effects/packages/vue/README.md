@@ -1,6 +1,6 @@
 # @motion-effects/vue
 
-`motion-effects` 的 Vue 3 实装包（0.1）。当前包含 13 个已完成移植并有 Vitest 覆盖的组件：
+`motion-effects` 的 Vue 3 实装包（0.1）。当前包含 14 个已完成移植并有 Vitest 覆盖的组件：
 
 | 组件 | 说明 | 依赖 |
 |---|---|---|
@@ -17,8 +17,9 @@
 | `LiquidNavbar` | 液态玻璃导航：WebGL 水体滑向当前项、点击波纹、图标小动画、合成音效；无 WebGL 时退回 CSS 水滴 | 无 |
 | `GlassSurface` | 折射玻璃面板：SVG 色散折射 / WebGL2 双路径，按形状描边发光，无 GPU 时退回雾面玻璃 | 无 |
 | `AnimatedList` | 动态列表：逐项入场 / 悬停高亮 / 键盘导航、跟随选中项的弹簧指示条、滚动渐隐 | Hugeicons（仅默认项图标） |
+| `FlipCard` | 3D 翻面卡片：拖拽甩动翻面、悬停倾斜与眩光、键盘可达 | `motion-v`（及其 peer `@vueuse/core`） |
 
-其余 12 个特效仍以 React 源码 + vanilla 演示为真源，按需按 `references/vue-porting.md` 移植。
+其余 11 个特效仍以 React 源码 + vanilla 演示为真源，按需按 `references/vue-porting.md` 移植。
 
 > `TerminalReplay`、`ScrollLockedVideoHero`、`PeakChart`、`GlassyDashboard` 和 `LiquidNavbar` 按 Vue 习惯设计：没有 `className` prop，`class` / `style` 自动透传到根元素；受控状态只走 `v-model`，不另发 `xxx-change` 事件。前三个组件仍保留 React 式的 `className` 与 `open-change`；`SplashCursor` / `GlassSurface` / `AnimatedList` 保留了 React 原件的 `className` / `style` props；`Shredder` 保留 React 的 `className` prop，但用 `#item` 插槽替代 `renderItem`，事件改走 `shred` / `reorder`；`SpotlightCard` 保留 `className` 与默认插槽，其余 div 属性自动透传。
 
@@ -119,7 +120,7 @@ const photo = ref<HTMLImageElement | null>(null)
 </template>
 ```
 
-CSS 随 SFC 自动引入，不需要单独 import CSS 文件。根类名前缀分别为 `.hold-button`、`.sr-root`、`.specular-button`、`.tr-root`、`.slvh`、`.pc-root`、`.nimbus-nav`、`.glass-surface`、`.animated-list`。
+CSS 随 SFC 自动引入，不需要单独 import CSS 文件。根类名前缀分别为 `.hold-button`、`.sr-root`、`.specular-button`、`.tr-root`、`.slvh`、`.pc-root`、`.nimbus-nav`、`.glass-surface`、`.animated-list`、`.flip-card`。
 
 ## 组件契约
 
@@ -221,9 +222,18 @@ CSS 随 SFC 自动引入，不需要单独 import CSS 文件。根类名前缀�
 - 键盘：↑ / ↓ / Home / End 切换选中项并滚动到可见处，Enter 确认；`loop` 打开时首尾循环
 - 选中指示条用弹簧逼近目标项的位置与高度；逐帧状态走普通对象 + 命令式写 DOM，不进响应式
 
+### FlipCard
+
+- props：`flipped`（`v-model:flipped`）、`defaultFlipped`（`false`）、`axis`（`x` / `y`）、`flipOnClick`、`draggable`、`dragDistance`、`tilt`、`tiltMax`（`12`）、`glare`、`glareOpacity`（`0.22`）、`hoverScale`（`1.03`）、`perspective`（`1100`）、`stiffness`（`170`）、`damping`（`20`）、`width`（`300`）、`height`（`400`）、`radius`（`22`）、`background`、`color`、`shadow`、`shadowColor`、`shadowOpacity`、`disabled`、`ariaLabel`、`className`
+- 插槽：`#front`、`#back` 放两面内容
+- emits：`update:flipped`（配合 `v-model`）、`flip-change`（对应 React 的 `onFlipChange`）
+- 拖拽甩动会按最近 90ms 的角速度补一段惯性（系数 0.16），落点吸附到 180° 的整数倍；点击 / Enter / 空格立即翻面
+- `prefers-reduced-motion` 下不做倾斜与甩动，正反面用透明度切换而不是 3D 旋转
+- 根类名前缀 `.flip-card`
+
 ## 与 React 原件的差异
 
-前三个组件是 1:1 直译。后十个在移植时处理了上游的几处问题或按 Vue 习惯调整，行为上有意不同（`SplashCursor` / `Shredder` / `SpotlightCard` / `GlassSurface` / `AnimatedList` 的引擎是 1:1 抽取，差异只在框架胶水与 DOM 归属）：
+前三个组件是 1:1 直译。后十一个在移植时处理了上游的几处问题或按 Vue 习惯调整，行为上有意不同（`SplashCursor` / `Shredder` / `SpotlightCard` / `GlassSurface` / `AnimatedList` / `FlipCard` 的引擎是 1:1 抽取，差异只在框架胶水与 DOM 归属）：
 
 - `TerminalReplay` 的行内标签：上游的正则要求闭合标签带名字（`[/success]`），而它的数据全用 `[/]`，所以标签从来没有被解析过，是原样打印的。这里两种闭合都认。
 - `TerminalReplay` 跳过 spinner / progress 步骤时立即结束；上游会原地空转到该步骤的时长走完。
@@ -249,6 +259,7 @@ CSS 随 SFC 自动引入，不需要单独 import CSS 文件。根类名前缀�
 - `GlassSurface` 把置换贴图、通道选择器等高频 DOM 更新放在普通变量 / 命令式 `setAttribute` 里，不进响应式；`backdrop` 同时接受 DOM、Vue `Ref` 与 React 风格的 `{ current }` 对象。
 - `AnimatedList` 用 `#item` 作用域插槽替代 `renderItem`，事件走 `select`（不保留 `onItemSelect`），`icon` 从 React 节点换成 Vue 组件；选中项是内部状态（`initialSelectedIndex` 起步），不另发 `selected-change`。
 - `AnimatedList` 的弹簧指示条把逐帧位移 / 速度放在普通对象里直接写 DOM；`CSS.supports` 探测与 `window` 键盘监听都在挂载后进行，卸载时统一移除（上游的 effect 依赖为空，运行中改 props 靠 ref 偷读最新值，这里改为响应式 props + watch）。
+- `FlipCard` 的 `front` / `back` 从 React 节点换成 `#front` / `#back` 具名插槽；`flipped` 走 `v-model:flipped`，同时保留 `flip-change` 事件对应上游的 `onFlipChange`。所有派生 transform 用 `useTransform(() => …)` 函数形式，props 变化时模板字符串也会重算（上游的 `useMotionTemplate` 只认 MotionValue）。
 
 ## 测试
 
@@ -266,7 +277,7 @@ pnpm check       # test + typecheck
 - `ScrollLockedVideoHero` 没有 poster：视频数据加载前显示深色背景和标题。
 - `TerminalReplay` 的无障碍文案、复制按钮标题和默认脚本沿用上游的写法，没有做本地化。
 - `PeakChart` 运行中修改 `width` 会重建画布并重播揭示动画（上游 effect 依赖 `[width, u]` 的语义）；`fontStretch` 的实际效果随平台字体支持变化。
-- 十三个组件都做了 SSR 安全处理：浏览器 API 只在 `onMounted` 或用户事件中访问；`LiquidNavbar` 的 `getContext` / `matchMedia` / `AudioContext` 同样如此。`GlassyDashboard` 的 `matchMedia` / `ResizeObserver` / `history` 也在挂载后才用；`SplashCursor` 的 `getContext` / `matchMedia`、`Shredder` 的 `ResizeObserver` / canvas 上下文、`SpotlightCard` 的 `matchMedia` / `IntersectionObserver` 同样只在挂载后访问；`GlassSurface` 的 `getContext` / `Image` / `ResizeObserver` / `IntersectionObserver` / `canvas 2d` 也都在挂载后；`AnimatedList` 的 `matchMedia` / `CSS.supports` / `IntersectionObserver` / `ResizeObserver` / `window` 监听同样只在挂载后。
+- 十四个组件都做了 SSR 安全处理：浏览器 API 只在 `onMounted` 或用户事件中访问；`LiquidNavbar` 的 `getContext` / `matchMedia` / `AudioContext` 同样如此。`GlassyDashboard` 的 `matchMedia` / `ResizeObserver` / `history` 也在挂载后才用；`SplashCursor` 的 `getContext` / `matchMedia`、`Shredder` 的 `ResizeObserver` / canvas 上下文、`SpotlightCard` 的 `matchMedia` / `IntersectionObserver` 同样只在挂载后访问；`GlassSurface` 的 `getContext` / `Image` / `ResizeObserver` / `IntersectionObserver` / `canvas 2d` 也都在挂载后；`AnimatedList` 的 `matchMedia` / `CSS.supports` / `IntersectionObserver` / `ResizeObserver` / `window` 监听同样只在挂载后；`FlipCard` 的 `useReducedMotion` / 指针捕获同样只在挂载与事件中。
 - `GlassyDashboard` 的示例数据固定三个周期（7/30/90 天）与四视图；CSV 只在浏览器本地生成，不上传。背景图为 Unsplash 远程资源，离线时只有底色。
 - `SplashCursor` 需要 WebGL2 与浮点纹理扩展；不支持时只显示静态降级提示。弱机建议 `quality="low"`，主题切到 `light` 时要配浅色背景。
 - `Shredder` 的行快照依赖 `SVG foreignObject` + canvas，跨域图片会被污染；同页多实例时各自独立（引擎状态不共享）。
@@ -274,3 +285,4 @@ pnpm check       # test + typecheck
 - `LiquidNavbar` 的水体需要 WebGL（1）；拿不到上下文（含着色器编译失败）时退回 CSS 水滴，观感简化但没有功能损失。玻璃的折射（`backdrop-filter: url(#…)`）目前只有 Chromium 支持，其它浏览器只有模糊与提亮。移动端贴底放置时自己留出 `env(safe-area-inset-bottom)`。
 - `GlassSurface` 的 SVG 折射依赖 Chromium 的 `backdrop-filter: url(#…)`，其它浏览器走 WebGL2（需 `backdrop`）或雾面兜底；容器背后必须有内容才看得出折射。`shape` 与 `backdrop` 的图片必须同源或带 CORS；形状描摹在挂载与尺寸变化时同步计算，很大的 `shape` 会占一些主线程时间。
 - `AnimatedList` 不是虚拟列表；数据量大时在外层分页或虚拟滚动。入场动画由 `IntersectionObserver` 触发，未滚入视口时条目保持隐藏（`animation="none"` 时立即显示）。
+- `FlipCard` 依赖 `color-mix` 与 `preserve-3d`；拖拽只认主键（左键）且要超过 4px（触屏 8px）阈值，`dragDistance` 不传时用卡片的宽 / 高作量程。
