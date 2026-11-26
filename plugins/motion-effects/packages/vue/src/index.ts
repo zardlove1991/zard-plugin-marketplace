@@ -16,6 +16,8 @@ export { default as FlipCard } from './components/FlipCard.vue'
 export { default as GhostCursor } from './components/GhostCursor.vue'
 export { default as GridMotion } from './components/GridMotion.vue'
 export { default as RubberSegment } from './components/RubberSegment.vue'
+export { default as TiltedCard } from './components/TiltedCard.vue'
+export { default as TiltedCardLayer } from './components/TiltedCardLayer.vue'
 export { ANIMATED_LIST_ITEMS, ANIMATED_LIST_ICONS } from './components/animatedListIcons'
 
 export type {

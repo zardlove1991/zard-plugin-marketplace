@@ -61,7 +61,8 @@ describe('RubberSegment', () => {
   it('navigates with arrow keys and Home / End', async () => {
     const wrapper = mountSegment()
     const first = wrapper.findAll('[role="radio"]')[0]!
-    first.element.focus()
+    const firstEl = first.element as HTMLElement
+    firstEl.focus()
     await first.trigger('keydown', { key: 'ArrowRight' })
     await nextTick()
     expect(wrapper.findAll('[role="radio"]')[1]!.attributes('aria-checked')).toBe('true')
