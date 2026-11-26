@@ -68,10 +68,11 @@
 | `Shredder` | `../../packages/vue/src/components/Shredder.vue` | `../../packages/vue/tests/shredder.spec.ts` |
 | `SpotlightCard` | `../../packages/vue/src/components/SpotlightCard.vue` | `../../packages/vue/tests/spotlight-card.spec.ts` |
 | `LiquidNavbar` | `../../packages/vue/src/components/LiquidNavbar.vue` | `../../packages/vue/tests/liquid-navbar.spec.ts` |
+| `GlassSurface` | `../../packages/vue/src/components/GlassSurface.vue` | `../../packages/vue/tests/glass-surface.spec.ts` |
 
-其余 14 个仍以 React 源码 + vanilla 演示为真源，按需按 `vue-porting.md` 移植。`GlassSurface` 因 SVG + WebGL 双路径，放在下一批。
+其余 13 个仍以 React 源码 + vanilla 演示为真源，按需按 `vue-porting.md` 移植。
 
-后八个（`TerminalReplay`、`ScrollLockedVideoHero`、`PeakChart`、`GlassyDashboard`、`SplashCursor`、`Shredder`、`SpotlightCard`、`LiquidNavbar`）与 React 原件有几处有意的行为差异，见 `../../packages/vue/README.md` 的「与 React 原件的差异」。
+后九个（`TerminalReplay`、`ScrollLockedVideoHero`、`PeakChart`、`GlassyDashboard`、`SplashCursor`、`Shredder`、`SpotlightCard`、`LiquidNavbar`、`GlassSurface`）与 React 原件有几处有意的行为差异，见 `../../packages/vue/README.md` 的「与 React 原件的差异」。
 
 > Vue 实装自带 CSS，不依赖 Tailwind；需要安装的依赖见下面「依赖安装」。
 
@@ -126,10 +127,11 @@ React 项目对应：`motion` + `@hugeicons/react`；`glassy-dashboard` 另需 `
 ## 4. GlassSurface · 折射玻璃
 
 - **源码**：`GlassSurface.jsx` + `GlassSurface.css`；**演示**：`glass-surface.html`
+- **Vue 实装**：`../../packages/vue/src/components/GlassSurface.vue`（已测试；引擎在 `../../packages/vue/src/composables/useGlassSurface.ts`）
 - **适用**：玻璃卡片、磨砂面板、登录框、悬浮工具条；需要真实折射/色散而非普通 `backdrop-filter`。
 - **关键 API**：`children`（插槽）、`width`、`height`、`borderRadius`、`borderWidth`、`brightness`、`opacity`、`blur`、`displace`、`backgroundOpacity`、`saturation`、`distortionScale`、`redOffset` / `greenOffset` / `blueOffset`、`xChannel` / `yChannel`、`mixBlendMode`、`refraction`、`renderer`（`auto`/`svg`/`webgl`）、`backdrop`（背景图）、`shape`。
-- **移植要点**：组件同时有 SVG filter 与 WebGL 路径，`renderer: 'auto'` 会探测；Vue 保留两条路径与唯一的 `useId`（Vue 3.5 `useId()` 或自增 id）。`backdrop` 用同源图片，避免纹理污染。
-- **注意**：玻璃效果依赖"背后有内容"，纯色背景上看不出折射；WebGL 不可用时要能看到 SVG 降级；不要嵌套多层玻璃，性能与观感都会崩。
+- **移植要点**：组件同时有 SVG filter 与 WebGL2 路径，`renderer: 'auto'` 会探测；Vue 保留两条路径，`fe*` 滤镜原语用 `h()` 生成（写进模板会变成未解析组件），SVG 属性按 spec 保持驼峰 / 连字符的原始写法。置换贴图、通道选择器等高频 DOM 更新走普通变量与 `setAttribute`，不进响应式；`backdrop` 接受 DOM / Vue Ref / `{ current }`，用同源图片避免纹理污染。
+- **注意**：玻璃效果依赖"背后有内容"，纯色背景上看不出折射；Chromium 默认走 SVG 折射、其它浏览器给了 `backdrop` 才走 WebGL2，两者都不可用退回雾面；Vue 实装在 `webglcontextlost` 后随浏览器恢复重建资源（上游永久降至降级路径）。不要嵌套多层玻璃，性能与观感都会崩。
 
 ## 5. GridMotion · 动感网格墙
 

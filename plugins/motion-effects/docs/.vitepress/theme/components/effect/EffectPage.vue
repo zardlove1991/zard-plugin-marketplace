@@ -12,6 +12,7 @@ import TerminalReplayStage from '../../demos/TerminalReplayStage.vue'
 import PeakChartStage from '../../demos/PeakChartStage.vue'
 import SpotlightCardStage from '../../demos/SpotlightCardStage.vue'
 import LiquidNavbarStage from '../../demos/LiquidNavbarStage.vue'
+import GlassSurfaceStage from '../../demos/GlassSurfaceStage.vue'
 import StageFrame from './StageFrame.vue'
 import CustomizePanel from './CustomizePanel.vue'
 import PropTable from './PropTable.vue'
@@ -46,7 +47,8 @@ const STAGES = {
   'terminal-replay': TerminalReplayStage,
   'peak-chart': PeakChartStage,
   'spotlight-card': SpotlightCardStage,
-  'liquid-glass-navbar': LiquidNavbarStage
+  'liquid-glass-navbar': LiquidNavbarStage,
+  'glass-surface': GlassSurfaceStage
 }
 
 /** 会劫持全局输入或需要整屏的组件：放进只渲染它自己的独立页面，再用 iframe 加载 */

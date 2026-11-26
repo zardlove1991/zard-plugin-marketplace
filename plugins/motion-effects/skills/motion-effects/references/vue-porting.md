@@ -388,7 +388,7 @@ const shown = computed(() => model.value ?? inner.value)
 | 断言 `el.style.xxx`，但样式写在 SFC 的 `<style>` 里 | jsdom 不应用样式表，读到空字符串 | 节点环境只断言内联样式和结构，视觉效果用真实浏览器验证 |
 | 发现上游 React 源码有 bug | 正则与自己的数据不匹配、effect 依赖导致重跑等；照抄等于把 bug 也移植过来 | 对照演示和源码确认意图，在 Vue 版修掉，并记入包 README 的「与 React 原件的差异」 |
 | 把会锁定 `body` 滚动的特效直接内嵌进页面 | 整个页面滚不动，而且不会自行解锁 | 放进独占的文档：独立页面，或用 iframe 加载一个 `layout: false` 的页面（参考 `ScrollLockedVideoHero` 在文档站里的接法） |
-| 把 `feTurbulence` / `feGaussianBlur` 这类 SVG 滤镜原语写进模板 | Vue warn `Failed to resolve component`；降级后建出的元素名是错的（SVG 区分大小写），滤镜静默失效。jsdom 测试不断言滤镜 DOM 就发现不了 | 用 `h()` 渲染函数生成；`h()` 里的 SVG 属性也要写连字符形式（`base-frequency`），驼峰键会原样落到元素上 |
+| 把 `feTurbulence` / `feGaussianBlur` 这类 SVG 滤镜原语写进模板 | Vue warn `Failed to resolve component`；降级后建出的元素名是错的（SVG 区分大小写），滤镜静默失效。jsdom 测试不断言滤镜 DOM 就发现不了 | 用 `h()` 渲染函数生成。`h()` 里的属性名会原样 `setAttribute`，要按 SVG spec 的大小写写：`stdDeviation` / `xChannelSelector` / `baseFrequency` 是驼峰，`color-interpolation-filters` 才是连字符；写成另一种形式只是多出一个无效属性，滤镜静默失效 |
 | rAF 回调的时间戳和 `performance.now()` 混用 | jsdom 等宿主里两者不同源，算出负的 dt，弹簧直接发散 | 帧时间统一取 `performance.now()`，并给 dt 加下限 |
 | 用 `withDefaults` 的默认值引用 `<script setup>` 里的局部变量 | 编译报错：`defineProps` 会被提升到 setup 之外 | 默认值放在模块作用域（单独的 `.ts`） |
 | 可选的布尔 prop 要保留"不传"这一态 | Boolean prop 不传时会被 Vue 钳成 `false`，三态丢了一态 | `withDefaults(..., { compact: undefined })` 显式写 `undefined` |

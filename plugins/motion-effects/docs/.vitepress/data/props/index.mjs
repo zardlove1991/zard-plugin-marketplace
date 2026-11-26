@@ -9,6 +9,7 @@ import terminalReplay from './terminal-replay.mjs'
 import peakChart from './peak-chart.mjs'
 import spotlightCard from './spotlight-card.mjs'
 import liquidGlassNavbar from './liquid-glass-navbar.mjs'
+import glassSurface from './glass-surface.mjs'
 
 export const PROP_SCHEMAS = {
   'hold-button': holdButton,
@@ -17,5 +18,6 @@ export const PROP_SCHEMAS = {
   'terminal-replay': terminalReplay,
   'peak-chart': peakChart,
   'spotlight-card': spotlightCard,
-  'liquid-glass-navbar': liquidGlassNavbar
+  'liquid-glass-navbar': liquidGlassNavbar,
+  'glass-surface': glassSurface
 }

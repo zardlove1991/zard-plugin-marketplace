@@ -38,11 +38,11 @@ export const EFFECTS = [
     note: '全局 fixed + pointer-events:none；移动端建议不渲染；弱机把 DPR 降到 1–1.5。headless 无 GPU 环境可能不显示光标。'
   },
   {
-    id: 'glass-surface', name: 'GlassSurface', zh: '折射玻璃面板', cat: '卡片与容器', vue: 'mid', height: 620,
+    id: 'glass-surface', name: 'GlassSurface', zh: '折射玻璃面板', cat: '卡片与容器', vue: 'mid', vueReady: true, height: 620,
     desc: '真实折射玻璃面板，SVG filter 与 WebGL 双路径；支持色散、模糊、边框与背景图。',
     deps: [], demo: 'glass-surface.html', source: 'react/components/ui/GlassSurface.jsx',
-    props: ['children', 'backdrop', 'refraction', 'renderer', 'blur / brightness'],
-    note: '背后要有内容才看得出折射；背景图必须同源或 CORS 允许，否则纹理被污染。'
+    props: ['width / height', 'borderRadius / borderWidth', 'blur / displace', 'distortionScale', 'refraction / renderer', 'backdrop / shape'],
+    note: '背后要有内容才看得出折射；背景图必须同源或 CORS 允许，否则纹理被污染。Vue 实装的默认插槽放内容，Chromium 走 SVG 色散折射、其它浏览器给 backdrop 才走 WebGL2，两者都不可用退回雾面；backdrop 接受 DOM 或模板 ref。'
   },
   {
     id: 'grid-motion', name: 'GridMotion', zh: '动感网格墙', cat: '氛围与装饰', vue: 'mid', height: 600,
