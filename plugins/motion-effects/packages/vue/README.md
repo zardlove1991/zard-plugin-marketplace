@@ -1,6 +1,6 @@
 # @motion-effects/vue
 
-`motion-effects` 的 Vue 3 实装包（0.1）。当前包含 16 个已完成移植并有 Vitest 覆盖的组件：
+`motion-effects` 的 Vue 3 实装包（0.1）。当前包含 17 个已完成移植并有 Vitest 覆盖的组件：
 
 | 组件 | 说明 | 依赖 |
 |---|---|---|
@@ -20,8 +20,9 @@
 | `FlipCard` | 3D 翻面卡片：拖拽甩动翻面、悬停倾斜与眩光、键盘可达 | `motion-v`（及其 peer `@vueuse/core`） |
 | `GhostCursor` | WebGL2 流体光标拖尾：跟手、涡流、点击爆散，整屏氛围层 | 无 |
 | `GridMotion` | 动感网格墙：倾斜滚动的图片 / 文字墙、聚光、视差与边缘羽化 | 无（不依赖 Tailwind） |
+| `RubberSegment` | 橡皮筋分段控件：拖拽滑块、弹性回弹、甩动切换、键盘可达 | `motion-v`（及其 peer `@vueuse/core`） |
 
-其余 9 个特效仍以 React 源码 + vanilla 演示为真源，按需按 `references/vue-porting.md` 移植。
+其余 8 个特效仍以 React 源码 + vanilla 演示为真源，按需按 `references/vue-porting.md` 移植。
 
 > `TerminalReplay`、`ScrollLockedVideoHero`、`PeakChart`、`GlassyDashboard` 和 `LiquidNavbar` 按 Vue 习惯设计：没有 `className` prop，`class` / `style` 自动透传到根元素；受控状态只走 `v-model`，不另发 `xxx-change` 事件。前三个组件仍保留 React 式的 `className` 与 `open-change`；`SplashCursor` / `GlassSurface` / `AnimatedList` 保留了 React 原件的 `className` / `style` props；`Shredder` 保留 React 的 `className` prop，但用 `#item` 插槽替代 `renderItem`，事件改走 `shred` / `reorder`；`SpotlightCard` 保留 `className` 与默认插槽，其余 div 属性自动透传。
 
@@ -122,7 +123,7 @@ const photo = ref<HTMLImageElement | null>(null)
 </template>
 ```
 
-CSS 随 SFC 自动引入，不需要单独 import CSS 文件。根类名前缀分别为 `.hold-button`、`.sr-root`、`.specular-button`、`.tr-root`、`.slvh`、`.pc-root`、`.nimbus-nav`、`.glass-surface`、`.animated-list`、`.flip-card`、`.ghost-cursor`、`.gm-root`。
+CSS 随 SFC 自动引入，不需要单独 import CSS 文件。根类名前缀分别为 `.hold-button`、`.sr-root`、`.specular-button`、`.tr-root`、`.slvh`、`.pc-root`、`.nimbus-nav`、`.glass-surface`、`.animated-list`、`.flip-card`、`.ghost-cursor`、`.gm-root`、`.rubber-segment`。
 
 ## 组件契约
 
@@ -249,9 +250,17 @@ CSS 随 SFC 自动引入，不需要单独 import CSS 文件。根类名前缀�
 - 相邻行按 `direction` 反向漂移；指针位置经旋转 / 透视反投影后驱动聚光与视差；`IntersectionObserver` 离屏后停止 rAF
 - 图片走 `<img>`，跨域与尺寸由调用方保证；`items` 少于可见格子时循环填充
 
+### RubberSegment
+
+- props：`items`（`string` 或 `{ value, label, icon }`）、`value`（`v-model`）、`defaultValue`、`trackColor`、`thumbColor`、`textColor`、`activeTextColor`、`size`（`sm` / `md` / `lg`）、`radius`（`10`）、`inset`（`3`）、`equalSlots`、`stretch`、`squash`、`speed`、`glide`、`draggable`、`disabled`、`className`、`ariaLabel`
+- emits：`update:modelValue`、`change`（`[value, index]`）
+- 拖拽滑块越过两端会按橡皮筋公式回拉；快速甩动按最近 100ms 速度投影落点，必要时多跳一格；静止轻点another 格子时会先挤压再交接
+- 键盘：↑ / ↓ / ← / → / Home / End 切换，焦点跟随当前项；`prefers-reduced-motion` 下直接跳位
+- 根类名前缀 `.rubber-segment`；滑块用 `clipPath` MotionValue 裁切两份文本，逐帧位置不进响应式
+
 ## 与 React 原件的差异
 
-前三个组件是 1:1 直译。后十三个在移植时处理了上游的几处问题或按 Vue 习惯调整，行为上有意不同（`SplashCursor` / `Shredder` / `SpotlightCard` / `GlassSurface` / `AnimatedList` / `FlipCard` / `GhostCursor` / `GridMotion` 的引擎是 1:1 抽取，差异只在框架胶水与 DOM 归属）：
+前三个组件是 1:1 直译。后十四个在移植时处理了上游的几处问题或按 Vue 习惯调整，行为上有意不同（`SplashCursor` / `Shredder` / `SpotlightCard` / `GlassSurface` / `AnimatedList` / `FlipCard` / `GhostCursor` / `GridMotion` / `RubberSegment` 的引擎是 1:1 抽取，差异只在框架胶水与 DOM 归属）：
 
 - `TerminalReplay` 的行内标签：上游的正则要求闭合标签带名字（`[/success]`），而它的数据全用 `[/]`，所以标签从来没有被解析过，是原样打印的。这里两种闭合都认。
 - `TerminalReplay` 跳过 spinner / progress 步骤时立即结束；上游会原地空转到该步骤的时长走完。
@@ -280,6 +289,7 @@ CSS 随 SFC 自动引入，不需要单独 import CSS 文件。根类名前缀�
 - `FlipCard` 的 `front` / `back` 从 React 节点换成 `#front` / `#back` 具名插槽；`flipped` 走 `v-model:flipped`，同时保留 `flip-change` 事件对应上游的 `onFlipChange`。所有派生 transform 用 `useTransform(() => …)` 函数形式，props 变化时模板字符串也会重算（上游的 `useMotionTemplate` 只认 MotionValue）。
 - `GhostCursor` 的上下文恢复用 `generation` ref + `watch` 重放整个引擎（上游用 state 触发 effect 重跑，语义相同）；卸载后沿用上游的延迟释放上下文策略。`fadeDelayMs` / `fadeDurationMs` 的触屏默认值在挂载时按 `maxTouchPoints` 决定，SSR 下先按桌面取值。
 - `GridMotion` 不依赖 Tailwind：React 写在 JSX 任意值类里的样式已逐条抽成 `GridMotion.css`，由 SFC 全局引入；`isValidElement` 的节点项换成 `#tile` 作用域插槽。逐帧的位移 / 聚光强度是普通数组 / Float32Array，写 DOM 时不进响应式。
+- `RubberSegment` 的 `value` 用 `v-model` 受控，另发 `change` 对应上游的 `onChange`；`items` 里的 `icon` 从 React 节点换成 Vue 组件。`clipPath` 用 `useTransform(() => …)` 函数形式，半径 / 内边距变化也会重算。
 
 ## 测试
 
@@ -297,7 +307,7 @@ pnpm check       # test + typecheck
 - `ScrollLockedVideoHero` 没有 poster：视频数据加载前显示深色背景和标题。
 - `TerminalReplay` 的无障碍文案、复制按钮标题和默认脚本沿用上游的写法，没有做本地化。
 - `PeakChart` 运行中修改 `width` 会重建画布并重播揭示动画（上游 effect 依赖 `[width, u]` 的语义）；`fontStretch` 的实际效果随平台字体支持变化。
-- 十六个组件都做了 SSR 安全处理：浏览器 API 只在 `onMounted` 或用户事件中访问；`LiquidNavbar` 的 `getContext` / `matchMedia` / `AudioContext` 同样如此。`GlassyDashboard` 的 `matchMedia` / `ResizeObserver` / `history` 也在挂载后才用；`SplashCursor` 的 `getContext` / `matchMedia`、`Shredder` 的 `ResizeObserver` / canvas 上下文、`SpotlightCard` 的 `matchMedia` / `IntersectionObserver` 同样只在挂载后访问；`GlassSurface` 的 `getContext` / `Image` / `ResizeObserver` / `IntersectionObserver` / `canvas 2d` 也都在挂载后；`AnimatedList` 的 `matchMedia` / `CSS.supports` / `IntersectionObserver` / `ResizeObserver` / `window` 监听同样只在挂载后；`FlipCard` 的 `useReducedMotion` / 指针捕获同样只在挂载与事件中；`GhostCursor` 的 `getContext` / `matchMedia` / `window` 指针监听 / `IntersectionObserver` 同样只在挂载后；`GridMotion` 的 `ResizeObserver` / `IntersectionObserver` / `window` 监听同样只在挂载后。
+- 十七个组件都做了 SSR 安全处理：浏览器 API 只在 `onMounted` 或用户事件中访问；`LiquidNavbar` 的 `getContext` / `matchMedia` / `AudioContext` 同样如此。`GlassyDashboard` 的 `matchMedia` / `ResizeObserver` / `history` 也在挂载后才用；`SplashCursor` 的 `getContext` / `matchMedia`、`Shredder` 的 `ResizeObserver` / canvas 上下文、`SpotlightCard` 的 `matchMedia` / `IntersectionObserver` 同样只在挂载后访问；`GlassSurface` 的 `getContext` / `Image` / `ResizeObserver` / `IntersectionObserver` / `canvas 2d` 也都在挂载后；`AnimatedList` 的 `matchMedia` / `CSS.supports` / `IntersectionObserver` / `ResizeObserver` / `window` 监听同样只在挂载后；`FlipCard` 的 `useReducedMotion` / 指针捕获同样只在挂载与事件中；`GhostCursor` 的 `getContext` / `matchMedia` / `window` 指针监听 / `IntersectionObserver` 同样只在挂载后；`GridMotion` 的 `ResizeObserver` / `IntersectionObserver` / `window` 监听同样只在挂载后；`RubberSegment` 的 `ResizeObserver` / `document.fonts` / 指针捕获同样只在挂载后。
 - `GlassyDashboard` 的示例数据固定三个周期（7/30/90 天）与四视图；CSV 只在浏览器本地生成，不上传。背景图为 Unsplash 远程资源，离线时只有底色。
 - `SplashCursor` 需要 WebGL2 与浮点纹理扩展；不支持时只显示静态降级提示。弱机建议 `quality="low"`，主题切到 `light` 时要配浅色背景。
 - `Shredder` 的行快照依赖 `SVG foreignObject` + canvas，跨域图片会被污染；同页多实例时各自独立（引擎状态不共享）。
@@ -308,3 +318,4 @@ pnpm check       # test + typecheck
 - `FlipCard` 依赖 `color-mix` 与 `preserve-3d`；拖拽只认主键（左键）且要超过 4px（触屏 8px）阈值，`dragDistance` 不传时用卡片的宽 / 高作量程。
 - `GhostCursor` 需要 WebGL2 与浮点颜色缓冲；headless / 无 GPU 环境不会显示光标（静默降级，不是白屏）。整屏 fixed，同页最多一个实例。
 - `GridMotion` 需要父容器有明确高度（`height:100%`）；移动端建议降低 `rows` 与 `speed`。
+- `RubberSegment` 依赖 `clip-path: inset()`；需要精确测量格子尺寸，字体加载完成后会重新测量一次。

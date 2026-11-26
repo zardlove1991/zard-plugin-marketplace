@@ -70,6 +70,14 @@ export type GlassBackdrop =
   | null
 
 
+export type RubberSegmentSize = 'sm' | 'md' | 'lg'
+
+export interface RubberSegmentItem {
+  value: string
+  label: string
+  icon?: Component | null
+}
+
 export type GridMotionDirection = 'alternate' | 'left' | 'right'
 
 export type GridMotionItem = string | { src: string; alt?: string } | null | false

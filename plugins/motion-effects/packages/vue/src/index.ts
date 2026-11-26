@@ -15,6 +15,7 @@ export { default as AnimatedList } from './components/AnimatedList.vue'
 export { default as FlipCard } from './components/FlipCard.vue'
 export { default as GhostCursor } from './components/GhostCursor.vue'
 export { default as GridMotion } from './components/GridMotion.vue'
+export { default as RubberSegment } from './components/RubberSegment.vue'
 export { ANIMATED_LIST_ITEMS, ANIMATED_LIST_ICONS } from './components/animatedListIcons'
 
 export type {
@@ -26,6 +27,8 @@ export type {
   GridMotionItem,
   GridMotionSettings,
   GridMotionTile,
+  RubberSegmentItem,
+  RubberSegmentSize,
   GhostCursorTheme,
   GlassBackdrop,
   GlassSurfaceChannel,
