@@ -17,11 +17,11 @@ export const LEVEL_TEXT = { easy: '易', mid: '中', hard: '难' }
 
 export const EFFECTS = [
   {
-    id: 'animated-list', name: 'AnimatedList', zh: '动态列表', cat: '列表与内容', vue: 'mid', height: 620,
+    id: 'animated-list', name: 'AnimatedList', zh: '动态列表', cat: '列表与内容', vue: 'mid', vueReady: true, height: 620,
     desc: '带逐项入场、悬停高亮与键盘导航的文件 / 通知列表；支持 pop / slide / fade 三种入场。',
     deps: ['Hugeicons'], demo: 'animated-list.html', source: 'react/components/ui/AnimatedList.jsx',
-    props: ['items', 'onItemSelect', 'renderItem', 'animation', 'theme', 'width / maxHeight'],
-    note: '不是虚拟列表；数据量大时外层分页或虚拟滚动。默认图标可直接换项目图标。'
+    props: ['items', 'animation', 'theme', 'width / maxHeight', 'selectOnHover', 'enableArrowNavigation', 'initialSelectedIndex'],
+    note: '不是虚拟列表；数据量大时外层分页或虚拟滚动。默认图标可直接换项目图标。Vue 实装的 renderItem 换成 #item 作用域插槽，onItemSelect 换成 select 事件；选中条用弹簧逼近，逐帧状态不进响应式。'
   },
   {
     id: 'flip-card', name: 'FlipCard', zh: '3D 翻面卡片', cat: '卡片与容器', vue: 'mid', height: 660,

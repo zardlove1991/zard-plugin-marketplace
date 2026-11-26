@@ -13,6 +13,7 @@ import PeakChartStage from '../../demos/PeakChartStage.vue'
 import SpotlightCardStage from '../../demos/SpotlightCardStage.vue'
 import LiquidNavbarStage from '../../demos/LiquidNavbarStage.vue'
 import GlassSurfaceStage from '../../demos/GlassSurfaceStage.vue'
+import AnimatedListStage from '../../demos/AnimatedListStage.vue'
 import StageFrame from './StageFrame.vue'
 import CustomizePanel from './CustomizePanel.vue'
 import PropTable from './PropTable.vue'
@@ -48,7 +49,8 @@ const STAGES = {
   'peak-chart': PeakChartStage,
   'spotlight-card': SpotlightCardStage,
   'liquid-glass-navbar': LiquidNavbarStage,
-  'glass-surface': GlassSurfaceStage
+  'glass-surface': GlassSurfaceStage,
+  'animated-list': AnimatedListStage
 }
 
 /** 会劫持全局输入或需要整屏的组件：放进只渲染它自己的独立页面，再用 iframe 加载 */

@@ -69,10 +69,11 @@
 | `SpotlightCard` | `../../packages/vue/src/components/SpotlightCard.vue` | `../../packages/vue/tests/spotlight-card.spec.ts` |
 | `LiquidNavbar` | `../../packages/vue/src/components/LiquidNavbar.vue` | `../../packages/vue/tests/liquid-navbar.spec.ts` |
 | `GlassSurface` | `../../packages/vue/src/components/GlassSurface.vue` | `../../packages/vue/tests/glass-surface.spec.ts` |
+| `AnimatedList` | `../../packages/vue/src/components/AnimatedList.vue` | `../../packages/vue/tests/animated-list.spec.ts` |
 
-其余 13 个仍以 React 源码 + vanilla 演示为真源，按需按 `vue-porting.md` 移植。
+其余 12 个仍以 React 源码 + vanilla 演示为真源，按需按 `vue-porting.md` 移植。
 
-后九个（`TerminalReplay`、`ScrollLockedVideoHero`、`PeakChart`、`GlassyDashboard`、`SplashCursor`、`Shredder`、`SpotlightCard`、`LiquidNavbar`、`GlassSurface`）与 React 原件有几处有意的行为差异，见 `../../packages/vue/README.md` 的「与 React 原件的差异」。
+后十个（`TerminalReplay`、`ScrollLockedVideoHero`、`PeakChart`、`GlassyDashboard`、`SplashCursor`、`Shredder`、`SpotlightCard`、`LiquidNavbar`、`GlassSurface`、`AnimatedList`）与 React 原件有几处有意的行为差异，见 `../../packages/vue/README.md` 的「与 React 原件的差异」。
 
 > Vue 实装自带 CSS，不依赖 Tailwind；需要安装的依赖见下面「依赖安装」。
 
@@ -103,10 +104,11 @@ React 项目对应：`motion` + `@hugeicons/react`；`glassy-dashboard` 另需 `
 ## 1. AnimatedList · 动态列表
 
 - **源码**：`AnimatedList.jsx` + `AnimatedList.css`；**演示**：`animated-list.html`
+- **Vue 实装**：`../../packages/vue/src/components/AnimatedList.vue`（已测试；引擎在 `../../packages/vue/src/composables/useAnimatedList.ts`，默认项图标在 `animatedListIcons.ts`）
 - **适用**：文件列表、通知流、搜索结果、设置项；需要"逐项入场 + 悬停选中 + 键盘上下选择"。
 - **关键 API**：`items`（`{ title, description, meta, icon, image }`）、`onItemSelect`、`renderItem`、`initialSelectedIndex`、`selectOnHover`、`enableArrowNavigation`、`loop`、`animation`（`pop`/`slide`/`fade`）、`animateOnce`、`stagger`、`showGradients`、`displayScrollbar`、`frame`、`theme`（`dark`/`light`）、`accentColor`、`radius`、`gap`、`width`、`maxHeight`。
-- **移植要点**：内部用 `useLayoutEffect` + rAF 引擎做滚动与高亮；Vue 用 `onMounted` + 模板 ref，动画状态放在 `shallowRef`/普通对象里逐帧写 CSS 变量。`renderItem` 改成作用域插槽。默认图标只是示例，可直接换成项目图标。
-- **注意**：不是虚拟列表，`items` 很大时需外层分页或虚拟滚动；键盘焦点与 `aria-activedescendant` 要保留。
+- **移植要点**：rAF 引擎做滚动与弹簧指示条；Vue 用 `onMounted` + 模板 ref，逐帧状态放普通对象里直接写 DOM（不进响应式）。`renderItem` 换成 `#item` 作用域插槽，`onItemSelect` 换成 `select` 事件，`icon` 从 React 节点换成 Vue 组件（默认项随包导出）。运行中改 `items` / `animation` 走 `watch` 重新同步，不再靠空依赖 effect 偷读 ref。
+- **注意**：不是虚拟列表，`items` 很大时需外层分页或虚拟滚动；键盘焦点与 `aria-activedescendant` 要保留。入场由 `IntersectionObserver` 触发，未滚入视口时条目保持隐藏（`animation="none"` 立即显示）。
 
 ## 2. FlipCard · 3D 翻面卡片
 
