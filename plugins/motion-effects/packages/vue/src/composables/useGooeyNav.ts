@@ -139,12 +139,13 @@ export function useGooeyNav(options: UseGooeyNavOptions) {
     }
 
     const measure = () => {
-      const box = stage.getBoundingClientRect()
+      // 一律用 offset*（布局像素）：页面被 CSS zoom 放大时 getBoundingClientRect
+      // 返回的是放大后的值，会让画布被撑大、液滴位置整体偏移
       const ratio = Math.min(window.devicePixelRatio || 1, 2)
-      view.width = box.width
-      view.height = box.height
-      const outerWidth = box.width + MARGIN * 2
-      const outerHeight = box.height + MARGIN * 2
+      view.width = stage.offsetWidth
+      view.height = stage.offsetHeight
+      const outerWidth = view.width + MARGIN * 2
+      const outerHeight = view.height + MARGIN * 2
       Object.assign(canvas.style, {
         left: `${-MARGIN}px`,
         top: `${-MARGIN}px`,
@@ -157,10 +158,12 @@ export function useGooeyNav(options: UseGooeyNavOptions) {
         canvas.width = width
         canvas.height = height
       }
-      rects = Array.from(list.children).map(item => {
-        const rect = item.getBoundingClientRect()
-        return { x: rect.left - box.left, y: rect.top - box.top, w: rect.width, h: rect.height }
-      })
+      rects = Array.from(list.children).map(item => ({
+        x: item.offsetLeft,
+        y: item.offsetTop,
+        w: item.offsetWidth,
+        h: item.offsetHeight
+      }))
     }
 
     /** CPU 侧的等值线追踪：没有 WebGL2 时用 clip-path 画出同样的液体形状 */

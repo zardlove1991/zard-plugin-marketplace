@@ -349,6 +349,12 @@ export function useClickSpark({ root, layer, getSettings }: ClickSparkOptions) {
     const target = layer.value
     if (!host || !target) return
     const rect = host.getBoundingClientRect()
+    // 页面被 CSS zoom 放大时 getBoundingClientRect 返回的是放大后的值，
+    // 而画布的 CSS 尺寸走的是布局像素——不换算的话画布会整体错位。
+    // zoom = 视觉宽度 / 布局宽度，再把点击点换算成宿主内的布局坐标。
+    const zoom = host.offsetWidth ? rect.width / host.offsetWidth : 1
+    const localX = (clientX - rect.left) / zoom
+    const localY = (clientY - rect.top) / zoom
     const offset = Math.floor(Math.random() * s.colors.length)
     const full = s.spread >= 359.5
     const arc = (s.spread * Math.PI) / 180
@@ -376,10 +382,10 @@ export function useClickSpark({ root, layer, getSettings }: ClickSparkOptions) {
       s.width * (s.glow > 0 ? 6 : 2) +
       6
     const box = {
-      left: Math.max(clientX - reach, 0),
-      top: Math.max(clientY - reach, 0),
-      right: Math.min(clientX + reach, window.innerWidth),
-      bottom: Math.min(clientY + reach + fall, window.innerHeight)
+      left: Math.max(localX - reach, -rect.left / zoom),
+      top: Math.max(localY - reach, -rect.top / zoom),
+      right: Math.min(localX + reach, (window.innerWidth - rect.left) / zoom),
+      bottom: Math.min(localY + reach + fall, (window.innerHeight - rect.top) / zoom)
     }
     if (box.right - box.left < 1 || box.bottom - box.top < 1) return
     const ratio = Math.min(window.devicePixelRatio || 1, 2)
@@ -388,8 +394,9 @@ export function useClickSpark({ root, layer, getSettings }: ClickSparkOptions) {
     canvas.height = Math.ceil((box.bottom - box.top) * ratio)
     Object.assign(canvas.style, {
       position: 'absolute',
-      left: `${box.left - rect.left}px`,
-      top: `${box.top - rect.top}px`,
+      // box 已经是宿主内的布局坐标，画布直接挂在火花层上，不用再减一次
+      left: `${box.left}px`,
+      top: `${box.top}px`,
       width: `${box.right - box.left}px`,
       height: `${box.bottom - box.top}px`,
       display: 'block',
@@ -408,8 +415,8 @@ export function useClickSpark({ root, layer, getSettings }: ClickSparkOptions) {
       spark.glow = s.glow * (0.35 + 0.65 * ((0.2126 * r + 0.7152 * g + 0.0722 * b) / 255))
     }
     bursts.push({
-      x: clientX,
-      y: clientY,
+      x: localX,
+      y: localY,
       start: performance.now(),
       sparks,
       settings: s,

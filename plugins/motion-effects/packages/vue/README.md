@@ -439,6 +439,7 @@ CSS 随 SFC 自动引入，不需要单独 import CSS 文件。根类名前缀�
 - 通过 ref 暴露 `go(index)`：手动把胶囊搬到指定项
 - 纯 WebGL2 + SDF 着色器，零第三方依赖；拿不到 WebGL2 时退回 CPU 等值线 + `clip-path`，液体照样有
 - 着色器与上游逐字一致：`blend()` 里 w 通道的 `mix(b.w, a.w, h)` 参数顺序不能写反（写反会让场值停在 1e5 哨兵上、液滴整个不画），`uPills[4]` / `uDrops[32]` 的 uniform 数组上限也不要改
+- 画布尺寸与液滴位置用 `offset*`（布局像素）测量，不用 `getBoundingClientRect()`：页面被 CSS `zoom` 放大时后者返回放大后的值，画布会被撑大、液滴整体错位
 - 根类名前缀 `.gooey-nav`；`prefers-reduced-motion` 下不做液滴飞行，直接切到新项
 
 ## 与 React 原件的差异
@@ -483,6 +484,7 @@ CSS 随 SFC 自动引入，不需要单独 import CSS 文件。根类名前缀�
 - `AIPromptBox` 把 React 的 `showSearch` / `showThink` / `showCanvas` 三个布尔状态合并成一个互斥的 `mode`（`search` / `think` / `canvas` / `null`），对应用户只能选一种模式；`onSend` 换成 `send` 事件，`value` / `onValueChange` 换成 `v-model`。录音 / 附件 / 预览 / 拖拽拆成 `useAIPromptBox.ts` 的四个组合式函数，浏览器 API 只在事件或挂载后访问。
 - `ClickSpark` 没有 `className` prop（`class` / `style` 自动透传），React 的 `ref.spark(x, y)` 通过 ref 暴露；帧时间统一取 `performance.now()`——上游用 rAF 回调的时间戳，在 jsdom 等两者不同源的环境里会算出负的 `elapsed`，火花永远画不出来（`PeakChart` / `SpotlightCard` 也是这个约定）。
 - `GooeyNav` 用 `v-model:active-index` 受控、`change` 事件替代 `onChange`；帧时间统一取 `performance.now()`——上游用 rAF 回调的时间戳，在 jsdom 等两者不同源的环境里会算出负的 `dt`，动画不动（`PeakChart` / `SpotlightCard` 也是这个约定）。着色器与上游逐字一致，没有改动。
+- `ClickSpark` 的火花画布位置同样按布局像素换算，避免页面被 CSS `zoom` 放大时画布整体错位。
 - `Stepper` 的 `children` + `<Step>` 子组件换成 `steps` 数组 + `#step` 作用域插槽，`Step` 的 `icon` 从 React 节点换成 Vue 组件；`onStepChange` / `onFinalStepCompleted` 换成 `step-change` / `final-step-completed` 事件，步序走 `v-model:step`。React 原件的滑块位置监听轨道尺寸（改内容高度不会打断滑动动画），Vue 实装沿用同一策略。三个按钮的默认文案已中文化（`上一步` / `下一步` / `完成`），React 原件保留上游的 `Back` / `Continue` / `Complete`；需要英文时显式传 `back-button-text` 等 props。
 - `GlassIconReveal` / `GlassReveal21st` 的 SDF / 着色器 / 时间曲线逐段搬到 `liquidGlassRevealEngine.ts`（`// @ts-nocheck` 保留原数值逻辑），生命周期在 `useLiquidGlassReveal.ts`；`cn()` 换成 Vue 的 class 数组，`onClick` 换成 `click` 事件。内置 21st 标记随包导出 `MARK_21ST`。
 

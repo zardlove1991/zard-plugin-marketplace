@@ -431,12 +431,13 @@ void main() {
     var raf = 0, last = 0, disposed = false;
 
     var measure = function () {
-      var box = stage.getBoundingClientRect();
+      // 一律用 offset*（布局像素）：页面被 CSS zoom 放大时 getBoundingClientRect
+      // 返回的是放大后的值，会让画布被撑大、液滴位置整体偏移
       var ratio = Math.min(window.devicePixelRatio || 1, 2);
-      view.width = box.width;
-      view.height = box.height;
-      var outerWidth = box.width + MARGIN * 2;
-      var outerHeight = box.height + MARGIN * 2;
+      view.width = stage.offsetWidth;
+      view.height = stage.offsetHeight;
+      var outerWidth = view.width + MARGIN * 2;
+      var outerHeight = view.height + MARGIN * 2;
       Object.assign(canvas.style, {
         left: -MARGIN + 'px', top: -MARGIN + 'px',
         width: outerWidth + 'px', height: outerHeight + 'px'
@@ -448,8 +449,7 @@ void main() {
         canvas.height = height;
       }
       rects = Array.prototype.map.call(list.children, function (item) {
-        var rect = item.getBoundingClientRect();
-        return { x: rect.left - box.left, y: rect.top - box.top, w: rect.width, h: rect.height };
+        return { x: item.offsetLeft, y: item.offsetTop, w: item.offsetWidth, h: item.offsetHeight };
       });
     };
 
