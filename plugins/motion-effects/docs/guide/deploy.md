@@ -10,7 +10,7 @@ pnpm install
 pnpm dev          # 构建前会自动同步 demos/source 到 public/
 ```
 
-打开 `http://localhost:5173/`。
+打开 `http://localhost:37717/`。
 
 `pnpm dev` 会先执行 `scripts/sync-assets.mjs`：
 

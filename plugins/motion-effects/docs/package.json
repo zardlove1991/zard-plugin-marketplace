@@ -10,7 +10,7 @@
   "scripts": {
     "sync": "node scripts/sync-assets.mjs",
     "previews": "node scripts/record-previews.mjs",
-    "dev": "node scripts/sync-assets.mjs && vitepress dev",
+    "dev": "node scripts/sync-assets.mjs && vitepress dev --port 37717",
     "build": "node scripts/sync-assets.mjs && vitepress build",
     "preview": "vitepress preview"
   },
