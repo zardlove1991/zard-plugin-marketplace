@@ -30,6 +30,8 @@ export { default as AIPromptBox } from './components/AIPromptBox.vue'
 export { default as Stepper } from './components/Stepper.vue'
 export { default as ClickSpark } from './components/ClickSpark.vue'
 export { default as GooeyNav } from './components/GooeyNav.vue'
+export { default as Dock } from './components/Dock.vue'
+export { default as DockMenu } from './components/DockMenu.vue'
 export { MARK_21ST } from './composables/liquidGlassMark'
 export { ANIMATED_LIST_ITEMS, ANIMATED_LIST_ICONS } from './components/animatedListIcons'
 export {
@@ -103,6 +105,13 @@ export type {
   GooeyNavSize,
   GooeyNavTheme
 } from './composables/useGooeyNav'
+export type {
+  DockItem,
+  DockMenuRow,
+  DockSettings,
+  DockSide,
+  DockTheme
+} from './composables/useDock'
 export type { SpecularSettings } from './composables/useSpecularLight'
 export type { SplashCursorSettings } from './composables/useSplashCursor'
 export type {
