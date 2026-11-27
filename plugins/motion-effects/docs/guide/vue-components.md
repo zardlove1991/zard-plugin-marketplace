@@ -537,10 +537,10 @@ import { Stepper } from '@motion-effects/vue'
 import type { StepperStep } from '@motion-effects/vue'
 
 const steps: StepperStep[] = [
-  { title: 'Welcome', description: 'Set up your workspace' },
-  { title: 'Plan', description: 'Choose a plan' },
-  { title: 'Profile', description: 'Tell us who you are' },
-  { title: 'Review', description: 'Check everything' }
+  { title: '欢迎', description: '几步就能把工作区搭好' },
+  { title: '选择方案', description: '挑一个适合团队的方案' },
+  { title: '填写资料', description: '告诉我们你是谁' },
+  { title: '确认', description: '开工前再检查一遍' }
 ]
 const step = ref(1)
 </script>
@@ -555,11 +555,11 @@ const step = ref(1)
 </template>
 ```
 
-步骤内容用 `#step` 作用域插槽（`{ index, step, current, status }`），步序可用 `v-model:step` 受控；`indicator` 可切 `numbers` / `dots` / `bars`，`orientation="vertical"` 是左侧竖排（面板宽度 < 520px 时自动折叠成紧凑横向排布）。当前步的指示器是禁用的，`linear` 打开时只能点回走过的步骤。
+步骤内容用 `#step` 作用域插槽（`{ index, step, current, status }`），步序可用 `v-model:step` 受控；`indicator` 可切 `numbers` / `dots` / `bars`，`orientation="vertical"` 是左侧竖排（面板宽度 < 520px 时自动折叠成紧凑横向排布）。当前步的指示器是禁用的，`linear` 打开时只能点回走过的步骤。 按钮默认文案是中文（`上一步` / `下一步` / `完成`），需要英文时传 `back-button-text` / `next-button-text` / `complete-button-text`。
 - 后二十四个与 React 原件有几处有意的行为差异，清单见上面那份 README 的「与 React 原件的差异」。
 - 二十七个组件都做了 SSR 安全处理，浏览器 API 只在 `onMounted` 或用户事件中访问。
 - `AIPromptBox` 用互斥的 `v-model:mode` 替代 React 的三个布尔开关，发出 `send` / `files-change` / `recording-stop` 等事件；图片只留一张，支持选择 / 粘贴 / 拖拽，文案用 `labels` 覆盖。
-- `Stepper` 用 `steps` 数组 + `#step` 作用域插槽替代 React 的 `children` 与 `<Step>` 子组件，步序走 `v-model:step`，发出 `step-change` / `final-step-completed`；指示器下方的滑块用弹簧曲线跟步。
+- `Stepper` 用 `steps` 数组 + `#step` 作用域插槽替代 React 的 `children` 与 `<Step>` 子组件，步序走 `v-model:step`，发出 `step-change` / `final-step-completed`；指示器下方的滑块用弹簧曲线跟步；三个按钮的默认文案已中文化（React 原件仍是英文默认值）。
 - 当前是 workspace 私有包，未发布 npm；外部项目可复制 `packages/vue/src` 或等待发布。
 
 ## 本地测试

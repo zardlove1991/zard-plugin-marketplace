@@ -5,17 +5,17 @@ import type { StepperStep } from '@motion-effects/vue'
 import { pick, useValues } from '../composables/useValues'
 
 const values = useValues()
-const lastEvent = ref('点 Continue 往前走，或直接点指示器')
+const lastEvent = ref('点「下一步」往前走，或直接点指示器')
 
 const steps: StepperStep[] = [
-  { title: 'Welcome', description: 'Set up your workspace in a few quick steps.' },
-  { title: 'Plan', description: 'Choose a plan that fits your team.' },
-  { title: 'Profile', description: 'Tell us who you are.' },
-  { title: 'Review', description: 'Check everything before you start.' }
+  { title: '欢迎', description: '几步就能把工作区搭好。' },
+  { title: '选择方案', description: '挑一个适合团队的方案。' },
+  { title: '填写资料', description: '告诉我们你是谁。' },
+  { title: '确认', description: '开工前再检查一遍。' }
 ]
 
 const panels = [
-  { title: '欢迎 aboard', text: '几步就能把工作区搭好。' },
+  { title: '欢迎使用', text: '几步就能把工作区搭好。' },
   { title: '选择一个方案', text: '随时都可以改。' },
   { title: '我们该怎么称呼你？', text: '填个名字就行。' },
   { title: '看起来不错', text: '完成设置就能开工。' }

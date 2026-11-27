@@ -295,35 +295,35 @@
 
   <div class="controls">
     <label class="control">
-      <span>Indicator</span>
+      <span>指示器</span>
       <span class="seg" id="seg-indicator">
-        <button type="button" data-value="numbers" class="is-on">Numbers</button>
-        <button type="button" data-value="dots">Dots</button>
-        <button type="button" data-value="bars">Bars</button>
+        <button type="button" data-value="numbers" class="is-on">数字</button>
+        <button type="button" data-value="dots">圆点</button>
+        <button type="button" data-value="bars">条形</button>
       </span>
     </label>
     <label class="control">
-      <span>Layout</span>
+      <span>布局</span>
       <span class="seg" id="seg-orientation">
-        <button type="button" data-value="horizontal" class="is-on">Horizontal</button>
-        <button type="button" data-value="vertical">Vertical</button>
+        <button type="button" data-value="horizontal" class="is-on">横向</button>
+        <button type="button" data-value="vertical">纵向</button>
       </span>
     </label>
     <label class="control">
-      <span>Transition</span>
+      <span>切换动画</span>
       <span class="seg" id="seg-transition">
-        <button type="button" data-value="slide" class="is-on">Slide</button>
-        <button type="button" data-value="fade">Fade</button>
-        <button type="button" data-value="none">None</button>
+        <button type="button" data-value="slide" class="is-on">滑动</button>
+        <button type="button" data-value="fade">淡入</button>
+        <button type="button" data-value="none">无</button>
       </span>
     </label>
-    <label class="control"><span>Linear</span><input type="checkbox" id="opt-linear" /></label>
-    <label class="control"><span>Theme</span><input type="checkbox" id="opt-theme" /></label>
-    <label class="control"><span>Accent</span><input type="color" id="opt-accent" value="#c8ff4d" /></label>
-    <label class="control"><span>Width</span><input type="range" id="opt-width" min="320" max="720" step="20" value="440" /></label>
+    <label class="control"><span>线性</span><input type="checkbox" id="opt-linear" /></label>
+    <label class="control"><span>浅色</span><input type="checkbox" id="opt-theme" /></label>
+    <label class="control"><span>强调色</span><input type="color" id="opt-accent" value="#c8ff4d" /></label>
+    <label class="control"><span>宽度</span><input type="range" id="opt-width" min="320" max="720" step="20" value="440" /></label>
   </div>
 
-  <p class="status" id="status">ready</p>
+  <p class="status" id="status">就绪</p>
 
 <script>
 (function () {
@@ -383,28 +383,28 @@
 
   var STEPS = [
     {
-      title: 'Welcome',
-      description: 'Set up your workspace in a few quick steps.',
-      body: '<h3>Welcome aboard</h3><p>Set up your workspace in a few quick steps.</p>'
+      title: '欢迎',
+      description: '几步就能把工作区搭好。',
+      body: '<h3>欢迎使用</h3><p>几步就能把工作区搭好，先从最基本的信息开始。</p>'
     },
     {
-      title: 'Plan',
-      description: 'Pick the plan that fits your team.',
-      body: '<h3>Choose a plan</h3><p>You can change this at any time. The stepper keeps the same spring timing as the React original.</p>'
+      title: '选择方案',
+      description: '挑一个适合团队的方案。',
+      body: '<h3>选择一个方案</h3><p>随时都可以改。滑动的节奏与 React 原件保持一致。</p>'
     },
     {
-      title: 'Profile',
-      description: 'Tell us who you are.',
-      body: '<h3>What should we call you?</h3><input placeholder="Your name" />'
+      title: '填写资料',
+      description: '告诉我们你是谁。',
+      body: '<h3>我们该怎么称呼你？</h3><input placeholder="你的名字" />'
     },
     {
-      title: 'Review',
-      description: 'Check everything before you start.',
-      body: '<h3>Looking good</h3><p>Complete setup to open your workspace.</p>'
+      title: '确认',
+      description: '开工前再检查一遍。',
+      body: '<h3>看起来不错</h3><p>完成设置就能打开工作区。</p>'
     }
   ];
 
-  var COMPLETED_BODY = '<h3>All done</h3><p>Your workspace is ready. Restart the demo to run it again.</p>';
+  var COMPLETED_BODY = '<h3>全部完成</h3><p>工作区已经准备好了，重新加载演示可以再跑一遍。</p>';
 
   function clamp(value, min, max) { return Math.min(max, Math.max(min, value)); }
   function ease() {
@@ -437,9 +437,9 @@
       frame: true,
       radius: 24,
       width: 440,
-      backButtonText: 'Back',
-      nextButtonText: 'Continue',
-      completeButtonText: 'Complete'
+      backButtonText: '上一步',
+      nextButtonText: '下一步',
+      completeButtonText: '完成'
     }, options || {});
     this.steps = STEPS;
     this.total = STEPS.length;
@@ -569,7 +569,7 @@
         var button = document.createElement('button');
         button.type = 'button';
         button.className = 'stepper__dot';
-        button.setAttribute('aria-label', 'Step ' + number + ': ' + step.title);
+        button.setAttribute('aria-label', '第 ' + number + ' 步：' + step.title);
         button.addEventListener('click', function () { self.go(number); });
         var mark = document.createElement('i');
         button.appendChild(mark);
@@ -590,7 +590,7 @@
         var button = document.createElement('button');
         button.type = 'button';
         button.className = 'stepper__bar';
-        button.setAttribute('aria-label', 'Step ' + number + ': ' + step.title);
+        button.setAttribute('aria-label', '第 ' + number + ' 步：' + step.title);
         button.addEventListener('click', function () { self.go(number); });
         var track = document.createElement('span');
         track.className = 'stepper__bar-track';
@@ -623,7 +623,7 @@
       var button = document.createElement('button');
       button.type = 'button';
       button.className = 'stepper__segment ' + (rail ? 'is-rail' : 'is-row');
-      button.setAttribute('aria-label', 'Step ' + number + ': ' + step.title);
+      button.setAttribute('aria-label', '第 ' + number + ' 步：' + step.title);
       button.addEventListener('click', function () { self.go(number); });
 
       var badge = document.createElement('span');
@@ -886,10 +886,10 @@
   var statusEl = document.getElementById('status');
   var stepper = new Stepper(document.getElementById('mount'), {
     onStepChange: function (step) {
-      statusEl.textContent = 'step ' + step + ' / ' + stepper.total;
+      statusEl.textContent = '第 ' + step + ' / ' + stepper.total + ' 步';
     },
     onFinalStepCompleted: function () {
-      statusEl.textContent = 'all steps completed';
+      statusEl.textContent = '全部步骤已完成';
     }
   });
 
