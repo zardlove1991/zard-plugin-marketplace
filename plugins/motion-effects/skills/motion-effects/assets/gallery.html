@@ -440,7 +440,7 @@
     <div class="brand">
       <span class="dot"></span>
       <b>Motion Effects</b>
-      <span>27 个特效 · Vue 3 优先 · 生产接入</span>
+      <span>28 个特效 · Vue 3 优先 · 生产接入</span>
     </div>
     <div class="header-note">
       <span>↑ ↓ 切换 · / 搜索</span>
@@ -673,6 +673,13 @@ const EFFECTS = [
     deps: ['motion-v', '@lucide/vue'], demo: 'ai-prompt-box.html', source: 'react/components/ui/ai-prompt-box.tsx',
     props: ['modelValue', 'mode', 'isLoading', 'showUpload / showVoice / showToggles', 'accept / maxFileSize', 'labels'],
     note: '图片只保留一张（新图替换旧图），支持选择 / 粘贴 / 拖拽，按 accept 与 maxFileSize 校验；录音停录后会按上游语义自动发一条语音占位消息。自定义文案用 labels 覆盖。'
+  },
+  {
+    id: 'click-spark', name: 'ClickSpark', zh: '点击火花', cat: '操作与反馈', vue: 'mid',
+    desc: '点击时炸出火花：短线 / 拖尾 / 圆点 / 星形四种形状，带重力、扇形扩散、辉光与扩散光环。',
+    deps: [], demo: 'click-spark.html', source: 'react/components/ui/ClickSpark.jsx',
+    props: ['sparkColor', 'shape', 'sparkCount', 'sparkRadius', 'gravity', 'spread', 'direction', 'glow', 'ring', 'disabled'],
+    note: '零第三方依赖（纯 canvas 2d + 原生 pointer 事件）；每次点击按需建一张只覆盖爆点附近、按 DPR 放大的小画布，画完即移除，同页最多并发 32 次爆点；Vue 通过 ref 暴露 spark(x, y)。'
   },
   {
     id: 'stepper', name: 'Stepper', zh: '分步引导', cat: '操作与反馈', vue: 'mid',

@@ -1,5 +1,5 @@
 /**
- * 27 个特效的站点数据。
+ * 28 个特效的站点数据。
  * 与 references/catalog.md 保持一致；新增/修改特效时同时更新这里。
  * 也供 scripts/sync-assets.mjs 做构建期文件校验。
  */
@@ -204,6 +204,13 @@ export const EFFECTS = [
     deps: ['Hugeicons'], demo: 'stepper.html', source: 'react/components/ui/Stepper.tsx',
     props: ['steps', 'indicator / orientation', 'transition', 'linear', 'v-model:step', 'accentColor / theme'],
     note: '指示器用滑块跟随当前步，纵向布局在 520px 以下自动折叠成紧凑横向排布；当前步的指示器是禁用的（与 React 原件一致）。linear 打开时只能点回走过的步骤。Vue 用 steps 数组 + #step 作用域插槽替代 React 的 children 与 Step 子组件，步序走 v-model:step。'
+  },
+  {
+    id: 'click-spark', name: 'ClickSpark', zh: '点击火花', cat: '操作与反馈', vue: 'mid', vueReady: true, height: 460,
+    desc: '点击时炸出火花：短线 / 拖尾 / 圆点 / 星形四种形状，带重力、扇形扩散、方向、辉光与扩散光环。',
+    deps: [], demo: 'click-spark.html', source: 'react/components/ui/ClickSpark.jsx',
+    props: ['sparkColor', 'shape', 'sparkCount / sparkRadius', 'gravity / spread / direction', 'glow / ring', 'disabled'],
+    note: '零第三方依赖（纯 canvas 2d + 原生 pointer 事件）；每次点击按需建一张只覆盖爆点附近、按 DPR 放大的小画布，画完即从 DOM 移除，同页最多并发 32 次爆点。Vue 实装通过 ref 暴露 spark(x, y) 手动触发；帧时间统一取 performance.now()（上游用 rAF 时间戳，在 jsdom 等环境会算出负的 elapsed）。'
   }
 ]
 

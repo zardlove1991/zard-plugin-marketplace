@@ -25,6 +25,7 @@ import glassFolder from './glass-folder.mjs'
 import glassLogoReveal from './glass-logo-reveal.mjs'
 import aiPromptBox from './ai-prompt-box.mjs'
 import stepper from './stepper.mjs'
+import clickSpark from './click-spark.mjs'
 
 export const PROP_SCHEMAS = {
   'hold-button': holdButton,
@@ -49,5 +50,6 @@ export const PROP_SCHEMAS = {
   'glass-folder-cards': glassFolder,
   'glass-logo-reveal': glassLogoReveal,
   'ai-prompt-box': aiPromptBox,
-  stepper: stepper
+  stepper: stepper,
+  'click-spark': clickSpark
 }

@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Click Spark</title>
+<style>
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    min-height: 100svh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 22px;
+    padding: 32px 16px;
+    background: radial-gradient(120% 120% at 50% 0%, #23232b, #111114 72%);
+    font-family: ui-sans-serif, -apple-system, "Segoe UI", system-ui, sans-serif;
+    color: #e7e7ea;
+  }
+  .intro { text-align: center; margin: 0; }
+  .intro h1 { margin: 0 0 6px; font-size: 22px; letter-spacing: -0.01em; }
+  .intro p { margin: 0; font-size: 13px; opacity: 0.62; }
+
+  /* ---------- 组件 ---------- */
+  .click-spark {
+    position: relative;
+    box-sizing: border-box;
+    width: 100%;
+    height: 100%;
+    isolation: isolate;
+  }
+  .click-spark__layer { position: absolute; inset: 0; overflow: visible; pointer-events: none; }
+  .click-spark__layer[data-layer="front"] { z-index: 1; }
+  .click-spark__layer[data-layer="back"] { z-index: -1; }
+
+  .stage {
+    position: relative;
+    width: min(100%, 620px);
+    height: 320px;
+    border-radius: 20px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    background: linear-gradient(180deg, #26262f 0%, #1b1b21 100%);
+    box-shadow: 0 24px 48px -24px rgba(0, 0, 0, 0.6);
+    overflow: hidden;
+    display: grid;
+    place-items: center;
+    cursor: crosshair;
+  }
+  .stage__hint { margin: 0; font-size: 13px; opacity: 0.55; pointer-events: none; user-select: none; }
+  .stage__btn {
+    position: absolute;
+    bottom: 16px;
+    left: 50%;
+    transform: translateX(-50%);
+    height: 36px;
+    padding: 0 16px;
+    border: 0;
+    border-radius: 999px;
+    background: #e7e7ea;
+    color: #16161a;
+    font: 600 13px/1 inherit;
+    cursor: pointer;
+  }
+  .stage__btn:active { transform: translateX(-50%) scale(0.96); }
+
+  /* ---------- 控制面板 ---------- */
+  .controls { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px 16px; width: min(100%, 620px); }
+  .control { display: flex; align-items: center; gap: 8px; font-size: 12px; opacity: 0.82; }
+  .control > span { letter-spacing: 0.02em; }
+  .seg { display: inline-flex; gap: 2px; border-radius: 999px; padding: 3px; background: rgba(127, 127, 140, 0.16); }
+  .seg button {
+    border: none;
+    border-radius: 999px;
+    padding: 5px 11px;
+    background: transparent;
+    color: inherit;
+    font: inherit;
+    font-size: 12px;
+    cursor: pointer;
+  }
+  .seg button.is-on { background: rgba(127, 127, 140, 0.34); }
+  .control input[type="color"] { width: 30px; height: 26px; padding: 0; border: none; border-radius: 8px; background: transparent; cursor: pointer; }
+  .control input[type="range"] { width: 110px; accent-color: #c8ff4d; }
+  .status { margin: 0; font: 500 12px/1.5 ui-monospace, monospace; opacity: 0.55; text-align: center; }
+</style>
+</head>
+<body>
+  <div class="intro">
+    <h1>Click Spark</h1>
+    <p>点击时炸出火花：短线 / 拖尾 / 圆点 / 星形四种形状，带重力、扇形扩散、辉光与光环</p>
+  </div>
+
+  <div class="stage" id="stage">
+    <p class="stage__hint">在方框里任意位置点击</p>
+    <button class="stage__btn" id="api-btn">用 API 触发一次</button>
+  </div>
+
+  <div class="controls">
+    <label class="control">
+      <span>形状</span>
+      <span class="seg" id="seg-shape">
+        <button type="button" data-value="line" class="is-on">短线</button>
+        <button type="button" data-value="streak">拖尾</button>
+        <button type="button" data-value="dot">圆点</button>
+        <button type="button" data-value="star">星形</button>
+      </span>
+    </label>
+    <label class="control"><span>颜色</span><input type="color" id="opt-color" value="#c8ff4d" /></label>
+    <label class="control"><span>数量</span><input type="range" id="opt-count" min="1" max="32" step="1" value="10" /></label>
+    <label class="control"><span>半径</span><input type="range" id="opt-radius" min="8" max="140" step="2" value="56" /></label>
+    <label class="control"><span>时长</span><input type="range" id="opt-duration" min="200" max="1400" step="20" value="620" /></label>
+    <label class="control"><span>重力</span><input type="range" id="opt-gravity" min="0" max="1.4" step="0.05" value="0.35" /></label>
+    <label class="control"><span>辉光</span><input type="range" id="opt-glow" min="0" max="1" step="0.05" value="0.5" /></label>
+    <label class="control"><span>扇形</span><input type="range" id="opt-spread" min="20" max="360" step="10" value="360" /></label>
+    <label class="control"><span>光环</span><input type="checkbox" id="opt-ring" /></label>
+    <label class="control"><span>在内容下方</span><input type="checkbox" id="opt-back" /></label>
+  </div>
+
+  <p class="status" id="status">就绪</p>
+
+<script>
+(function () {
+  /* ---------- 引擎：与 React 原件同一套常量与算法 ---------- */
+  var EASINGS = {
+    linear: function (t) { return t; },
+    'ease-in': function (t) { return t * t; },
+    'ease-out': function (t) { return 1 - Math.pow(1 - t, 3); },
+    'ease-in-out': function (t) { return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2; },
+    spring: function (t) { return 1 + 2.4 * Math.pow(t - 1, 3) + 1.4 * Math.pow(t - 1, 2); }
+  };
+  var SHAPES = ['line', 'streak', 'dot', 'star'];
+  var MAX_BURSTS = 32;
+  var GRAVITY = 500;
+  var REDUCED_MS = 320;
+
+  var clamp = function (value, min, max) { return Math.min(max, Math.max(min, value)); };
+  var smoothstep = function (a, b, x) { var t = clamp((x - a) / (b - a), 0, 1); return t * t * (3 - 2 * t); };
+  var toColors = function (value) {
+    var list = (Array.isArray(value) ? value : [value]).filter(Boolean);
+    return list.length ? list : ['#ffffff'];
+  };
+  var reduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  function starPath(ctx, x, y, radius, rotation) {
+    var pinch = radius * 0.16;
+    ctx.beginPath();
+    ctx.moveTo(x + Math.cos(rotation) * radius, y + Math.sin(rotation) * radius);
+    for (var i = 1; i <= 4; i++) {
+      var a = rotation + (i * Math.PI) / 2;
+      var mid = a - Math.PI / 4;
+      ctx.quadraticCurveTo(
+        x + Math.cos(mid) * pinch,
+        y + Math.sin(mid) * pinch,
+        x + Math.cos(a) * radius,
+        y + Math.sin(a) * radius
+      );
+    }
+    ctx.closePath();
+  }
+
+  function channels(ctx, color) {
+    ctx.fillStyle = color;
+    var normal = String(ctx.fillStyle);
+    var hex = /^#([0-9a-f]{6})$/i.exec(normal);
+    if (hex) {
+      var value = parseInt(hex[1], 16);
+      return [(value >> 16) & 255, (value >> 8) & 255, value & 255];
+    }
+    var rgb = /^rgba?\(([^)]+)\)$/i.exec(normal);
+    if (rgb) {
+      return rgb[1].split(',').slice(0, 3).map(function (part) { return parseFloat(part); });
+    }
+    return [0, 0, 0];
+  }
+
+  function ClickSpark(root, layer, options) {
+    this.root = root;
+    this.layer = layer;
+    this.options = options;
+    this.bursts = [];
+    this.raf = 0;
+    this.lastPress = { time: -1e9, x: 0, y: 0 };
+    var self = this;
+    root.addEventListener('pointerdown', function (event) { self.onPointerDown(event); });
+    root.addEventListener('click', function (event) { self.onClick(event); });
+  }
+
+  ClickSpark.prototype.settings = function () {
+    var o = this.options;
+    return {
+      colors: toColors(o.color),
+      size: o.size,
+      radius: o.radius,
+      count: clamp(Math.round(o.count), 1, 64),
+      width: o.width,
+      duration: o.duration,
+      ease: EASINGS[o.easing] || EASINGS['ease-out'],
+      shape: SHAPES.indexOf(o.shape) >= 0 ? o.shape : 'line',
+      randomness: clamp(o.randomness, 0, 1),
+      gravity: Math.max(0, o.gravity),
+      spread: clamp(o.spread, 0, 360),
+      direction: o.direction,
+      glow: clamp(o.glow, 0, 1),
+      ring: o.ring,
+      disabled: o.disabled
+    };
+  };
+
+  ClickSpark.prototype.drop = function (s, seconds) {
+    return 0.5 * s.gravity * GRAVITY * seconds * seconds;
+  };
+
+  ClickSpark.prototype.position = function (burst, spark, distance, seconds) {
+    return [
+      burst.x + Math.cos(spark.angle) * distance,
+      burst.y + Math.sin(spark.angle) * distance + this.drop(burst.settings, seconds)
+    ];
+  };
+
+  ClickSpark.prototype.drawSpark = function (ctx, burst, spark, elapsed) {
+    var s = burst.settings;
+    var life = reduced ? REDUCED_MS : s.duration * spark.life;
+    var p = elapsed / life;
+    if (p >= 1) return false;
+    var e = reduced ? 0.55 : s.ease(clamp(p, 0, 1));
+    var seconds = reduced ? 0 : elapsed / 1000;
+    var distance = s.radius * spark.reach * e;
+    var width = s.width * spark.scale;
+    var fade = reduced ? 1 - p : 1 - smoothstep(s.shape === 'line' ? 0.55 : 0.7, 1, p);
+    if (fade <= 0) return true;
+    ctx.strokeStyle = spark.color;
+    ctx.fillStyle = spark.color;
+
+    if (s.shape === 'line') {
+      var length = s.size * spark.scale * (reduced ? 0.5 : Math.pow(1 - p, 1.6));
+      var l1 = this.position(burst, spark, distance, seconds);
+      var l2 = this.position(burst, spark, distance + Math.max(0.01, length), seconds);
+      ctx.lineCap = 'round';
+      if (spark.glow > 0) {
+        ctx.globalAlpha = fade * 0.14 * spark.glow;
+        ctx.lineWidth = width * 4.5;
+        ctx.beginPath();
+        ctx.moveTo(l1[0], l1[1]);
+        ctx.lineTo(l2[0], l2[1]);
+        ctx.stroke();
+      }
+      ctx.globalAlpha = fade;
+      ctx.lineWidth = width;
+      ctx.beginPath();
+      ctx.moveTo(l1[0], l1[1]);
+      ctx.lineTo(l2[0], l2[1]);
+      ctx.stroke();
+      return true;
+    }
+
+    if (s.shape === 'streak') {
+      var lag = reduced ? 0 : Math.min(elapsed, 70 + s.size * 4 * spark.scale);
+      var back = reduced ? 0.4 : s.ease(clamp((elapsed - lag) / life, 0, 1));
+      var head = this.position(burst, spark, distance, seconds);
+      var tail = this.position(burst, spark, s.radius * spark.reach * back, Math.max(0, seconds - lag / 1000));
+      var dx = head[0] - tail[0];
+      var dy = head[1] - tail[1];
+      var len = Math.hypot(dx, dy) || 1;
+      var nx = (-dy / len) * width * 0.5;
+      var ny = (dx / len) * width * 0.5;
+      var paint = function (spreadWidth, alpha) {
+        var gradient = ctx.createLinearGradient(tail[0], tail[1], head[0], head[1]);
+        gradient.addColorStop(0, spark.clear);
+        gradient.addColorStop(1, spark.color);
+        ctx.globalAlpha = alpha;
+        ctx.fillStyle = gradient;
+        ctx.beginPath();
+        ctx.moveTo(tail[0], tail[1]);
+        ctx.lineTo(head[0] + nx * spreadWidth, head[1] + ny * spreadWidth);
+        ctx.lineTo(head[0] - nx * spreadWidth, head[1] - ny * spreadWidth);
+        ctx.closePath();
+        ctx.fill();
+        ctx.fillStyle = spark.color;
+        ctx.beginPath();
+        ctx.arc(head[0], head[1], width * 0.5 * spreadWidth, 0, Math.PI * 2);
+        ctx.fill();
+      };
+      if (spark.glow > 0) paint(3.2, fade * 0.16 * spark.glow);
+      paint(1, fade);
+      return true;
+    }
+
+    if (s.shape === 'dot') {
+      var dot = this.position(burst, spark, distance, seconds);
+      var dotRadius = width * 1.25 * (1 - 0.5 * e);
+      if (spark.glow > 0) {
+        ctx.globalAlpha = fade * 0.18 * spark.glow;
+        ctx.beginPath();
+        ctx.arc(dot[0], dot[1], dotRadius * 2.6, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      ctx.globalAlpha = fade;
+      ctx.beginPath();
+      ctx.arc(dot[0], dot[1], dotRadius, 0, Math.PI * 2);
+      ctx.fill();
+      return true;
+    }
+
+    var star = this.position(burst, spark, distance, seconds);
+    var twinkle = reduced ? 1 - p : Math.pow(Math.sin(Math.PI * clamp(p * 1.1, 0, 1)), 0.7);
+    var radius = s.size * 0.6 * spark.scale * twinkle;
+    var rotation = spark.angle + spark.spin * p * Math.PI * 0.5;
+    if (radius <= 0.05) return true;
+    if (spark.glow > 0) {
+      ctx.globalAlpha = fade * 0.2 * spark.glow;
+      ctx.beginPath();
+      ctx.arc(star[0], star[1], radius * 1.1, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    ctx.globalAlpha = fade;
+    starPath(ctx, star[0], star[1], radius, rotation);
+    ctx.fill();
+    return true;
+  };
+
+  ClickSpark.prototype.drawRing = function (ctx, burst, elapsed) {
+    var s = burst.settings;
+    var life = reduced ? REDUCED_MS : s.duration * 0.8;
+    var p = elapsed / life;
+    if (p >= 1) return false;
+    var radius = 2 + s.radius * 0.6 * (reduced ? 0.6 : EASINGS['ease-out'](p));
+    ctx.globalAlpha = Math.pow(1 - p, 2) * 0.7;
+    ctx.strokeStyle = (burst.sparks[0] && burst.sparks[0].color) || s.colors[0];
+    ctx.lineWidth = Math.max(0.5, s.width * (1 - p) * 0.9);
+    ctx.beginPath();
+    ctx.arc(burst.x, burst.y, radius, 0, Math.PI * 2);
+    ctx.stroke();
+    return true;
+  };
+
+  ClickSpark.prototype.remove = function (burst) {
+    burst.canvas.remove();
+    var index = this.bursts.indexOf(burst);
+    if (index >= 0) this.bursts.splice(index, 1);
+  };
+
+  ClickSpark.prototype.frame = function () {
+    this.raf = 0;
+    var now = performance.now();
+    var bursts = this.bursts.slice();
+    for (var i = 0; i < bursts.length; i++) {
+      var burst = bursts[i];
+      var elapsed = now - burst.start;
+      var ctx = burst.ctx;
+      ctx.setTransform(1, 0, 0, 1, 0, 0);
+      ctx.clearRect(0, 0, burst.canvas.width, burst.canvas.height);
+      ctx.setTransform(burst.ratio, 0, 0, burst.ratio, -burst.left * burst.ratio, -burst.top * burst.ratio);
+      var alive = false;
+      if (burst.settings.ring && this.drawRing(ctx, burst, elapsed)) alive = true;
+      for (var j = 0; j < burst.sparks.length; j++) {
+        if (this.drawSpark(ctx, burst, burst.sparks[j], elapsed)) alive = true;
+      }
+      ctx.globalAlpha = 1;
+      if (!alive) this.remove(burst);
+    }
+    if (this.bursts.length) this.raf = requestAnimationFrame(this.frame.bind(this));
+  };
+
+  ClickSpark.prototype.spawn = function (clientX, clientY) {
+    var s = this.settings();
+    if (s.disabled) return;
+    var rect = this.root.getBoundingClientRect();
+    var offset = Math.floor(Math.random() * s.colors.length);
+    var full = s.spread >= 359.5;
+    var arc = (s.spread * Math.PI) / 180;
+    var heading = ((s.direction - 90) * Math.PI) / 180;
+    var step = full ? (Math.PI * 2) / s.count : (s.count > 1 ? arc / (s.count - 1) : 0);
+    var sparks = [];
+    for (var i = 0; i < s.count; i++) {
+      var base = full ? heading + step * i : (s.count > 1 ? heading - arc / 2 + step * i : heading);
+      var jitter = (Math.random() - 0.5) * s.randomness;
+      sparks.push({
+        angle: base + jitter * (step || arc || 1) * 0.9,
+        reach: 1 + (Math.random() - 0.5) * 0.7 * s.randomness,
+        scale: 1 + (Math.random() - 0.5) * 0.8 * s.randomness,
+        life: 1 + (Math.random() - 0.5) * 0.5 * s.randomness,
+        spin: Math.random() - 0.5,
+        color: s.colors[(i + offset) % s.colors.length],
+        clear: '',
+        glow: 0
+      });
+    }
+    var longest = s.duration * (1 + 0.25 * s.randomness);
+    var fall = this.drop(s, longest / 1000);
+    var reach =
+      s.radius * (1 + 0.35 * s.randomness) * (s.ease === EASINGS.spring ? 1.15 : 1) +
+      s.size * (1 + 0.4 * s.randomness) +
+      s.width * (s.glow > 0 ? 6 : 2) +
+      6;
+    var box = {
+      left: Math.max(clientX - reach, 0),
+      top: Math.max(clientY - reach, 0),
+      right: Math.min(clientX + reach, window.innerWidth),
+      bottom: Math.min(clientY + reach + fall, window.innerHeight)
+    };
+    if (box.right - box.left < 1 || box.bottom - box.top < 1) return;
+    var ratio = Math.min(window.devicePixelRatio || 1, 2);
+    var canvas = document.createElement('canvas');
+    canvas.width = Math.ceil((box.right - box.left) * ratio);
+    canvas.height = Math.ceil((box.bottom - box.top) * ratio);
+    Object.assign(canvas.style, {
+      position: 'absolute',
+      left: (box.left - rect.left) + 'px',
+      top: (box.top - rect.top) + 'px',
+      width: (box.right - box.left) + 'px',
+      height: (box.bottom - box.top) + 'px',
+      display: 'block',
+      pointerEvents: 'none'
+    });
+    canvas.setAttribute('aria-hidden', 'true');
+    this.layer.appendChild(canvas);
+    var ctx = canvas.getContext('2d');
+    if (!ctx) {
+      canvas.remove();
+      return;
+    }
+    for (var k = 0; k < sparks.length; k++) {
+      var rgb = channels(ctx, sparks[k].color);
+      sparks[k].clear = 'rgba(' + rgb[0] + ', ' + rgb[1] + ', ' + rgb[2] + ', 0)';
+      sparks[k].glow = s.glow * (0.35 + 0.65 * ((0.2126 * rgb[0] + 0.7152 * rgb[1] + 0.0722 * rgb[2]) / 255));
+    }
+    this.bursts.push({
+      x: clientX,
+      y: clientY,
+      start: performance.now(),
+      sparks: sparks,
+      settings: s,
+      canvas: canvas,
+      ctx: ctx,
+      ratio: ratio,
+      left: box.left,
+      top: box.top
+    });
+    while (this.bursts.length > MAX_BURSTS) this.remove(this.bursts[0]);
+    if (!this.raf) this.raf = requestAnimationFrame(this.frame.bind(this));
+  };
+
+  ClickSpark.prototype.onPointerDown = function (event) {
+    if (event.pointerType !== 'mouse' || event.button !== 0) return;
+    this.lastPress = { time: performance.now(), x: event.clientX, y: event.clientY };
+    this.spawn(event.clientX, event.clientY);
+  };
+
+  ClickSpark.prototype.onClick = function (event) {
+    if ('pointerType' in event && event.pointerType === 'mouse') return;
+    if (event.detail === 0) {
+      var target = event.target instanceof Element ? event.target : this.root;
+      var rect = target.getBoundingClientRect();
+      this.spawn(rect.left + rect.width / 2, rect.top + rect.height / 2);
+      return;
+    }
+    var recent =
+      performance.now() - this.lastPress.time < 700 &&
+      Math.hypot(event.clientX - this.lastPress.x, event.clientY - this.lastPress.y) < 12;
+    if (!recent) this.spawn(event.clientX, event.clientY);
+  };
+
+  ClickSpark.prototype.spark = function (x, y) {
+    var rect = this.root.getBoundingClientRect();
+    this.spawn(rect.left + (x ?? rect.width / 2), rect.top + (y ?? rect.height / 2));
+  };
+
+  /* ---------- 页面装配 ---------- */
+  var stage = document.getElementById('stage');
+  var layer = document.createElement('span');
+  layer.className = 'click-spark__layer';
+  layer.setAttribute('data-layer', 'front');
+  layer.setAttribute('aria-hidden', 'true');
+  stage.appendChild(layer);
+
+  var options = {
+    color: '#c8ff4d',
+    size: 16,
+    radius: 56,
+    count: 10,
+    width: 2,
+    duration: 620,
+    easing: 'ease-out',
+    randomness: 0.2,
+    gravity: 0.35,
+    spread: 360,
+    direction: 0,
+    glow: 0.5,
+    ring: false,
+    disabled: false
+  };
+  var spark = new ClickSpark(stage, layer, options);
+  var statusEl = document.getElementById('status');
+
+  document.getElementById('seg-shape').addEventListener('click', function (event) {
+    var button = event.target.closest('button[data-value]');
+    if (!button) return;
+    Array.prototype.forEach.call(this.querySelectorAll('button'), function (item) {
+      item.classList.toggle('is-on', item === button);
+    });
+    options.shape = button.getAttribute('data-value');
+    statusEl.textContent = '形状：' + button.textContent;
+  });
+
+  function bindRange(id, key, unit) {
+    var input = document.getElementById(id);
+    input.addEventListener('input', function () {
+      options[key] = Number(input.value);
+      statusEl.textContent = key + ' = ' + input.value + (unit || '');
+    });
+  }
+  bindRange('opt-count', 'count');
+  bindRange('opt-radius', 'radius', 'px');
+  bindRange('opt-duration', 'duration', 'ms');
+  bindRange('opt-gravity', 'gravity');
+  bindRange('opt-glow', 'glow');
+  bindRange('opt-spread', 'spread', '°');
+
+  document.getElementById('opt-color').addEventListener('input', function (event) {
+    options.color = event.target.value;
+  });
+  document.getElementById('opt-ring').addEventListener('change', function (event) {
+    options.ring = event.target.checked;
+  });
+  document.getElementById('opt-back').addEventListener('change', function (event) {
+    layer.setAttribute('data-layer', event.target.checked ? 'back' : 'front');
+  });
+  document.getElementById('api-btn').addEventListener('click', function (event) {
+    event.stopPropagation();
+    spark.spark();
+    statusEl.textContent = '用 API 触发了一次';
+  });
+})();
+</script>
+</body>
+</html>

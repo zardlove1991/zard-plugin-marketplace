@@ -1,6 +1,18 @@
 'use client';
 
+/**
+ * Spotlight Card —— 卡片光斑跟随指针：圆形 / 光束两种形态、边缘邻近发光、
+ * 按压膨胀（flare）、环境漂移与胶片颗粒。
+ *
+ * 纯 DOM 实现：两枚绝对定位 span 承载光斑与边缘光（颜色经 color-mix 生成 15 档渐隐），
+ * 一枚 span 用 mask-composite 画 1px 边框，另一枚叠加 SVG 噪点颗粒。
+ * 观感常量（渐隐档数、跟随延迟 0.015 + smoothing × 0.22、明暗衰减 0.1 / 0.32）不要改。
+ *
+ * Vendored from React Bits. Vue 3 port: packages/vue/src/components/SpotlightCard.vue.
+ */
 import { useEffect, useRef } from 'react';
+
+import './SpotlightCard.css';
 
 const THEMES = {
   dark: {
@@ -43,9 +55,6 @@ const falloff = (color, softness) => {
   }
   return list.join(', ');
 };
-
-const CARD =
-  'relative isolate overflow-hidden rounded-3xl p-8 [background-color:var(--spotlight-card-surface)] [box-shadow:var(--spotlight-card-shadow)]';
 
 const SpotlightCard = ({
   children,
@@ -268,7 +277,7 @@ const SpotlightCard = ({
   return (
     <div
       ref={rootRef}
-      className={`${CARD}${className ? ` ${className}` : ''}`}
+      className={`spotlight-card${className ? ` ${className}` : ''}`}
       style={{
         '--spotlight-card-surface': palette.surface,
         '--spotlight-card-border': palette.border,
@@ -277,29 +286,14 @@ const SpotlightCard = ({
       }}
       {...rest}
     >
-      <span
-        ref={lightRef}
-        className="pointer-events-none absolute inset-0 -z-10 rounded-[inherit] opacity-0"
-        aria-hidden="true"
-      />
-      <span
-        ref={grainRef}
-        className="pointer-events-none absolute inset-0 -z-10 rounded-[inherit] bg-[length:160px_160px] opacity-0 mix-blend-overlay"
-        style={{ backgroundImage: NOISE }}
-        aria-hidden="true"
-      />
+      <span ref={lightRef} className="spotlight-card__light" aria-hidden="true" />
+      <span ref={grainRef} className="spotlight-card__grain" style={{ backgroundImage: NOISE }} aria-hidden="true" />
       {children}
-      <span
-        className="pointer-events-none absolute inset-0 z-[1] rounded-[inherit] p-px [background:var(--spotlight-card-border)] [-webkit-mask:linear-gradient(#000_0_0)_content-box,linear-gradient(#000_0_0)] [-webkit-mask-composite:xor] [mask:linear-gradient(#000_0_0)_content-box_exclude,linear-gradient(#000_0_0)]"
-        aria-hidden="true"
-      />
-      <span
-        ref={edgeRef}
-        className="pointer-events-none absolute inset-0 z-[1] rounded-[inherit] p-px opacity-0 [-webkit-mask:linear-gradient(#000_0_0)_content-box,linear-gradient(#000_0_0)] [-webkit-mask-composite:xor] [mask:linear-gradient(#000_0_0)_content-box_exclude,linear-gradient(#000_0_0)]"
-        aria-hidden="true"
-      />
+      <span className="spotlight-card__border" aria-hidden="true" />
+      <span ref={edgeRef} className="spotlight-card__edge" aria-hidden="true" />
     </div>
   );
 };
 
 export default SpotlightCard;
+

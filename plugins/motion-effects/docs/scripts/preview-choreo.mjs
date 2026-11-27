@@ -203,6 +203,33 @@ export const CHOREO = {
     }
   },
 
+  // 点击火花：连点三下，让不同位置的火花依次炸开
+  'click-spark': {
+    zoom: 1.25,
+    css: hide('.intro, .controls, .status'),
+    async run(page, { width, height }) {
+      const box = await page.locator('#stage').boundingBox()
+      if (!box) return
+      const spots = [
+        [0.34, 0.38],
+        [0.62, 0.52],
+        [0.48, 0.26],
+        [0.7, 0.34],
+        [0.3, 0.6]
+      ]
+      for (const [fx, fy] of spots) {
+        const x = box.x + box.width * fx
+        const y = box.y + box.height * fy
+        await page.mouse.move(x, y, { steps: 6 })
+        await pause(page, 260)
+        await page.mouse.down()
+        await page.mouse.up()
+        await pause(page, 480)
+      }
+      await pause(page, 1100)
+    }
+  },
+
   // 分步引导：连点 Continue，让滑块跟步、面板滑动切换
   'stepper': {
     zoom: 1.3,

@@ -1,4 +1,4 @@
-# 特效目录（27 个）
+# 特效目录（28 个）
 
 > 路径均相对 `skills/motion-effects/`。
 > **Vue 难度**：`易` ≈ 1–2 小时直译；`中` ≈ 半天，需处理 ref / 生命周期 / motion-v；`难` ≈ 1–2 天，含 WebGL / three.js / canvas 大组件。
@@ -22,6 +22,7 @@
 | 品牌 Logo 揭示 | `liquid-glass-logo-reveal` | — |
 | AI 对话输入框 | `AIPromptBox` | — |
 | 分步引导 / 引导流程 | `Stepper` | — |
+| 点击反馈 / 火花 | `ClickSpark` | — |
 
 ## 总表
 
@@ -51,9 +52,10 @@
 | 22 | `glassy-dashboard` | 卡片与容器 | 玻璃质感数据看板：四视图 / 图表揭示 / 数字滚动 / 明暗主题 / CSV 导出 | `gsap`、`@gsap/react`、`lucide-react`、`@fontsource-variable/manrope` | 内联 | 难 |
 | 23 | `SplashCursor` | 氛围与装饰 | WebGL2 流体墨迹光标：跟手拖尾 / 点击飞溅 / 彩虹渐变 / 明暗主题 | 无 | 内联 | 难 |
 | 24 | `Shredder` | 操作与反馈 | 可拖拽碎纸机：切条卷曲飘落 / 重排 / 循环 / 自动播放 / 键盘 shred | 无 | 内联 | 难 |
-| 25 | `SpotlightCard` | 卡片与容器 | 光斑卡片：跟随指针的柔光 / 边缘邻近发光 / 光束形态 / 按压 flare / 颗粒 | 无 | 内联 | 中 |
+| 25 | `SpotlightCard` | 卡片与容器 | 光斑卡片：跟随指针的柔光 / 边缘邻近发光 / 光束形态 / 按压 flare / 颗粒 | 无 | CSS 文件 | 中 |
 | 26 | `AIPromptBox` | 操作与反馈 | AI 输入框：三种互斥模式 / 图片附件预览 / 语音录音 / 发送 | `motion-v` + `@lucide/vue` | CSS 文件 | 中 |
 | 27 | `Stepper` | 操作与反馈 | 分步引导：数字 / 圆点 / 条形指示器，横向与纵向布局，滑动切换与弹簧高度动画 | Hugeicons | CSS 文件 | 中 |
+| 28 | `ClickSpark` | 操作与反馈 | 点击火花：短线 / 拖尾 / 圆点 / 星形四种形状，带重力、扇形扩散、辉光与光环 | 无 | 内联 | 中 |
 
 ## Vue 实装进度（0.1）
 
@@ -88,10 +90,11 @@
 | `GlassIconReveal` | `../../packages/vue/src/components/GlassIconReveal.vue` | `../../packages/vue/tests/liquid-glass-logo-reveal.spec.ts` |
 | `AIPromptBox` | `../../packages/vue/src/components/AIPromptBox.vue` | `../../packages/vue/tests/ai-prompt-box.spec.ts` |
 | `Stepper` | `../../packages/vue/src/components/Stepper.vue` | `../../packages/vue/tests/stepper.spec.ts` |
+| `ClickSpark` | `../../packages/vue/src/components/ClickSpark.vue` | `../../packages/vue/tests/click-spark.spec.ts` |
 
-全部 27 个特效均已有 Vue 3 实装；React 源码与 vanilla 演示保留作对照真源。
+全部 28 个特效均已有 Vue 3 实装；React 源码与 vanilla 演示保留作对照真源。
 
-后二十四个（`TerminalReplay`、`ScrollLockedVideoHero`、`PeakChart`、`GlassyDashboard`、`SplashCursor`、`Shredder`、`SpotlightCard`、`LiquidNavbar`、`GlassSurface`、`AnimatedList`、`FlipCard`、`GhostCursor`、`GridMotion`、`RubberSegment`、`TiltedCard`、`Signature`、`PaperCrumple`、`ReflectiveCard`、`PillNav`、`MagicBento`、`GlassFolder`、`GlassIconReveal`、`AIPromptBox`、`Stepper`）与 React 原件有几处有意的行为差异，见 `../../packages/vue/README.md` 的「与 React 原件的差异」。
+后二十五个（`TerminalReplay`、`ScrollLockedVideoHero`、`PeakChart`、`GlassyDashboard`、`SplashCursor`、`Shredder`、`SpotlightCard`、`LiquidNavbar`、`GlassSurface`、`AnimatedList`、`FlipCard`、`GhostCursor`、`GridMotion`、`RubberSegment`、`TiltedCard`、`Signature`、`PaperCrumple`、`ReflectiveCard`、`PillNav`、`MagicBento`、`GlassFolder`、`GlassIconReveal`、`AIPromptBox`、`Stepper`、`ClickSpark`）与 React 原件有几处有意的行为差异，见 `../../packages/vue/README.md` 的「与 React 原件的差异」。
 
 > Vue 实装自带 CSS，不依赖 Tailwind；需要安装的依赖见下面「依赖安装」。
 
@@ -113,7 +116,7 @@ React 项目对应：`motion` + `@hugeicons/react`；`glassy-dashboard` 另需 `
 
 **样式形态分三类**：
 
-- **CSS 文件**（12 个）：源码旁有同名 `.css`，直接一起复制。
+- **CSS 文件**（13 个）：源码旁有同名 `.css`，直接一起复制。
 - **Tailwind**（`GridMotion`、`SwipeRow`、`Stepper`）：React 源码没有独立 CSS，样式写死在 JSX 的任意值类里；Vue 项目不用 Tailwind 时，直接复用对应 demo 里的等价 CSS（`grid-motion.html` / `swipe-row.html` / `stepper.html`），不要逐条翻译任意值类。`SwipeRow` 与 `Stepper` 的 Vue 实装已带提取好的同名 CSS。
 - **内联**（TSX）：样式在组件文件的 `<style>` / style 对象里，随源码一起搬；`liquid-glass-logo-reveal` 的容器另有 5 个 Tailwind 工具类，可手写成普通 CSS；`glassy-dashboard` 把整份 `dashboardStyles` 以 `<style>{dashboardStyles}</style>` 注入，不依赖 Tailwind。
 
@@ -335,7 +338,7 @@ React 项目对应：`motion` + `@hugeicons/react`；`glassy-dashboard` 另需 `
 
 ## 25. SpotlightCard · 光斑卡片
 
-- **源码**：`SpotlightCard.jsx`（JavaScript + Tailwind 变体）；**演示**：`spotlight-card.html`
+- **源码**：`SpotlightCard.jsx` + `SpotlightCard.css`（JavaScript + CSS 变体）；**演示**：`spotlight-card.html`
 - **Vue 实装**：`../../packages/vue/src/components/SpotlightCard.vue`（已测试；引擎在 `../../packages/vue/src/composables/useSpotlightCard.ts`）
 - **适用**：团队 / 人物卡片、定价卡、功能卡等任何希望"指针扫过时被照亮"的卡片；相邻卡片通过 `proximity` 共享一团光。
 - **关键 API**：`theme`（`dark`/`light`，默认 `dark`）、`spotlightColor`（任意 CSS 颜色，默认深色卡用白、浅色卡用近黑）、`intensity`（0–1，默认 0.15）、`spotlightSize`（px，默认 240）、`softness`（0–1，默认 0.7）、`shape`（`circle`/`beam`，默认 `circle`）、`borderGlow`（0–1，默认 0.6）、`proximity`（卡外多少 px 开始照到，默认 80）、`smoothing`（光斑落后指针的程度，默认 0.3）、`ambient`（无指针时缓慢漂移，默认 false）、`flare`（按住膨胀变亮，默认 true）、`grain`（0–1 胶片颗粒，默认 0）、`className`；其余 div 属性透传。可用 `--spotlight-card-surface` / `--spotlight-card-border` 覆盖表面与边框色。
@@ -359,3 +362,12 @@ React 项目对应：`motion` + `@hugeicons/react`；`glassy-dashboard` 另需 `
 - **关键 API**：`steps`（Vue：步骤数组 `{ title?, description?, icon?, content? }`）、`step`（受控 → Vue 用 `v-model:step`）、`initialStep`、`onStepChange`（Vue：`step-change`）、`onFinalStepCompleted`（Vue：`final-step-completed`）、`indicator`（`numbers` / `dots` / `bars`）、`orientation`（`horizontal` / `vertical`）、`transition`（`slide` / `fade` / `none`）、`linear`、`disableStepIndicators`、`renderStepIndicator`（Vue：`#indicator` 插槽）、`showFooter`、`backButtonText`（Vue 默认 `上一步`）、`nextButtonText`（`下一步`）、`completeButtonText`（`完成`）、`completedContent`、`theme`、`accentColor`、`frame`、`radius`、`width`。
 - **移植要点**：React 原件用 `children` + `<Step>` 子组件组织步骤，Vue 改用 `steps` 数组 + `#step` 作用域插槽（`{ index, step, current, status }`）；`Step` 的 `icon` 从 React 节点换成 Vue 组件。指示器下方的"滑块"靠 `translate3d` 跟随当前步，位置测量只看**轨道**的尺寸——盯根节点会被内容高度变化打断动画。主题是同一组 `--stepper-*` 变量，`accentColor` 会连同 `--stepper-solid-ink`（按亮度自动选黑或白）一起覆盖。
 - **注意**：纵向布局在面板宽度 < 520px 时自动折叠成紧凑的横向排布（`width` 默认 440，所以默认宽度下看不到竖排 rail）；Vue 实装的三个按钮默认文案已中文化，React 原件仍是上游英文默认值（演示与文档站用中文）；**当前步的指示器是禁用的**（React 原件如此），`linear` 打开时只能点回走过的步骤。`prefers-reduced-motion` 下切换退化为淡入。React 源码依赖 Tailwind 与 `@hugeicons/react`，Vue 实装自带普通 CSS，只需 `@hugeicons/vue`。
+
+## 28. ClickSpark · 点击火花
+
+- **源码**：`ClickSpark.jsx`（JavaScript 变体，样式写在 JSX 的 style 对象里）；**演示**：`click-spark.html`
+- **Vue 实装**：`../../packages/vue/src/components/ClickSpark.vue`（已测试；引擎在 `../../packages/vue/src/composables/useClickSpark.ts`）
+- **适用**：按钮 / 卡片的点击反馈、提交成功庆祝、抽奖与彩蛋交互；需要"点一下就炸开"的即时反馈。
+- **关键 API**：`sparkColor`（单色或颜色数组，按顺序轮换）、`sparkSize`、`sparkRadius`、`sparkCount`、`sparkWidth`、`duration`、`easing`（`linear` / `ease-in` / `ease-out` / `ease-in-out` / `spring`）、`extraScale`、`shape`（`line` / `streak` / `dot` / `star`）、`randomness`、`gravity`、`spread`（扇形张角）、`direction`、`glow`、`ring`、`layer`（`front` / `back`）、`disabled`；React 的 `ref.spark(x, y)` 在 Vue 里同样通过 ref 暴露。
+- **移植要点**：整段引擎是纯 canvas 2d + 原生 pointer 事件，**零第三方依赖**。每次点击按需在火花层里建一张只覆盖爆点附近的 canvas（按 DPR 放大，最多并发 32 次），画完即从 DOM 移除——不要改成整屏一张大 canvas，否则每次点击都要重绘全屏。Vue 实装没有 `className` prop（`class` / `style` 自动透传），根节点与火花层的样式落在 `ClickSpark.css`。**帧时间要取 `performance.now()` 而不是 rAF 回调的时间戳**：上游用时间戳，在 jsdom 等两者不同源的环境里会算出负的 `elapsed`，火花永远画不出来（仓库里 `PeakChart` / `SpotlightCard` 也是这个约定）。
+- **注意**：鼠标走 `pointerdown` 触发，触摸与键盘走 `click`（`detail === 0` 视为键盘激活，在目标中心爆开）；同一次交互不会重复触发（700ms 内、位移小于 12px 视为同一次）。`prefers-reduced-motion` 下寿命压到 320ms 且不做位移与淡出。星形依赖 `sin` 的闪烁包络，起始半径接近 0，第一帧几乎不可见——这是上游行为，不是渲染失败。

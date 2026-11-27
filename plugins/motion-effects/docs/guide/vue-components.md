@@ -1,6 +1,6 @@
 # Vue 组件（0.1）
 
-已有 27 个特效移植成 Vue 3 组件，详情页的预览台里直接渲染真实组件。其中 23 个（`HoldButton`、`SwipeRow`、`SpecularButton`、`TerminalReplay`、`PeakChart`、`SpotlightCard`、`LiquidNavbar`、`GlassSurface`、`AnimatedList`、`FlipCard`、`GhostCursor`、`GridMotion`、`RubberSegment`、`TiltedCard`、`Signature`、`PaperCrumple`、`ReflectiveCard`、`PillNav`、`MagicBento`、`GlassFolder`、`GlassIconReveal`、`AIPromptBox`、`Stepper`）带「自定义」面板：改参数，预览实时跟着变，「代码」页签的用法片段只写出你改过的项。另外 4 个需要独占文档，放在 iframe 里加载：
+已有 28 个特效移植成 Vue 3 组件，详情页的预览台里直接渲染真实组件。其中 24 个（`HoldButton`、`SwipeRow`、`SpecularButton`、`TerminalReplay`、`PeakChart`、`SpotlightCard`、`LiquidNavbar`、`GlassSurface`、`AnimatedList`、`FlipCard`、`GhostCursor`、`GridMotion`、`RubberSegment`、`TiltedCard`、`Signature`、`PaperCrumple`、`ReflectiveCard`、`PillNav`、`MagicBento`、`GlassFolder`、`GlassIconReveal`、`AIPromptBox`、`Stepper`、`ClickSpark`）带「自定义」面板：改参数，预览实时跟着变，「代码」页签的用法片段只写出你改过的项。另外 4 个需要独占文档，放在 iframe 里加载：
 
 | 组件 | 详情页 | 测试 |
 |---|---|---|
@@ -31,13 +31,14 @@
 | `GlassIconReveal` | [液态玻璃 Logo](/effects/glass-logo-reveal) | `packages/vue/tests/liquid-glass-logo-reveal.spec.ts` |
 | `AIPromptBox` | [AI 输入框](/effects/ai-prompt-box) | `packages/vue/tests/ai-prompt-box.spec.ts` |
 | `Stepper` | [分步引导](/effects/stepper) | `packages/vue/tests/stepper.spec.ts` |
+| `ClickSpark` | [点击火花](/effects/click-spark) | `packages/vue/tests/click-spark.spec.ts` |
 
 `ScrollLockedVideoHero` 会锁定所在页面的滚动，`GlassyDashboard` 是整屏工作区，`SplashCursor` 会铺满整个视口跟随光标，`Shredder` 需要一个固定宽度的父容器，四者的预览都放在 iframe 里；iframe 里跑的仍是同一个真实组件。
 
 ## 导入
 
 ```ts
-import { AIPromptBox, AnimatedList, FlipCard, GhostCursor, GlassFolder, GlassIconReveal, GlassReveal21st, GlassSurface, GridMotion, MagicBento, PaperCrumple, PillNav, ReflectiveCard, RubberSegment, Signature, Stepper, TiltedCard, GlassyDashboard, HoldButton, LiquidNavbar, PeakChart, ScrollLockedVideoHero, Shredder, SpecularButton, SpotlightCard, SplashCursor, SwipeRow, TerminalReplay } from '@motion-effects/vue'
+import { AIPromptBox, AnimatedList, ClickSpark, FlipCard, GhostCursor, GlassFolder, GlassIconReveal, GlassReveal21st, GlassSurface, GridMotion, MagicBento, PaperCrumple, PillNav, ReflectiveCard, RubberSegment, Signature, Stepper, TiltedCard, GlassyDashboard, HoldButton, LiquidNavbar, PeakChart, ScrollLockedVideoHero, Shredder, SpecularButton, SpotlightCard, SplashCursor, SwipeRow, TerminalReplay } from '@motion-effects/vue'
 import type { SwipeAction } from '@motion-effects/vue'
 ```
 
@@ -555,11 +556,31 @@ const step = ref(1)
 </template>
 ```
 
+### ClickSpark
+
+```vue
+<script setup lang="ts">
+import { ref } from 'vue'
+import { ClickSpark } from '@motion-effects/vue'
+
+const spark = ref<InstanceType<typeof ClickSpark> | null>(null)
+</script>
+
+<template>
+  <ClickSpark ref="spark" shape="star" spark-color="#c8ff4d" :glow="0.5" :gravity="0.35">
+    <button class="my-button">点一下，看火花</button>
+  </ClickSpark>
+</template>
+```
+
+包住任意内容即可，点击内容所在区域就会炸出火花；通过 ref 调 `spark(x, y)` 可以在组件内任意位置手动触发。零第三方依赖（纯 canvas 2d + 原生 pointer 事件），每次点击按需建一张只覆盖爆点附近的小画布，画完即移除。
+
 步骤内容用 `#step` 作用域插槽（`{ index, step, current, status }`），步序可用 `v-model:step` 受控；`indicator` 可切 `numbers` / `dots` / `bars`，`orientation="vertical"` 是左侧竖排（面板宽度 < 520px 时自动折叠成紧凑横向排布）。当前步的指示器是禁用的，`linear` 打开时只能点回走过的步骤。 按钮默认文案是中文（`上一步` / `下一步` / `完成`），需要英文时传 `back-button-text` / `next-button-text` / `complete-button-text`。
-- 后二十四个与 React 原件有几处有意的行为差异，清单见上面那份 README 的「与 React 原件的差异」。
-- 二十七个组件都做了 SSR 安全处理，浏览器 API 只在 `onMounted` 或用户事件中访问。
+- 后二十五个与 React 原件有几处有意的行为差异，清单见上面那份 README 的「与 React 原件的差异」。
+- 二十八个组件都做了 SSR 安全处理，浏览器 API 只在 `onMounted` 或用户事件中访问。
 - `AIPromptBox` 用互斥的 `v-model:mode` 替代 React 的三个布尔开关，发出 `send` / `files-change` / `recording-stop` 等事件；图片只留一张，支持选择 / 粘贴 / 拖拽，文案用 `labels` 覆盖。
 - `Stepper` 用 `steps` 数组 + `#step` 作用域插槽替代 React 的 `children` 与 `<Step>` 子组件，步序走 `v-model:step`，发出 `step-change` / `final-step-completed`；指示器下方的滑块用弹簧曲线跟步；三个按钮的默认文案已中文化（React 原件仍是英文默认值）。
+- `ClickSpark` 没有 `className` prop（`class` / `style` 自动透传）；通过 ref 暴露 `spark(x, y)`；帧时间取 `performance.now()`，上游用 rAF 时间戳（后者在 jsdom 等环境会算出负的 elapsed）。
 - 当前是 workspace 私有包，未发布 npm；外部项目可复制 `packages/vue/src` 或等待发布。
 
 ## 本地测试

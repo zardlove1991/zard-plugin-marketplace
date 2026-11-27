@@ -30,4 +30,5 @@ export const PREVIEWS = {
   'spotlight-card': { webm: '/previews/spotlight-card.webm', mp4: '/previews/spotlight-card.mp4', poster: '/previews/spotlight-card.webp' },
   'ai-prompt-box': { webm: '/previews/ai-prompt-box.webm', mp4: '/previews/ai-prompt-box.mp4', poster: '/previews/ai-prompt-box.webp' },
   'stepper': { webm: '/previews/stepper.webm', mp4: '/previews/stepper.mp4', poster: '/previews/stepper.webp' },
+  'click-spark': { webm: '/previews/click-spark.webm', mp4: '/previews/click-spark.mp4', poster: '/previews/click-spark.webp' },
 }
