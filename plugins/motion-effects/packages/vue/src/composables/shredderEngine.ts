@@ -192,6 +192,8 @@ export interface ShredderItemConfig {
 }
 
 export interface ShredderEngine {
+  /** 原地更新配置（对齐 React 每次 render 重算 cfg.current），不销毁模拟状态与在途动画 */
+  sync(next: ShredderItemConfig): void
   destroy(): void
 }
 
@@ -230,11 +232,13 @@ export function createShredderEngine(options: ShredderEngineOptions): ShredderEn
   const useEffect = (fn) => { effects.push(fn); };
   const useLayoutEffect = (fn) => { effects.push(fn); };
 
-  let order = items.map((item) => item.id);
+  // items 可变：sync() 会原地替换它（对齐 React 的 cfg.current.items = sorted）。
+  let sourceItems = items;
+  let order = sourceItems.map((item) => item.id);
   const buildSorted = () => {
     const rank = new Map(order.map((id, i) => [id, i]));
-    const weight = (item) => rank.get(item.id) ?? order.length + items.indexOf(item);
-    return [...items].sort((a, b) => weight(a) - weight(b));
+    const weight = (item) => rank.get(item.id) ?? order.length + sourceItems.indexOf(item);
+    return [...sourceItems].sort((a, b) => weight(a) - weight(b));
   };
   let sorted = buildSorted();
   const setOrder = (ids) => {
@@ -253,26 +257,30 @@ export function createShredderEngine(options: ShredderEngineOptions): ShredderEn
   const slotEls = useRef(/* @__PURE__ */ new Map());
   const itemEls = useRef(/* @__PURE__ */ new Map());
   const cfg = useRef({});
-  cfg.current = {
-    items: sorted,
-    height,
-    inset,
-    gap,
-    slitHeight,
-    fallHeight,
-    feedSpeed,
-    bite,
-    autoFeed,
-    stripWidth,
-    curl,
-    loop,
-    loopAfterDelete,
-    dragTilt,
-    lift,
-    onShred,
-    onReorder,
-    disabled
+  // 对齐 React：每次 render 都把最新 props 写回 cfg.current，而不是重建整个引擎。
+  const applyConfig = (o) => {
+    cfg.current = {
+      items: sorted,
+      height: o.height ?? 460,
+      inset: o.inset ?? 14,
+      gap: o.gap ?? 10,
+      slitHeight: o.slitHeight ?? 4,
+      fallHeight: o.fallHeight ?? 140,
+      feedSpeed: o.feedSpeed ?? 180,
+      bite: o.bite ?? 18,
+      autoFeed: o.autoFeed ?? true,
+      stripWidth: o.stripWidth ?? 10,
+      curl: o.curl ?? 1,
+      loop: o.loop ?? false,
+      loopAfterDelete: o.loopAfterDelete ?? false,
+      dragTilt: o.dragTilt ?? 6,
+      lift: o.lift ?? 1.02,
+      onShred: o.onShred,
+      onReorder: o.onReorder,
+      disabled: o.disabled ?? false
+    };
   };
+  applyConfig(options);
   const sim = useRef({
     raf: 0,
     last: 0,
@@ -996,38 +1004,47 @@ export function createShredderEngine(options: ShredderEngineOptions): ShredderEn
     };
   }, []);
   /* ---- 读取 Vue 模板渲染的 DOM：SFC 拥有节点，引擎只维护模拟与内联样式 ---- */
-  list = rootEl.querySelector('.sh-list');
-  const detachers = [];
-  rootEl.querySelectorAll('.sh-slot').forEach((slot, index) => {
-    const item = cfg.current.items[index];
-    if (!item) return;
-    slotEls.current.set(item.id, slot);
-    const itemEl = slot.querySelector('.sh-item');
-    if (!itemEl) return;
-    itemEls.current.set(item.id, itemEl);
-    const onPointerDown = (e) => onDown(e, item);
-    const onKeyDown = (e) => onKey(e, item);
-    const onDragStart = (e) => e.preventDefault();
-    itemEl.addEventListener('pointerdown', onPointerDown);
-    itemEl.addEventListener('pointermove', onMove);
-    itemEl.addEventListener('pointerup', onUp);
-    itemEl.addEventListener('pointercancel', onUp);
-    itemEl.addEventListener('lostpointercapture', onUp);
-    itemEl.addEventListener('keydown', onKeyDown);
-    itemEl.addEventListener('dragstart', onDragStart);
-    detachers.push(() => {
-      itemEl.removeEventListener('pointerdown', onPointerDown);
-      itemEl.removeEventListener('pointermove', onMove);
-      itemEl.removeEventListener('pointerup', onUp);
-      itemEl.removeEventListener('pointercancel', onUp);
-      itemEl.removeEventListener('lostpointercapture', onUp);
-      itemEl.removeEventListener('keydown', onKeyDown);
-      itemEl.removeEventListener('dragstart', onDragStart);
+  let detachers = [];
+  // 把监听器绑到当前 DOM 节点。sync() 在 items 变化后会重新调用：
+  // Vue 用 key 复用/重建节点，事件闭包里的 item 必须指向最新对象。
+  const bindDom = () => {
+    detachers.forEach((fn) => fn());
+    detachers = [];
+    slotEls.current.clear();
+    itemEls.current.clear();
+    list = rootEl.querySelector('.sh-list');
+    rootEl.querySelectorAll('.sh-slot').forEach((slot, index) => {
+      const item = cfg.current.items[index];
+      if (!item) return;
+      slotEls.current.set(item.id, slot);
+      const itemEl = slot.querySelector('.sh-item');
+      if (!itemEl) return;
+      itemEls.current.set(item.id, itemEl);
+      const onPointerDown = (e) => onDown(e, item);
+      const onKeyDown = (e) => onKey(e, item);
+      const onDragStart = (e) => e.preventDefault();
+      itemEl.addEventListener('pointerdown', onPointerDown);
+      itemEl.addEventListener('pointermove', onMove);
+      itemEl.addEventListener('pointerup', onUp);
+      itemEl.addEventListener('pointercancel', onUp);
+      itemEl.addEventListener('lostpointercapture', onUp);
+      itemEl.addEventListener('keydown', onKeyDown);
+      itemEl.addEventListener('dragstart', onDragStart);
+      detachers.push(() => {
+        itemEl.removeEventListener('pointerdown', onPointerDown);
+        itemEl.removeEventListener('pointermove', onMove);
+        itemEl.removeEventListener('pointerup', onUp);
+        itemEl.removeEventListener('pointercancel', onUp);
+        itemEl.removeEventListener('lostpointercapture', onUp);
+        itemEl.removeEventListener('keydown', onKeyDown);
+        itemEl.removeEventListener('dragstart', onDragStart);
+      });
     });
-  });
-  rootRef.current = rootEl;
-  slitRef.current = rootEl.querySelector('.sh-slit');
-  canvasRef.current = rootEl.querySelector('.sh-canvas');
+    rootRef.current = rootEl;
+    slitRef.current = rootEl.querySelector('.sh-slit');
+    canvasRef.current = rootEl.querySelector('.sh-canvas');
+  };
+  bindDom();
 
   /* React runs effects after commit; run them now that the DOM exists. */
   effects.forEach((fn) => {
@@ -1036,6 +1053,17 @@ export function createShredderEngine(options: ShredderEngineOptions): ShredderEn
   });
 
   return {
+    sync(next) {
+      // 对齐 React 的 `cfg.current = {...}`：只改配置，不碰 sim / raf / 在途动画。
+      // 关键：父级回传的 items 可能只是重排序，order 以引擎内部为准（React 的 order state）。
+      sourceItems = next.items ?? [];
+      sorted = buildSorted();
+      applyConfig(next);
+      cfg.current.items = sorted;
+      bindDom();
+      // 重新测量位置；正在拖拽/回位/进给的 slot 由 settle 内部跳过。
+      settle(null, null);
+    },
     destroy() {
       detachers.forEach((fn) => fn());
       detachers.length = 0;
