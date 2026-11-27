@@ -5,6 +5,36 @@ export default {
   component: 'TiltedCard',
   deps: [],
   slot: '<strong>Front face</strong>',
+  // 中文显示名：面板与属性表用它，prop.name 仍是真实属性名
+  labels: {
+    imageSrc: "图片地址",
+    altText: "图片替代文本",
+    captionText: "说明文字",
+    containerWidth: "容器宽度",
+    containerHeight: "容器高度",
+    imageWidth: "图片宽度",
+    imageHeight: "图片高度",
+    scaleOnHover: "悬停缩放",
+    rotateAmplitude: "旋转幅度",
+    smoothness: "跟随平滑度",
+    glare: "眩光强度",
+    glareColor: "眩光颜色",
+    shadow: "阴影强度",
+    parallax: "视差强度",
+    radius: "圆角",
+    perspective: "透视距离",
+    axis: "倾斜轴向",
+    reverse: "反向倾斜",
+    floating: "自动漂浮",
+    trackWindow: "跟随窗口",
+    gyroscope: "陀螺仪",
+    intro: "入场动画",
+    showTooltip: "显示提示",
+    flipOnClick: "点击翻面",
+    displayOverlayContent: "显示浮层内容",
+    overlayDepth: "浮层深度",
+    className: "根类名"
+  },
   props: [
     p('imageSrc', 'string', undefined, '正面图片地址；留空则用默认插槽内容', 'text'),
     p('altText', 'string', 'Tilted card image', '图片替代文本'),
@@ -23,7 +53,11 @@ export default {
     p('radius', 'number', 15, '圆角', 'number', { min: 0, max: 60, step: 1, unit: 'px' }),
     p('perspective', 'number', 800, '透视距离', 'number', { min: 200, max: 2000, step: 100, unit: 'px' }),
     p('axis', '"both" | "horizontal" | "vertical"', 'both', '允许的旋转轴', 'select', {
-      options: ['both', 'horizontal', 'vertical']
+      options: [
+          { value: 'both', label: '双向' },
+          { value: 'horizontal', label: '横向' },
+          { value: 'vertical', label: '纵向' }
+        ]
     }),
     p('reverse', 'boolean', false, '反转倾斜方向', 'switch'),
     p('floating', 'boolean', false, '无指针时自动漂浮', 'switch'),

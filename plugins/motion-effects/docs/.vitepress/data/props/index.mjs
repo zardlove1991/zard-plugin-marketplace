@@ -53,3 +53,15 @@ export const PROP_SCHEMAS = {
   stepper: stepper,
   'click-spark': clickSpark
 }
+
+/**
+ * 各清单里的中文名写回 prop.label：
+ * 面板与属性表直接用 prop.label 显示，prop.name 仍然是真实属性名。
+ */
+for (const schema of Object.values(PROP_SCHEMAS)) {
+  const labels = schema.labels ?? {}
+  for (const prop of schema.props) {
+    const label = labels[prop.name]
+    if (label) prop.label = label
+  }
+}

@@ -5,11 +5,40 @@ export default {
   component: 'AnimatedList',
   deps: [],
   slot: '<strong>Brand assets</strong><span>24 files</span>',
+  // 中文显示名：面板与属性表用它，prop.name 仍是真实属性名
+  labels: {
+    animation: "入场动画",
+    theme: "主题",
+    width: "列表宽度",
+    maxHeight: "最大高度",
+    radius: "圆角",
+    gap: "行间距",
+    fadeSize: "渐隐高度",
+    stagger: "入场错峰",
+    selectOnHover: "悬停选中",
+    enableArrowNavigation: "方向键导航",
+    loop: "循环滚动",
+    animateOnce: "只播一次",
+    showGradients: "显示渐隐",
+    displayScrollbar: "显示滚动条",
+    frame: "显示边框",
+    initialSelectedIndex: "初始选中项",
+    accentColor: "强调色",
+    items: "列表数据",
+    itemClassName: "条目类名",
+    className: "根类名",
+    style: "行内样式"
+  },
   props: [
     p('animation', '"pop" | "slide" | "fade" | "none"', 'pop', '逐项入场形态；none 关掉入场动画并立即显示全部', 'select', {
-      options: ['pop', 'slide', 'fade', 'none']
+      options: [
+          { value: 'pop', label: '弹出' },
+          { value: 'slide', label: '滑动' },
+          { value: 'fade', label: '淡入' },
+          { value: 'none', label: '无动画' }
+        ]
     }),
-    p('theme', '"dark" | "light"', 'dark', '预设配色', 'select', { options: ['dark', 'light'] }),
+    p('theme', '"dark" | "light"', 'dark', '预设配色', 'select', { options: [{ value: 'dark', label: '深色' }, { value: 'light', label: '浅色' }] }),
     p('width', 'number | string', 420, '列表宽度；数字按 px 处理', 'number', { min: 200, max: 560, step: 20, unit: 'px' }),
     p('maxHeight', 'number | string', 440, '滚动视口的最大高度', 'number', { min: 180, max: 640, step: 20, unit: 'px' }),
     p('radius', 'number', 14, '条目圆角', 'number', { min: 0, max: 40, step: 2, unit: 'px' }),

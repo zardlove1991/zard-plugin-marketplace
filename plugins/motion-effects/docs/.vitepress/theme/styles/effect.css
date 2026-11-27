@@ -554,7 +554,16 @@
   border-bottom: 0;
 }
 
+.props__zh {
+  display: block;
+  color: var(--me-text-1);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
 .props__name {
+  display: block;
+  margin-top: 2px;
   color: var(--me-lime);
   font-family: var(--me-font-mono);
   font-size: 12px;

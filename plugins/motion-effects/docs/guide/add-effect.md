@@ -60,6 +60,9 @@
 1. **props 清单**：新建 `docs/.vitepress/data/props/<id>.mjs`，并在同目录的 `index.mjs` 里登记。
    每个 prop 用 `p(名字, 类型, 默认值, 说明, 控件?, 选项?)` 描述；`value` 必须是组件的真实默认值，
    Customize 面板、Props 表和用法代码都从它生成。控件留空的 prop 只进 Props 表。
+   清单里的 `labels` 映射写每个 prop 的**中文显示名**（面板与 Props 表用 `prop.label` 显示，
+   `prop.name` 仍是真实属性名）；`select` 的选项写成 `{ value, label }`，`label` 填中文，
+   `value` 保持原值。
 2. **预览台**：新建 `docs/.vitepress/theme/demos/<Name>Stage.vue`，用 `useValues()` 取当前参数，
    `pick()` 挑出本组件的 prop 再 `v-bind`，然后在 `components/effect/EffectPage.vue` 的 `STAGES` 里登记。
 3. 预览台需要与默认值不同的初始值时（比如默认关着的自动播放），在清单里给该 prop 写 `demo` 值。
@@ -86,6 +89,7 @@
 - [ ] demo 在本地能独立打开，无控制台报错
 - [ ] demo 的本地资产引用全部存在
 - [ ] `source` 路径存在，且详情页「源码与演示」里的链接可打开
+- [ ] props 清单的 `labels` 与下拉选项都填了中文
 - [ ] catalog 与 `effects.mjs` 描述一致
 - [ ] `public/previews/<id>.*` 已生成并提交，封面总览图里取景正常
 - [ ] 有 Vue 实装的：props 清单与组件默认值一致，预览台能跟随 Customize 变化

@@ -8,9 +8,17 @@ export default {
   component: 'LiquidNavbar',
   deps: [],
   slot: null,
+  // 中文显示名：面板与属性表用它，prop.name 仍是真实属性名
+  labels: {
+    tone: "色调",
+    compact: "紧凑模式",
+    sound: "点击音效",
+    defaultActive: "默认选中项",
+    items: "导航项"
+  },
   props: [
     p('tone', '"light" | "dark"', 'light', '水的色调：light 给亮背景用，dark 给深色背景用', 'select', {
-      options: ['light', 'dark']
+      options: [{ value: 'light', label: '浅色' }, { value: 'dark', label: '深色' }]
     }),
     p('compact', 'boolean', undefined, '只显示图标。不传时 520px 以下自动收成纯图标', 'select', {
       options: [

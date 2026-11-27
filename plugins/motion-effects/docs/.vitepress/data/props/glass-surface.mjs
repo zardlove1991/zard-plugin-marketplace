@@ -8,6 +8,31 @@ export default {
   component: 'GlassSurface',
   deps: [],
   slot: '<strong>折射玻璃面板</strong>',
+  // 中文显示名：面板与属性表用它，prop.name 仍是真实属性名
+  labels: {
+    width: "面板宽度",
+    height: "面板高度",
+    borderRadius: "圆角",
+    borderWidth: "描边粗细",
+    blur: "模糊强度",
+    displace: "置换强度",
+    brightness: "亮度",
+    opacity: "不透明度",
+    backgroundOpacity: "背景不透明度",
+    saturation: "饱和度",
+    distortionScale: "扭曲强度",
+    redOffset: "红色通道偏移",
+    greenOffset: "绿色通道偏移",
+    blueOffset: "蓝色通道偏移",
+    xChannel: "X 通道",
+    yChannel: "Y 通道",
+    refraction: "启用折射",
+    renderer: "渲染路径",
+    backdrop: "背后画面",
+    shape: "自定义形状",
+    className: "根类名",
+    style: "行内样式"
+  },
   props: [
     p('width', 'number | string', 200, '面板宽度；数字按 px 处理，字符串（如 "60%"）原样使用', 'number', { demo: 320, min: 80, max: 480, step: 10, unit: 'px' }),
     p('height', 'number | string', 80, '面板高度；数字按 px 处理', 'number', { demo: 190, min: 40, max: 360, step: 10, unit: 'px' }),
@@ -23,11 +48,25 @@ export default {
     p('redOffset', 'number', 0, '红通道在 distortionScale 上的额外偏移', 'number', { min: -200, max: 200, step: 5 }),
     p('greenOffset', 'number', 10, '绿通道在 distortionScale 上的额外偏移', 'number', { min: -200, max: 200, step: 5 }),
     p('blueOffset', 'number', 20, '蓝通道在 distortionScale 上的额外偏移', 'number', { min: -200, max: 200, step: 5 }),
-    p('xChannel', '"R" | "G" | "B" | "A"', 'R', '置换贴图的横向取样通道', 'select', { options: ['R', 'G', 'B', 'A'] }),
-    p('yChannel', '"R" | "G" | "B" | "A"', 'G', '置换贴图的纵向取样通道', 'select', { options: ['R', 'G', 'B', 'A'] }),
+    p('xChannel', '"R" | "G" | "B" | "A"', 'R', '置换贴图的横向取样通道', 'select', { options: [
+          { value: 'R', label: '红' },
+          { value: 'G', label: '绿' },
+          { value: 'B', label: '蓝' },
+          { value: 'A', label: '透明通道' }
+        ] }),
+    p('yChannel', '"R" | "G" | "B" | "A"', 'G', '置换贴图的纵向取样通道', 'select', { options: [
+          { value: 'R', label: '红' },
+          { value: 'G', label: '绿' },
+          { value: 'B', label: '蓝' },
+          { value: 'A', label: '透明通道' }
+        ] }),
     p('refraction', 'boolean', true, '是否做折射；关掉就是雾面玻璃', 'switch'),
     p('renderer', '"auto" | "webgl" | "svg"', 'auto', '渲染路径；auto 在 Chromium 用 SVG，其余浏览器有 backdrop 时用 WebGL2', 'select', {
-      options: ['auto', 'webgl', 'svg']
+      options: [
+          { value: 'auto', label: '自动' },
+          { value: 'webgl', label: 'WebGL 渲染' },
+          { value: 'svg', label: 'SVG 滤镜' }
+        ]
     }),
     p('backdrop', 'HTMLElement | Ref', null, '背后的图片 / 视频 / canvas 或其模板 ref；WebGL2 路径需要它'),
     p('shape', 'string', null, '同源轮廓图（data URL 或图片地址），从 alpha 通道描出描边与发光'),

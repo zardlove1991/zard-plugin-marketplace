@@ -42,6 +42,8 @@ export type SelectOption = string | { value: unknown; label: string }
 
 export interface PropDef {
   name: string
+  /** 中文显示名（清单里的 labels 映射会写进来）；没有时退回属性名 */
+  label?: string
   type: string
   value: unknown
   desc: string

@@ -27,7 +27,10 @@ function show(value: unknown) {
       </thead>
       <tbody>
         <tr v-for="prop in props" :key="prop.name">
-          <td><code class="props__name">{{ prop.name }}</code></td>
+          <td>
+            <span class="props__zh">{{ prop.label ?? prop.name }}</span>
+            <code class="props__name">{{ prop.name }}</code>
+          </td>
           <td><code class="props__type">{{ prop.type }}</code></td>
           <td>
             <code v-if="prop.value !== undefined" class="props__default">{{ show(prop.value) }}</code>

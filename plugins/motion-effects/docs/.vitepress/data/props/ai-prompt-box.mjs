@@ -5,6 +5,22 @@ export default {
   component: 'AIPromptBox',
   deps: ['motion-v', '@lucide/vue'],
   slot: null,
+  // 中文显示名：面板与属性表用它，prop.name 仍是真实属性名
+  labels: {
+    placeholder: "占位文案",
+    isLoading: "生成中",
+    disabled: "禁用",
+    maxHeight: "输入框最大高度",
+    showUpload: "显示上传按钮",
+    showVoice: "显示语音按钮",
+    showToggles: "显示模式开关",
+    visualizerBars: "录音可视化柱数",
+    accept: "接受的文件类型",
+    maxFileSize: "单文件体积上限",
+    modelValue: "输入文本",
+    mode: "当前模式",
+    labels: "文案覆盖"
+  },
   props: [
     p('placeholder', 'string', 'Type your message here...', '默认占位文案；选中模式时改用对应模式的 placeholder', 'text'),
     p('isLoading', 'boolean', false, '生成中：输入框锁定、主按钮变停止', 'switch'),

@@ -23,6 +23,12 @@ const optionKey = (option: SelectOption) => (isLabeled(option) ? option.label : 
 const optionValue = (option: SelectOption) => (isLabeled(option) ? option.value : option)
 const optionLabel = (option: SelectOption) => (isLabeled(option) ? option.label : option)
 
+/** 面板上显示中文名；没有中文名时退回属性名 */
+const label = (prop: PropDef) => prop.label ?? prop.name
+/** tooltip：中文名 + 真实属性名 + 说明，方便对照 API */
+const hint = (prop: PropDef) =>
+  `${label(prop)}（${prop.name}）${prop.desc ? '：' + prop.desc : ''}`
+
 const unit = (prop: PropDef) => (prop.unit ? ` ${prop.unit}` : '')
 const display = (prop: PropDef) => {
   const value = values[prop.name]
@@ -46,7 +52,7 @@ const display = (prop: PropDef) => {
         class="ctl"
         :class="[`ctl--${prop.control}`, { 'is-changed': isChanged(prop) }]"
       >
-        <code class="ctl__name" :title="prop.desc">{{ prop.name }}</code>
+        <code class="ctl__name" :title="hint(prop)">{{ label(prop) }}</code>
 
         <input
           v-if="prop.control === 'text'"
@@ -77,7 +83,7 @@ const display = (prop: PropDef) => {
             :min="prop.min"
             :max="prop.max"
             :step="prop.step ?? 1"
-            :aria-label="prop.name"
+            :aria-label="label(prop)"
           />
         </template>
 
@@ -88,7 +94,7 @@ const display = (prop: PropDef) => {
           type="button"
           role="switch"
           :aria-checked="!!values[prop.name]"
-          :aria-label="prop.name"
+          :aria-label="label(prop)"
           @click="values[prop.name] = !values[prop.name]"
         >
           <i></i>
@@ -101,7 +107,7 @@ const display = (prop: PropDef) => {
         </select>
 
         <label v-else-if="prop.control === 'color'" class="ctl__color">
-          <input v-model="values[prop.name]" type="color" :aria-label="prop.name" />
+          <input v-model="values[prop.name]" type="color" :aria-label="label(prop)" />
           <code>{{ values[prop.name] }}</code>
         </label>
       </div>
