@@ -31,4 +31,5 @@ export const PREVIEWS = {
   'ai-prompt-box': { webm: '/previews/ai-prompt-box.webm', mp4: '/previews/ai-prompt-box.mp4', poster: '/previews/ai-prompt-box.webp' },
   'stepper': { webm: '/previews/stepper.webm', mp4: '/previews/stepper.mp4', poster: '/previews/stepper.webp' },
   'click-spark': { webm: '/previews/click-spark.webm', mp4: '/previews/click-spark.mp4', poster: '/previews/click-spark.webp' },
+  'gooey-nav': { webm: '/previews/gooey-nav.webm', mp4: '/previews/gooey-nav.mp4', poster: '/previews/gooey-nav.webp' },
 }

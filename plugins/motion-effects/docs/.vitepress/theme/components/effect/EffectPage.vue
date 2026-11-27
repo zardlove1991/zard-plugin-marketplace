@@ -29,6 +29,7 @@ import GlassLogoRevealStage from '../../demos/GlassLogoRevealStage.vue'
 import AIPromptBoxStage from '../../demos/AIPromptBoxStage.vue'
 import StepperStage from '../../demos/StepperStage.vue'
 import ClickSparkStage from '../../demos/ClickSparkStage.vue'
+import GooeyNavStage from '../../demos/GooeyNavStage.vue'
 import StageFrame from './StageFrame.vue'
 import CustomizePanel from './CustomizePanel.vue'
 import PropTable from './PropTable.vue'
@@ -80,7 +81,8 @@ const STAGES = {
   'glass-logo-reveal': GlassLogoRevealStage,
   'ai-prompt-box': AIPromptBoxStage,
   stepper: StepperStage,
-  'click-spark': ClickSparkStage
+  'click-spark': ClickSparkStage,
+  'gooey-nav': GooeyNavStage
 }
 
 /** 会劫持全局输入或需要整屏的组件：放进只渲染它自己的独立页面，再用 iframe 加载 */

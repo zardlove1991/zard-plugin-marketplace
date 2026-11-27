@@ -26,6 +26,7 @@ import glassLogoReveal from './glass-logo-reveal.mjs'
 import aiPromptBox from './ai-prompt-box.mjs'
 import stepper from './stepper.mjs'
 import clickSpark from './click-spark.mjs'
+import gooeyNav from './gooey-nav.mjs'
 
 export const PROP_SCHEMAS = {
   'hold-button': holdButton,
@@ -51,7 +52,8 @@ export const PROP_SCHEMAS = {
   'glass-logo-reveal': glassLogoReveal,
   'ai-prompt-box': aiPromptBox,
   stepper: stepper,
-  'click-spark': clickSpark
+  'click-spark': clickSpark,
+  'gooey-nav': gooeyNav
 }
 
 /**

@@ -1,0 +1,923 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Gooey Nav</title>
+<style>
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    min-height: 100svh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 24px;
+    padding: 32px 16px;
+    background: radial-gradient(120% 120% at 50% 0%, #2b2b31, #16161a 72%);
+    font-family: ui-sans-serif, -apple-system, "Segoe UI", system-ui, sans-serif;
+    color: #e7e7ea;
+  }
+  body[data-theme="light"] {
+    background: radial-gradient(120% 120% at 50% 0%, #f6f6f8, #e7e7ea 72%);
+    color: #27272a;
+  }
+  .intro { text-align: center; margin: 0; }
+  .intro h1 { margin: 0 0 6px; font-size: 22px; letter-spacing: -0.01em; }
+  .intro p { margin: 0; font-size: 13px; opacity: 0.62; }
+
+  /* ---------- 组件样式：与 React 原件的 .gooey-nav 规则一致 ---------- */
+  .gooey-nav {
+    --gn-pad: 6px;
+    --gn-gap: 4px;
+    --gn-font: 14px;
+    --gn-x: 16px;
+    --gn-y: 9px;
+    position: relative;
+    display: inline-flex;
+    max-width: 100%;
+    font-size: var(--gn-font);
+    line-height: 1.2;
+  }
+  .gooey-nav--sm { --gn-pad: 5px; --gn-gap: 2px; --gn-font: 13px; --gn-x: 13px; --gn-y: 7px; }
+  .gooey-nav--lg { --gn-pad: 7px; --gn-gap: 6px; --gn-font: 16px; --gn-x: 20px; --gn-y: 11px; }
+  .gooey-nav--framed {
+    padding: var(--gn-pad);
+    border-radius: 999px;
+    background: var(--gn-frame);
+    box-shadow: var(--gn-frame-shadow);
+    -webkit-backdrop-filter: blur(20px) saturate(1.6);
+    backdrop-filter: blur(20px) saturate(1.6);
+  }
+  .gooey-nav__stage { position: relative; max-width: 100%; }
+  .gooey-nav__canvas { position: absolute; top: 0; left: 0; pointer-events: none; }
+  .gooey-nav__fallback {
+    position: absolute; top: 0; left: 0; display: none;
+    border-radius: 999px; background: var(--gn-pill); pointer-events: none;
+  }
+  .gooey-nav__list {
+    position: relative; display: flex; flex-wrap: wrap; gap: var(--gn-gap);
+    margin: 0; padding: 0; list-style: none;
+  }
+  .gooey-nav__list--active {
+    position: absolute; inset: 0; color: var(--gn-active-ink);
+    visibility: hidden; clip-path: inset(100%); pointer-events: none;
+  }
+  .gooey-nav__item { display: flex; }
+  .gooey-nav__link {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: var(--gn-y) var(--gn-x);
+    border: none; border-radius: 999px; background: none;
+    color: var(--gn-muted); font: inherit; font-weight: 500; text-decoration: none;
+    white-space: nowrap; cursor: pointer; transition: color 0.2s ease;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .gooey-nav__list--active .gooey-nav__link { color: inherit; }
+  .gooey-nav__item[data-active] .gooey-nav__link { color: var(--gn-ink); }
+  .gooey-nav__link:focus-visible { outline: 2px solid var(--gn-ink); outline-offset: 2px; }
+  .gooey-nav__icon { display: inline-flex; flex: none; }
+  .gooey-nav__icon svg { width: 1.15em; height: 1.15em; }
+  .gooey-nav__rim {
+    position: absolute; inset: 0; border-radius: inherit; pointer-events: none;
+    box-shadow: inset 0 0 0 1px var(--gn-frame-edge), inset 0 1px 0 var(--gn-frame-highlight);
+  }
+  @media (hover: hover) { .gooey-nav__link:hover { color: var(--gn-ink); } }
+
+  /* ---------- 控制面板 ---------- */
+  .controls { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px 16px; width: min(100%, 640px); }
+  .control { display: flex; align-items: center; gap: 8px; font-size: 12px; opacity: 0.82; }
+  .control > span { letter-spacing: 0.02em; }
+  .seg { display: inline-flex; gap: 2px; border-radius: 999px; padding: 3px; background: rgba(127, 127, 140, 0.16); }
+  .seg button {
+    border: none; border-radius: 999px; padding: 5px 11px;
+    background: transparent; color: inherit; font: inherit; font-size: 12px; cursor: pointer;
+  }
+  .seg button.is-on { background: rgba(127, 127, 140, 0.34); }
+  .control input[type="color"] { width: 30px; height: 26px; padding: 0; border: none; border-radius: 8px; background: transparent; cursor: pointer; }
+  .control input[type="range"] { width: 110px; accent-color: #c8ff4d; }
+  .status { margin: 0; font: 500 12px/1.5 ui-monospace, monospace; opacity: 0.55; text-align: center; }
+</style>
+</head>
+<body data-theme="dark">
+  <div class="intro">
+    <h1>Gooey Nav</h1>
+    <p>液态导航：切换时胶囊碎成液滴飞向新位置，途中互相融合，落地再聚成新的胶囊</p>
+  </div>
+
+  <div id="mount"></div>
+
+  <div class="controls">
+    <label class="control">
+      <span>主题</span>
+      <span class="seg" id="seg-theme">
+        <button type="button" data-value="dark" class="is-on">深色</button>
+        <button type="button" data-value="light">浅色</button>
+      </span>
+    </label>
+    <label class="control">
+      <span>尺寸</span>
+      <span class="seg" id="seg-size">
+        <button type="button" data-value="sm">小</button>
+        <button type="button" data-value="md" class="is-on">中</button>
+        <button type="button" data-value="lg">大</button>
+      </span>
+    </label>
+    <label class="control"><span>胶囊色</span><input type="color" id="opt-color" value="#c8ff4d" /></label>
+    <label class="control"><span>液滴色</span><input type="color" id="opt-drop" value="#7aa8ff" /></label>
+    <label class="control"><span>粒子数</span><input type="range" id="opt-count" min="4" max="32" step="1" value="15" /></label>
+    <label class="control"><span>动画时长</span><input type="range" id="opt-time" min="300" max="1200" step="20" value="600" /></label>
+    <label class="control"><span>融合度</span><input type="range" id="opt-goo" min="0" max="1" step="0.05" value="0.5" /></label>
+    <label class="control"><span>晃动</span><input type="range" id="opt-wobble" min="0" max="1" step="0.05" value="0.5" /></label>
+    <label class="control"><span>悬停高亮</span><input type="checkbox" id="opt-hover" checked /></label>
+  </div>
+
+  <p class="status" id="status">就绪</p>
+
+<script>
+(function () {
+  /* ---------- 着色器与常量：与 React 原件一致 ---------- */
+  var MAX_DROPS = 32;
+  var MAX_PILLS = 4;
+  var MARGIN = 72;
+
+  var VERTEX = `#version 300 es
+in vec2 aPosition;
+void main() {
+  gl_Position = vec4(aPosition, 0.0, 1.0);
+}
+`;
+
+  var FRAGMENT = `#version 300 es
+precision highp float;
+
+uniform vec2 uSize;
+uniform float uRatio;
+uniform vec4 uPills[${MAX_PILLS}];
+uniform vec4 uHover;
+uniform vec4 uDrops[${MAX_DROPS}];
+uniform vec2 uTails[${MAX_DROPS}];
+uniform vec3 uTints[${MAX_DROPS}];
+uniform int uCount;
+uniform float uSmooth;
+uniform vec3 uPill;
+uniform vec4 uHoverColor;
+uniform float uShadow;
+
+out vec4 outColor;
+
+float sdPill(vec2 p, vec4 box) {
+  vec2 extent = max(box.zw, vec2(0.0));
+  float r = min(extent.x, extent.y);
+  vec2 q = abs(p - box.xy) - extent + r;
+  return length(max(q, 0.0)) + min(max(q.x, q.y), 0.0) - r;
+}
+
+float sdCapsule(vec2 p, vec2 a, vec2 b, float r) {
+  vec2 pa = p - a;
+  vec2 ba = b - a;
+  float h = clamp(dot(pa, ba) / max(dot(ba, ba), 0.0001), 0.0, 1.0);
+  return length(pa - ba * h) - r;
+}
+
+vec4 blend(vec4 a, vec4 b, float k) {
+  float h = clamp(0.5 + 0.5 * (b.w - a.w) / k, 0.0, 1.0);
+  return vec4(mix(b.rgb, a.rgb, h), mix(b.w, a.w, h) - k * h * (1.0 - h));
+}
+
+vec4 field(vec2 p) {
+  vec4 shape = vec4(uPill, 1e5);
+  for (int i = 0; i < ${MAX_PILLS}; i++) {
+    vec4 pill = uPills[i];
+    if (pill.z <= 0.0) continue;
+    shape = blend(shape, vec4(uPill, sdPill(p, pill)), uSmooth);
+  }
+  for (int i = 0; i < ${MAX_DROPS}; i++) {
+    if (i >= uCount) break;
+    vec4 drop = uDrops[i];
+    if (drop.z <= 0.0) continue;
+    float d = sdCapsule(p, drop.xy, drop.xy - uTails[i], drop.z);
+    if (d > shape.w + uSmooth) continue;
+    shape = blend(shape, vec4(uTints[i], d), uSmooth);
+  }
+  return shape;
+}
+
+void main() {
+  vec2 p = vec2(gl_FragCoord.x, uSize.y * uRatio - gl_FragCoord.y) / uRatio;
+  vec4 shape = field(p);
+  float d = shape.w;
+  float aa = max(fwidth(d), 0.35);
+  float body = clamp(0.5 - d / aa, 0.0, 1.0);
+
+  vec2 grad = vec2(dFdx(d), -dFdy(d));
+  vec2 n = length(grad) > 0.0001 ? normalize(grad) : vec2(0.0, 1.0);
+  float rim = (1.0 - smoothstep(0.0, 1.6, -d)) * max(0.0, -n.y) * 0.3;
+  vec3 fill = mix(shape.rgb, vec3(1.0), rim) * (1.0 - 0.06 * max(0.0, n.y) * (1.0 - smoothstep(0.0, 6.0, -d)));
+
+  float lifted = field(p - vec2(0.0, 3.0)).w;
+  float shadow = (1.0 - smoothstep(-3.0, 9.0, lifted)) * uShadow * (1.0 - body);
+
+  float hover = clamp(0.5 - sdPill(p, uHover) / aa, 0.0, 1.0) * uHoverColor.a;
+
+  vec4 color = vec4(0.0, 0.0, 0.0, shadow);
+  color = vec4(uHoverColor.rgb * hover, hover) + color * (1.0 - hover);
+  color = vec4(fill * body, body) + color * (1.0 - body);
+  outColor = color;
+}
+`;
+
+  var UNIFORMS = ['uSize', 'uRatio', 'uPills', 'uHover', 'uDrops', 'uTails', 'uTints', 'uCount', 'uSmooth', 'uPill', 'uHoverColor', 'uShadow'];
+
+  var THEMES = {
+    dark: {
+      '--gn-frame': 'rgba(38, 35, 46, 0.66)',
+      '--gn-frame-edge': 'rgba(255, 255, 255, 0.08)',
+      '--gn-frame-highlight': 'rgba(255, 255, 255, 0.07)',
+      '--gn-frame-shadow': '0 22px 44px -20px rgba(0, 0, 0, 0.8), 0 6px 16px -8px rgba(0, 0, 0, 0.5)',
+      '--gn-ink': '#f4f4f5',
+      '--gn-muted': 'rgba(244, 244, 245, 0.62)'
+    },
+    light: {
+      '--gn-frame': 'rgba(240, 240, 243, 0.8)',
+      '--gn-frame-edge': 'rgba(24, 24, 27, 0.07)',
+      '--gn-frame-highlight': 'rgba(255, 255, 255, 0.95)',
+      '--gn-frame-shadow': '0 22px 44px -22px rgba(24, 24, 27, 0.3), 0 6px 16px -10px rgba(24, 24, 27, 0.16)',
+      '--gn-ink': '#27272a',
+      '--gn-muted': 'rgba(39, 39, 42, 0.62)'
+    }
+  };
+  var PILLS = {
+    dark: { color: '#f4f4f5', hover: 'rgba(255, 255, 255, 0.08)', shadow: 0.4 },
+    light: { color: '#27272a', hover: 'rgba(24, 24, 27, 0.06)', shadow: 0.2 }
+  };
+  var SIZES = { sm: 'gooey-nav--sm', md: 'gooey-nav--md', lg: 'gooey-nav--lg' };
+
+  var ITEMS = [
+    { label: '首页', href: '#' },
+    { label: '作品', href: '#' },
+    { label: '关于', href: '#' },
+    { label: '联系', href: '#' }
+  ];
+
+  function clamp01(value) { return Math.min(1, Math.max(0, value)); }
+  function parse(value) {
+    var match = /^#?([0-9a-f]{3}|[0-9a-f]{6})$/i.exec(String(value).trim());
+    if (match) {
+      var hex = match[1].length === 3 ? match[1].replace(/./g, function (d) { return d + d; }) : match[1];
+      return [0, 2, 4].map(function (i) { return parseInt(hex.slice(i, i + 2), 16) / 255; }).concat(1);
+    }
+    var rgba = /rgba?\(([^)]+)\)/i.exec(String(value));
+    if (rgba) {
+      var parts = rgba[1].split(',').map(parseFloat);
+      return [parts[0] / 255, parts[1] / 255, parts[2] / 255, parts[3] === undefined ? 1 : parts[3]];
+    }
+    return [1, 1, 1, 1];
+  }
+  function contrastInk(rgb) {
+    return 0.2126 * rgb[0] + 0.7152 * rgb[1] + 0.0722 * rgb[2] > 0.55 ? '#18161d' : '#ffffff';
+  }
+  function travelEase(t) {
+    var x = clamp01(t);
+    return x < 0.5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2;
+  }
+  function bezier(a, b, c, d, t) {
+    var u = 1 - t;
+    return u * u * u * a + 3 * u * u * t * b + 3 * u * t * t * c + t * t * t * d;
+  }
+  function pillPath(x, y, w, h) {
+    if (w <= 0.5 || h <= 0.5) return '';
+    var r = Math.min(w, h) / 2;
+    return 'M' + (x + r) + ',' + y + 'H' + (x + w - r) + 'A' + r + ',' + r + ' 0 0 1 ' + (x + w) + ',' + (y + r) +
+      'V' + (y + h - r) + 'A' + r + ',' + r + ' 0 0 1 ' + (x + w - r) + ',' + (y + h) +
+      'H' + (x + r) + 'A' + r + ',' + r + ' 0 0 1 ' + x + ',' + (y + h - r) +
+      'V' + (y + r) + 'A' + r + ',' + r + ' 0 0 1 ' + (x + r) + ',' + y + 'Z';
+  }
+  function compile(gl, type, source) {
+    var shader = gl.createShader(type);
+    gl.shaderSource(shader, source);
+    gl.compileShader(shader);
+    return shader;
+  }
+  function build(gl) {
+    var program = gl.createProgram();
+    gl.attachShader(program, compile(gl, gl.VERTEX_SHADER, VERTEX));
+    gl.attachShader(program, compile(gl, gl.FRAGMENT_SHADER, FRAGMENT));
+    gl.linkProgram(program);
+    if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
+      gl.deleteProgram(program);
+      return null;
+    }
+    var uniforms = {};
+    UNIFORMS.forEach(function (name) { uniforms[name] = gl.getUniformLocation(program, name); });
+    var buffer = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1]), gl.STATIC_DRAW);
+    return { program: program, uniforms: uniforms, buffer: buffer, position: gl.getAttribLocation(program, 'aPosition') };
+  }
+
+  /* ---------- 组件 ---------- */
+  function GooeyNav(mount, options) {
+    this.options = options;
+    this.items = options.items || ITEMS;
+    this.current = Math.min(Math.max(0, options.initialActiveIndex || 0), Math.max(0, this.items.length - 1));
+    this.root = document.createElement('nav');
+    this.root.className = 'gooey-nav';
+    this.rim = document.createElement('span');
+    this.rim.className = 'gooey-nav__rim';
+    this.stage = document.createElement('div');
+    this.stage.className = 'gooey-nav__stage';
+    this.canvas = document.createElement('canvas');
+    this.canvas.className = 'gooey-nav__canvas';
+    this.canvas.setAttribute('aria-hidden', 'true');
+    this.fallback = document.createElement('span');
+    this.fallback.className = 'gooey-nav__fallback';
+    this.fallback.setAttribute('aria-hidden', 'true');
+    this.list = document.createElement('ul');
+    this.list.className = 'gooey-nav__list';
+    this.overlay = document.createElement('ul');
+    this.overlay.className = 'gooey-nav__list gooey-nav__list--active';
+    this.overlay.setAttribute('aria-hidden', 'true');
+
+    var self = this;
+    this.items.forEach(function (item, index) {
+      var li = document.createElement('li');
+      li.className = 'gooey-nav__item';
+      li.setAttribute('data-gooey-index', String(index));
+      var a = document.createElement('a');
+      a.className = 'gooey-nav__link';
+      a.href = item.href || '#';
+      a.setAttribute('aria-label', item.label);
+      a.textContent = item.label;
+      a.addEventListener('click', function (event) {
+        if (!item.href || item.href === '#') event.preventDefault();
+        self.select(index);
+      });
+      li.appendChild(a);
+      self.list.appendChild(li);
+
+      var mirror = document.createElement('li');
+      mirror.className = 'gooey-nav__item';
+      var span = document.createElement('span');
+      span.className = 'gooey-nav__link';
+      span.textContent = item.label;
+      mirror.appendChild(span);
+      self.overlay.appendChild(mirror);
+    });
+
+    this.stage.appendChild(this.canvas);
+    this.stage.appendChild(this.fallback);
+    this.stage.appendChild(this.list);
+    this.stage.appendChild(this.overlay);
+    this.root.appendChild(this.rim);
+    this.root.appendChild(this.stage);
+    mount.appendChild(this.root);
+
+    this.applyTheme();
+    this.init();
+  }
+
+  GooeyNav.prototype.settings = function () {
+    var o = this.options;
+    var palette = o.theme === 'light' ? 'light' : 'dark';
+    var pill = o.color || PILLS[palette].color;
+    return {
+      animationTime: o.animationTime,
+      particleCount: o.particleCount,
+      timeVariance: o.timeVariance,
+      spread: o.spread,
+      gooeyness: o.gooeyness,
+      wobble: o.wobble,
+      hoverEffect: o.hoverEffect,
+      pillRgb: parse(pill),
+      tints: (o.colors || []).map(parse),
+      hoverRgb: parse(PILLS[palette].hover),
+      shadow: PILLS[palette].shadow
+    };
+  };
+
+  GooeyNav.prototype.applyTheme = function () {
+    var o = this.options;
+    var palette = o.theme === 'light' ? 'light' : 'dark';
+    var pill = o.color || PILLS[palette].color;
+    var theme = THEMES[palette];
+    var root = this.root;
+    Object.keys(theme).forEach(function (key) { root.style.setProperty(key, theme[key]); });
+    this.root.style.setProperty('--gn-pill', pill);
+    this.root.style.setProperty('--gn-active-ink', o.activeTextColor || contrastInk(parse(pill)));
+    this.root.className = 'gooey-nav ' + (SIZES[o.size] || SIZES.md) + (o.frame ? ' gooey-nav--framed' : '');
+    this.rim.style.display = o.frame ? '' : 'none';
+  };
+
+  GooeyNav.prototype.init = function () {
+    var self = this;
+    var stage = this.stage, canvas = this.canvas, list = this.list, overlay = this.overlay, fallback = this.fallback;
+    var reduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    var gl = canvas.getContext('webgl2', { alpha: true, premultipliedAlpha: true, antialias: false });
+    var pipeline = gl ? build(gl) : null;
+    fallback.style.display = pipeline ? 'none' : 'block';
+    canvas.style.display = pipeline ? 'block' : 'none';
+
+    var view = { width: 0, height: 0 };
+    var rects = [];
+    var target = -1;
+    var pills = new Map();
+    var drops = [];
+    var hover = { x: 0, y: 0, w: 0, h: 0, alpha: 0, index: -1 };
+    var pillData = new Float32Array(MAX_PILLS * 4);
+    var dropData = new Float32Array(MAX_DROPS * 4);
+    var tailData = new Float32Array(MAX_DROPS * 2);
+    var tintData = new Float32Array(MAX_DROPS * 3);
+    var raf = 0, last = 0, disposed = false;
+
+    var measure = function () {
+      var box = stage.getBoundingClientRect();
+      var ratio = Math.min(window.devicePixelRatio || 1, 2);
+      view.width = box.width;
+      view.height = box.height;
+      var outerWidth = box.width + MARGIN * 2;
+      var outerHeight = box.height + MARGIN * 2;
+      Object.assign(canvas.style, {
+        left: -MARGIN + 'px', top: -MARGIN + 'px',
+        width: outerWidth + 'px', height: outerHeight + 'px'
+      });
+      var width = Math.max(1, Math.round(outerWidth * ratio));
+      var height = Math.max(1, Math.round(outerHeight * ratio));
+      if (canvas.width !== width || canvas.height !== height) {
+        canvas.width = width;
+        canvas.height = height;
+      }
+      rects = Array.prototype.map.call(list.children, function (item) {
+        var rect = item.getBoundingClientRect();
+        return { x: rect.left - box.left, y: rect.top - box.top, w: rect.width, h: rect.height };
+      });
+    };
+
+    var trace = function (boxes, blobs, smooth) {
+      var field = function (x, y) {
+        var d = 1e5;
+        var merge = function (value) {
+          var h = clamp01(0.5 + (0.5 * (value - d)) / smooth);
+          d = value + (d - value) * h - smooth * h * (1 - h);
+        };
+        for (var i = 0; i < boxes.length; i++) {
+          var box = boxes[i];
+          var r = Math.min(box.hw, box.hh);
+          var qx = Math.abs(x - box.cx) - box.hw + r;
+          var qy = Math.abs(y - box.cy) - box.hh + r;
+          merge(Math.hypot(Math.max(qx, 0), Math.max(qy, 0)) + Math.min(Math.max(qx, qy), 0) - r);
+        }
+        for (var j = 0; j < blobs.length; j++) {
+          var blob = blobs[j];
+          var px = x - blob.x, py = y - blob.y;
+          var bx = -blob.tx, by = -blob.ty;
+          var span = bx * bx + by * by;
+          var h = span > 0.0001 ? clamp01((px * bx + py * by) / span) : 0;
+          var value = Math.hypot(px - bx * h, py - by * h) - blob.r;
+          if (value > d + smooth) continue;
+          merge(value);
+        }
+        return d;
+      };
+      var step = 2;
+      var parts = [];
+      for (var y = 0; y < view.height; y += 1) {
+        var cy = y + 0.5;
+        var previous = field(0, cy);
+        var start = previous < 0 ? 0 : null;
+        for (var x = step; x <= view.width + step; x += step) {
+          var value = field(Math.min(x, view.width), cy);
+          if ((previous < 0) !== (value < 0)) {
+            var cross = x - step + (step * previous) / (previous - value);
+            if (value < 0) start = cross;
+            else if (start !== null) {
+              parts.push('M' + start.toFixed(1) + ',' + y + 'H' + cross.toFixed(1) + 'V' + (y + 1) + 'H' + start.toFixed(1) + 'Z');
+              start = null;
+            }
+          }
+          previous = value;
+        }
+        if (start !== null) parts.push('M' + start.toFixed(1) + ',' + y + 'H' + view.width + 'V' + (y + 1) + 'H' + start.toFixed(1) + 'Z');
+      }
+      return parts.join('');
+    };
+
+    var pill = function (index) {
+      if (!pills.has(index)) pills.set(index, { mass: 0, scale: 0, velocity: 0, outgoing: 0 });
+      return pills.get(index);
+    };
+    var shape = function (index, amount) {
+      var rect = rects[index];
+      if (!rect || amount <= 0.002) return null;
+      var h = rect.h * Math.min(1.08, 0.42 + 0.58 * Math.sqrt(Math.max(0, amount)));
+      var w = Math.max(h, rect.w * Math.pow(Math.max(0, amount), 0.75));
+      return { x: rect.x + rect.w / 2 - w / 2, y: rect.y + rect.h / 2 - h / 2, w: w, h: h };
+    };
+    var plan = function (drop, index, now, fresh) {
+      var s = self.settings();
+      var rect = rects[index];
+      if (!rect) return;
+      var reach = Math.max(0, s.spread);
+      var ex = rect.x + rect.w / 2 + (Math.random() - 0.5) * rect.w * 0.45;
+      var ey = rect.y + rect.h / 2 + (Math.random() - 0.5) * rect.h * 0.2;
+      var base = Math.max(0.15, s.animationTime / 1000);
+      var variance = (Math.random() - 0.5) * (Math.max(0, s.timeVariance) / 1000);
+      var duration = Math.max(0.15, base * (0.62 + Math.random() * 0.32) + variance * 0.6);
+      var out = Math.random() * Math.PI * 2;
+      var into = Math.random() * Math.PI * 2;
+      var burst = reach * (0.7 + Math.random() * 0.6);
+      var swing = reach * (0.55 + Math.random() * 0.55);
+      var carry = Math.min(duration / 3, 0.12);
+      drop.index = index;
+      drop.start = now;
+      drop.duration = duration;
+      drop.path = [
+        drop.x, drop.y,
+        fresh ? drop.x + Math.cos(out) * burst * 1.6 : drop.x + drop.vx * carry,
+        fresh ? drop.y + Math.sin(out) * burst * 1.6 : drop.y + drop.vy * carry,
+        ex + Math.cos(into) * swing * 1.5,
+        ey + Math.sin(into) * swing * 1.5,
+        ex, ey
+      ];
+    };
+    var emit = function (from, to, now) {
+      var s = self.settings();
+      var source = pills.get(from);
+      var rect = rects[from];
+      if (!source || !rect || !rects[to]) return;
+      var available = source.mass - source.outgoing;
+      if (available <= 0.002) return;
+      var room = MAX_DROPS - drops.length;
+      var count = Math.min(room, Math.max(1, Math.round(Math.max(1, s.particleCount) * available)));
+      if (count <= 0) return;
+      var window = Math.max(0.15, s.animationTime / 1000) * 0.16;
+      for (var i = 0; i < count; i++) {
+        var mass = available / count;
+        source.outgoing += mass;
+        drops.push({
+          x: rect.x + rect.w / 2 + (Math.random() - 0.5) * rect.w * 0.6,
+          y: rect.y + rect.h / 2 + (Math.random() - 0.5) * rect.h * 0.3,
+          vx: 0, vy: 0, mass: mass,
+          size: 0.8 + Math.random() * 0.4,
+          given: 0, source: from, index: to,
+          leave: now + Math.random() * window * 1000,
+          emerged: 0, absorbed: 0, state: 'waiting',
+          tint: s.tints.length ? s.tints[Math.floor(Math.random() * s.tints.length)] : null
+        });
+      }
+    };
+    var render = function () {
+      var s = self.settings();
+      var height = (rects[target] && rects[target].h) || (rects[0] && rects[0].h) || 36;
+      var smooth = height * (0.18 + 0.5 * clamp01(s.gooeyness));
+      var boxes = [], blobs = [];
+      pills.forEach(function (state, index) {
+        var box = shape(index, state.scale);
+        if (box) boxes.push({ cx: box.x + box.w / 2, cy: box.y + box.h / 2, hw: box.w / 2, hh: box.h / 2 });
+      });
+      for (var i = 0; i < drops.length; i++) {
+        var drop = drops[i];
+        if (drop.state === 'waiting') continue;
+        var radius = 0.26 * height * drop.size * Math.min(drop.emerged, 1 - drop.absorbed);
+        if (radius <= 0.05) continue;
+        var speed = Math.hypot(drop.vx, drop.vy);
+        var length = Math.min(radius * 1.1, speed * 0.018);
+        blobs.push({
+          x: drop.x, y: drop.y, r: radius,
+          tx: speed > 0.01 ? (drop.vx / speed) * length : 0,
+          ty: speed > 0.01 ? (drop.vy / speed) * length : 0,
+          tint: drop.tint
+        });
+      }
+      var settledPill = boxes.length === 1 && !blobs.length;
+      if (settledPill) {
+        var box = boxes[0];
+        overlay.style.clipPath = "path('" + pillPath(box.cx - box.hw, box.cy - box.hh, box.hw * 2, box.hh * 2) + "')";
+      } else {
+        overlay.style.clipPath = "path('" + (trace(boxes, blobs, smooth) || 'M0,0Z') + "')";
+      }
+      overlay.style.visibility = 'visible';
+
+      if (!pipeline || !gl) {
+        var fallbackBox = shape(target, 1);
+        if (fallbackBox) {
+          fallback.style.transform = 'translate(' + fallbackBox.x.toFixed(2) + 'px, ' + fallbackBox.y.toFixed(2) + 'px)';
+          fallback.style.width = fallbackBox.w + 'px';
+          fallback.style.height = fallbackBox.h + 'px';
+        }
+        fallback.style.opacity = fallbackBox ? '1' : '0';
+        return;
+      }
+
+      var slot = 0;
+      for (var b = 0; b < boxes.length; b++) {
+        if (slot >= MAX_PILLS) break;
+        pillData[slot * 4] = boxes[b].cx + MARGIN;
+        pillData[slot * 4 + 1] = boxes[b].cy + MARGIN;
+        pillData[slot * 4 + 2] = boxes[b].hw;
+        pillData[slot * 4 + 3] = boxes[b].hh;
+        slot += 1;
+      }
+      pillData.fill(0, slot * 4);
+      var count = 0;
+      for (var k = 0; k < blobs.length; k++) {
+        if (count >= MAX_DROPS) break;
+        dropData[count * 4] = blobs[k].x + MARGIN;
+        dropData[count * 4 + 1] = blobs[k].y + MARGIN;
+        dropData[count * 4 + 2] = blobs[k].r;
+        dropData[count * 4 + 3] = 0;
+        tailData[count * 2] = blobs[k].tx;
+        tailData[count * 2 + 1] = blobs[k].ty;
+        var tint = blobs[k].tint || s.pillRgb;
+        tintData[count * 3] = tint[0];
+        tintData[count * 3 + 1] = tint[1];
+        tintData[count * 3 + 2] = tint[2];
+        count += 1;
+      }
+
+      var program = pipeline.program, uniforms = pipeline.uniforms, buffer = pipeline.buffer, position = pipeline.position;
+      gl.viewport(0, 0, canvas.width, canvas.height);
+      gl.clearColor(0, 0, 0, 0);
+      gl.clear(gl.COLOR_BUFFER_BIT);
+      gl.useProgram(program);
+      gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+      gl.enableVertexAttribArray(position);
+      gl.vertexAttribPointer(position, 2, gl.FLOAT, false, 0, 0);
+      gl.uniform2f(uniforms.uSize, view.width + MARGIN * 2, view.height + MARGIN * 2);
+      gl.uniform1f(uniforms.uRatio, canvas.width / Math.max(1, view.width + MARGIN * 2));
+      gl.uniform4fv(uniforms.uPills, pillData);
+      gl.uniform4f(uniforms.uHover, hover.x + MARGIN, hover.y + MARGIN, hover.w / 2, hover.h / 2);
+      gl.uniform4fv(uniforms.uDrops, dropData);
+      gl.uniform2fv(uniforms.uTails, tailData);
+      gl.uniform3fv(uniforms.uTints, tintData);
+      gl.uniform1i(uniforms.uCount, count);
+      gl.uniform1f(uniforms.uSmooth, smooth);
+      gl.uniform3f(uniforms.uPill, s.pillRgb[0], s.pillRgb[1], s.pillRgb[2]);
+      gl.uniform4f(uniforms.uHoverColor, s.hoverRgb[0], s.hoverRgb[1], s.hoverRgb[2], s.hoverRgb[3] * hover.alpha);
+      gl.uniform1f(uniforms.uShadow, s.shadow);
+      gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+    };
+    var frame = function () {
+      raf = 0;
+      var s = self.settings();
+      var now = performance.now();
+      var dt = Math.min(0.05, (now - last) / 1000 || 0);
+      last = now;
+      var emergeTime = 0.09, absorbTime = 0.12;
+
+      for (var i = drops.length - 1; i >= 0; i--) {
+        var drop = drops[i];
+        if (drop.state === 'waiting') {
+          if (now < drop.leave) continue;
+          drop.state = 'flying';
+          plan(drop, drop.index, now, true);
+        }
+        if (drop.state === 'flying') {
+          drop.emerged = Math.min(1, drop.emerged + dt / emergeTime);
+          var source = pills.get(drop.source);
+          if (source && drop.given < drop.mass) {
+            var step = Math.min(drop.mass * (dt / emergeTime), drop.mass - drop.given);
+            source.mass = Math.max(0, source.mass - step);
+            source.outgoing = Math.max(0, source.outgoing - step);
+            drop.given += step;
+          }
+          var t = clamp01((now - drop.start) / 1000 / drop.duration);
+          var eased = travelEase(t);
+          var p = drop.path;
+          var x = bezier(p[0], p[2], p[4], p[6], eased);
+          var y = bezier(p[1], p[3], p[5], p[7], eased);
+          if (dt > 0) {
+            drop.vx = (x - drop.x) / dt;
+            drop.vy = (y - drop.y) / dt;
+          }
+          drop.x = x;
+          drop.y = y;
+          if (t >= 1) drop.state = 'absorbing';
+        }
+        if (drop.state === 'absorbing') {
+          var absorb = Math.min(1 - drop.absorbed, dt / absorbTime);
+          drop.absorbed += absorb;
+          drop.vx *= 0.8;
+          drop.vy *= 0.8;
+          var host = pill(drop.index);
+          host.mass = Math.min(1, host.mass + drop.mass * absorb);
+          if (drop.absorbed >= 1) drops.splice(i, 1);
+        }
+      }
+
+      var zeta = reduced ? 1 : 1 - 0.72 * clamp01(s.wobble);
+      var omega = 26;
+      var steps = Math.max(1, Math.ceil(dt / (1 / 240)));
+      var h = dt / steps;
+      pills.forEach(function (state, index) {
+        for (var n = 0; n < steps; n++) {
+          state.velocity += (omega * omega * (state.mass - state.scale) - 2 * zeta * omega * state.velocity) * h;
+          state.scale += state.velocity * h;
+        }
+        if (index !== target && state.mass <= 0.002 && state.outgoing <= 0.002 && Math.abs(state.scale) < 0.004) {
+          pills.delete(index);
+        }
+      });
+
+      if (hover.index >= 0 && rects[hover.index]) {
+        var rect = rects[hover.index];
+        var k = 1 - Math.exp(-dt / 0.06);
+        hover.x += (rect.x + rect.w / 2 - hover.x) * k;
+        hover.y += (rect.y + rect.h / 2 - hover.y) * k;
+        hover.w += (rect.w - hover.w) * k;
+        hover.h += (rect.h - hover.h) * k;
+      }
+      var hoverGoal = s.hoverEffect && hover.index >= 0 && hover.index !== target ? 1 : 0;
+      hover.alpha += (hoverGoal - hover.alpha) * (1 - Math.exp(-dt / 0.08));
+
+      render();
+
+      var rest = pills.get(target);
+      var resting = drops.length === 0 && pills.size === 1 && rest &&
+        Math.abs(rest.mass - rest.scale) < 0.0008 && Math.abs(rest.velocity) < 0.004;
+      var hoverRect = rects[hover.index];
+      var hovering = Math.abs(hoverGoal - hover.alpha) > 0.003 ||
+        (hoverRect && Math.abs(hoverRect.x + hoverRect.w / 2 - hover.x) + Math.abs(hoverRect.w - hover.w) > 0.1);
+      if (!resting || hovering) raf = requestAnimationFrame(frame);
+      else {
+        rest.mass = 1;
+        rest.scale = 1;
+        rest.velocity = 0;
+        hover.alpha = hoverGoal;
+        render();
+      }
+    };
+    var wake = function () {
+      if (raf || disposed) return;
+      last = performance.now();
+      raf = requestAnimationFrame(frame);
+    };
+    var settle = function (index) {
+      pills.clear();
+      drops.length = 0;
+      target = index;
+      var state = pill(index);
+      state.mass = 1;
+      state.scale = 1;
+      state.velocity = 0;
+      render();
+    };
+    var go = function (index, animate) {
+      if (index === target) return;
+      if (!rects[index] || !animate || reduced || target < 0) {
+        settle(index);
+        return;
+      }
+      var now = performance.now();
+      target = index;
+      pill(index);
+      for (var i = 0; i < drops.length; i++) {
+        var drop = drops[i];
+        drop.index = index;
+        if (drop.state === 'flying') plan(drop, index, now, false);
+        if (drop.state === 'absorbing') {
+          drop.state = 'flying';
+          drop.mass *= 1 - drop.absorbed;
+          drop.absorbed = 0;
+          plan(drop, index, now, false);
+        }
+      }
+      Array.from(pills.keys()).forEach(function (from) {
+        if (from !== index) emit(from, index, now);
+      });
+      wake();
+    };
+    var onOver = function (event) {
+      var item = event.target.closest('[data-gooey-index]');
+      if (!item || !list.contains(item)) return;
+      var index = Number(item.dataset.gooeyIndex);
+      var rect = rects[index];
+      if (!rect) return;
+      if (hover.alpha < 0.01) {
+        hover.x = rect.x + rect.w / 2;
+        hover.y = rect.y + rect.h / 2;
+        hover.w = rect.w;
+        hover.h = rect.h;
+      }
+      hover.index = index;
+      wake();
+    };
+    var onLeave = function () {
+      hover.index = -1;
+      wake();
+    };
+
+    var observer = new ResizeObserver(function () {
+      measure();
+      if (!drops.length) settle(target < 0 ? self.current : target);
+      else render();
+    });
+    observer.observe(stage);
+    observer.observe(list);
+    list.addEventListener('pointerover', onOver);
+    list.addEventListener('pointerleave', onLeave);
+
+    measure();
+    settle(this.current);
+    if (document.fonts && document.fonts.ready) {
+      document.fonts.ready.then(function () {
+        if (disposed) return;
+        measure();
+        if (!drops.length) settle(target);
+      });
+    }
+
+    this.go = function (index) { go(index, true); };
+    this.refresh = function () { render(); wake(); };
+    this.destroy = function () {
+      disposed = true;
+      cancelAnimationFrame(raf);
+      observer.disconnect();
+      list.removeEventListener('pointerover', onOver);
+      list.removeEventListener('pointerleave', onLeave);
+      if (gl && pipeline) {
+        gl.deleteBuffer(pipeline.buffer);
+        gl.deleteProgram(pipeline.program);
+      }
+    };
+  };
+
+  GooeyNav.prototype.select = function (index) {
+    if (index === this.current) return;
+    this.current = index;
+    Array.prototype.forEach.call(this.list.children, function (li, i) {
+      if (i === index) li.setAttribute('data-active', '');
+      else li.removeAttribute('data-active');
+    });
+    this.go(index);
+    if (this.options.onChange) this.options.onChange(index, this.items[index]);
+  };
+
+  /* ---------- 页面装配 ---------- */
+  var statusEl = document.getElementById('status');
+  var nav = new GooeyNav(document.getElementById('mount'), {
+    theme: 'dark',
+    size: 'md',
+    frame: true,
+    color: '#c8ff4d',
+    colors: ['#7aa8ff', '#c8ff4d'],
+    animationTime: 600,
+    particleCount: 15,
+    spread: 56,
+    timeVariance: 300,
+    gooeyness: 0.5,
+    wobble: 0.5,
+    hoverEffect: true,
+    onChange: function (index, item) {
+      statusEl.textContent = '选中：' + item.label + '（第 ' + (index + 1) + ' 项）';
+    }
+  });
+
+  function bindSegment(id, key, after) {
+    var group = document.getElementById(id);
+    group.addEventListener('click', function (event) {
+      var button = event.target.closest('button[data-value]');
+      if (!button) return;
+      Array.prototype.forEach.call(group.querySelectorAll('button'), function (item) {
+        item.classList.toggle('is-on', item === button);
+      });
+      nav.options[key] = button.getAttribute('data-value');
+      if (after) after();
+      nav.refresh();
+    });
+  }
+  bindSegment('seg-theme', 'theme', function () {
+    document.body.setAttribute('data-theme', nav.options.theme);
+    nav.applyTheme();
+  });
+  bindSegment('seg-size', 'size');
+
+  function bindRange(id, key) {
+    var input = document.getElementById(id);
+    input.addEventListener('input', function () {
+      nav.options[key] = Number(input.value);
+      nav.refresh();
+    });
+  }
+  bindRange('opt-count', 'particleCount');
+  bindRange('opt-time', 'animationTime');
+  bindRange('opt-goo', 'gooeyness');
+  bindRange('opt-wobble', 'wobble');
+
+  document.getElementById('opt-color').addEventListener('input', function (event) {
+    nav.options.color = event.target.value;
+    nav.applyTheme();
+    nav.refresh();
+  });
+  document.getElementById('opt-drop').addEventListener('input', function (event) {
+    nav.options.colors = [event.target.value];
+    nav.refresh();
+  });
+  document.getElementById('opt-hover').addEventListener('change', function (event) {
+    nav.options.hoverEffect = event.target.checked;
+    nav.refresh();
+  });
+})();
+</script>
+</body>
+</html>

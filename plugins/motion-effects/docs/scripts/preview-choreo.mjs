@@ -203,6 +203,21 @@ export const CHOREO = {
     }
   },
 
+  // 液态导航：依次点四项，让胶囊反复碎成液滴再聚回来
+  'gooey-nav': {
+    zoom: 1.6,
+    css: hide('.intro, .controls, .status'),
+    async run(page) {
+      const links = page.locator('.gooey-nav__list').first().locator('a')
+      const count = await links.count()
+      for (let i = 1; i < count; i++) {
+        await links.nth(i).click()
+        await pause(page, 1200)
+      }
+      await pause(page, 1100)
+    }
+  },
+
   // 点击火花：连点三下，让不同位置的火花依次炸开
   'click-spark': {
     zoom: 1.25,

@@ -1,4 +1,4 @@
-# 特效目录（28 个）
+# 特效目录（29 个）
 
 > 路径均相对 `skills/motion-effects/`。
 > **Vue 难度**：`易` ≈ 1–2 小时直译；`中` ≈ 半天，需处理 ref / 生命周期 / motion-v；`难` ≈ 1–2 天，含 WebGL / three.js / canvas 大组件。
@@ -14,6 +14,7 @@
 | 玻璃拟态面板 | `GlassSurface` | `glass-folder-cards`、`liquid-glass-navbar`、`glassy-dashboard` |
 | 身份卡 / 票券 / 3D 翻面 | `ReflectiveCard` | `FlipCard` |
 | 导航 | `PillNav` | `liquid-glass-navbar` |
+| 液态导航 | `GooeyNav` | `PillNav`、`liquid-glass-navbar` |
 | 氛围装饰 | `GhostCursor` | `SplashCursor`、`PaperCrumple`、`GridMotion` |
 | 拖拽碎纸 / 列表重排 | `Shredder` | `SwipeRow` |
 | 卡片光斑 / 悬停高光 | `SpotlightCard` | `ReflectiveCard`、`GlassSurface` |
@@ -56,6 +57,7 @@
 | 26 | `AIPromptBox` | 操作与反馈 | AI 输入框：三种互斥模式 / 图片附件预览 / 语音录音 / 发送 | `motion-v` + `@lucide/vue` | CSS 文件 | 中 |
 | 27 | `Stepper` | 操作与反馈 | 分步引导：数字 / 圆点 / 条形指示器，横向与纵向布局，滑动切换与弹簧高度动画 | Hugeicons | CSS 文件 | 中 |
 | 28 | `ClickSpark` | 操作与反馈 | 点击火花：短线 / 拖尾 / 圆点 / 星形四种形状，带重力、扇形扩散、辉光与光环 | 无 | 内联 | 中 |
+| 29 | `GooeyNav` | 导航与页面 | 液态导航：胶囊碎成液滴飞向新项，途中融合再聚形 | 无 | CSS 文件 | 难 |
 
 ## Vue 实装进度（0.1）
 
@@ -91,10 +93,11 @@
 | `AIPromptBox` | `../../packages/vue/src/components/AIPromptBox.vue` | `../../packages/vue/tests/ai-prompt-box.spec.ts` |
 | `Stepper` | `../../packages/vue/src/components/Stepper.vue` | `../../packages/vue/tests/stepper.spec.ts` |
 | `ClickSpark` | `../../packages/vue/src/components/ClickSpark.vue` | `../../packages/vue/tests/click-spark.spec.ts` |
+| `GooeyNav` | `../../packages/vue/src/components/GooeyNav.vue` | `../../packages/vue/tests/gooey-nav.spec.ts` |
 
-全部 28 个特效均已有 Vue 3 实装；React 源码与 vanilla 演示保留作对照真源。
+全部 29 个特效均已有 Vue 3 实装；React 源码与 vanilla 演示保留作对照真源。
 
-后二十五个（`TerminalReplay`、`ScrollLockedVideoHero`、`PeakChart`、`GlassyDashboard`、`SplashCursor`、`Shredder`、`SpotlightCard`、`LiquidNavbar`、`GlassSurface`、`AnimatedList`、`FlipCard`、`GhostCursor`、`GridMotion`、`RubberSegment`、`TiltedCard`、`Signature`、`PaperCrumple`、`ReflectiveCard`、`PillNav`、`MagicBento`、`GlassFolder`、`GlassIconReveal`、`AIPromptBox`、`Stepper`、`ClickSpark`）与 React 原件有几处有意的行为差异，见 `../../packages/vue/README.md` 的「与 React 原件的差异」。
+后二十五个（`TerminalReplay`、`ScrollLockedVideoHero`、`PeakChart`、`GlassyDashboard`、`SplashCursor`、`Shredder`、`SpotlightCard`、`LiquidNavbar`、`GlassSurface`、`AnimatedList`、`FlipCard`、`GhostCursor`、`GridMotion`、`RubberSegment`、`TiltedCard`、`Signature`、`PaperCrumple`、`ReflectiveCard`、`PillNav`、`MagicBento`、`GlassFolder`、`GlassIconReveal`、`AIPromptBox`、`Stepper`、`ClickSpark`、`GooeyNav`）与 React 原件有几处有意的行为差异，见 `../../packages/vue/README.md` 的「与 React 原件的差异」。
 
 > Vue 实装自带 CSS，不依赖 Tailwind；需要安装的依赖见下面「依赖安装」。
 
@@ -116,7 +119,7 @@ React 项目对应：`motion` + `@hugeicons/react`；`glassy-dashboard` 另需 `
 
 **样式形态分三类**：
 
-- **CSS 文件**（13 个）：源码旁有同名 `.css`，直接一起复制。
+- **CSS 文件**（14 个）：源码旁有同名 `.css`，直接一起复制。
 - **Tailwind**（`GridMotion`、`SwipeRow`、`Stepper`）：React 源码没有独立 CSS，样式写死在 JSX 的任意值类里；Vue 项目不用 Tailwind 时，直接复用对应 demo 里的等价 CSS（`grid-motion.html` / `swipe-row.html` / `stepper.html`），不要逐条翻译任意值类。`SwipeRow` 与 `Stepper` 的 Vue 实装已带提取好的同名 CSS。
 - **内联**（TSX）：样式在组件文件的 `<style>` / style 对象里，随源码一起搬；`liquid-glass-logo-reveal` 的容器另有 5 个 Tailwind 工具类，可手写成普通 CSS；`glassy-dashboard` 把整份 `dashboardStyles` 以 `<style>{dashboardStyles}</style>` 注入，不依赖 Tailwind。
 
@@ -371,3 +374,12 @@ React 项目对应：`motion` + `@hugeicons/react`；`glassy-dashboard` 另需 `
 - **关键 API**：`sparkColor`（单色或颜色数组，按顺序轮换）、`sparkSize`、`sparkRadius`、`sparkCount`、`sparkWidth`、`duration`、`easing`（`linear` / `ease-in` / `ease-out` / `ease-in-out` / `spring`）、`extraScale`、`shape`（`line` / `streak` / `dot` / `star`）、`randomness`、`gravity`、`spread`（扇形张角）、`direction`、`glow`、`ring`、`layer`（`front` / `back`）、`disabled`；React 的 `ref.spark(x, y)` 在 Vue 里同样通过 ref 暴露。
 - **移植要点**：整段引擎是纯 canvas 2d + 原生 pointer 事件，**零第三方依赖**。每次点击按需在火花层里建一张只覆盖爆点附近的 canvas（按 DPR 放大，最多并发 32 次），画完即从 DOM 移除——不要改成整屏一张大 canvas，否则每次点击都要重绘全屏。Vue 实装没有 `className` prop（`class` / `style` 自动透传），根节点与火花层的样式落在 `ClickSpark.css`。**帧时间要取 `performance.now()` 而不是 rAF 回调的时间戳**：上游用时间戳，在 jsdom 等两者不同源的环境里会算出负的 `elapsed`，火花永远画不出来（仓库里 `PeakChart` / `SpotlightCard` 也是这个约定）。
 - **注意**：鼠标走 `pointerdown` 触发，触摸与键盘走 `click`（`detail === 0` 视为键盘激活，在目标中心爆开）；同一次交互不会重复触发（700ms 内、位移小于 12px 视为同一次）。`prefers-reduced-motion` 下寿命压到 320ms 且不做位移与淡出。星形依赖 `sin` 的闪烁包络，起始半径接近 0，第一帧几乎不可见——这是上游行为，不是渲染失败。
+
+## 29. GooeyNav · 液态导航
+
+- **源码**：`GooeyNav.jsx` + `GooeyNav.css`（JavaScript + CSS 变体）；**演示**：`gooey-nav.html`
+- **Vue 实装**：`../../packages/vue/src/components/GooeyNav.vue`（已测试；着色器与引擎在 `../../packages/vue/src/composables/gooeyNavEngine.ts` / `useGooeyNav.ts`）
+- **适用**：官网顶部导航、产品分区切换、标签式主导航；需要"切换时液体飞溅"的品牌感。
+- **关键 API**：`items`（`{ label?, href?, icon? }`）、`activeIndex`（Vue 用 `v-model:activeIndex`）、`initialActiveIndex`、`onChange`（Vue：`change` 事件）、`theme`（`dark` / `light`）、`color`、`activeTextColor`、`colors`（液滴配色）、`size`（`sm` / `md` / `lg`）、`frame`、`animationTime`（600ms）、`particleCount`（15）、`spread`（56）、`timeVariance`（300）、`gooeyness`（0.5）、`wobble`（0.5）、`hoverEffect`。
+- **移植要点**：纯 WebGL2 + SDF 着色器，**零第三方依赖**（不引 GLSL 库）。着色器里用 smooth-min 把胶囊与液滴的 SDF 融合，React 原件把整段着色器写在组件里，Vue 实装拆到 `gooeyNavEngine.ts`。两处必须与上游一致：`blend()` 里 w 通道的 `mix(b.w, a.w, h)` 参数顺序（写反会让场值停在 1e5 哨兵上、液滴整个不画），以及 `uPills[4]` / `uDrops[32]` 的 uniform 数组上限。**帧时间要取 `performance.now()` 而不是 rAF 回调的时间戳**：上游用时间戳，在 jsdom 等两者不同源的环境里会算出负的 dt，动画不动。
+- **注意**：拿不到 WebGL2 时组件退回 CPU 侧的等值线追踪 + `clip-path`（同一份 SDF 公式），液体照样有，只是没有 GPU 的柔光与阴影。`prefers-reduced-motion` 下不做液滴飞行，直接切到新项。指针移到某一项会出现柔和高亮（`hoverEffect`）。

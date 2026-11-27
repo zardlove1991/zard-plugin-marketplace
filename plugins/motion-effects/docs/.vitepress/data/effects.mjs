@@ -1,5 +1,5 @@
 /**
- * 28 个特效的站点数据。
+ * 29 个特效的站点数据。
  * 与 references/catalog.md 保持一致；新增/修改特效时同时更新这里。
  * 也供 scripts/sync-assets.mjs 做构建期文件校验。
  */
@@ -211,6 +211,13 @@ export const EFFECTS = [
     deps: [], demo: 'click-spark.html', source: 'react/components/ui/ClickSpark.jsx',
     props: ['sparkColor', 'shape', 'sparkCount / sparkRadius', 'gravity / spread / direction', 'glow / ring', 'disabled'],
     note: '零第三方依赖（纯 canvas 2d + 原生 pointer 事件）；每次点击按需建一张只覆盖爆点附近、按 DPR 放大的小画布，画完即从 DOM 移除，同页最多并发 32 次爆点。Vue 实装通过 ref 暴露 spark(x, y) 手动触发；帧时间统一取 performance.now()（上游用 rAF 时间戳，在 jsdom 等环境会算出负的 elapsed）。'
+  },
+  {
+    id: 'gooey-nav', name: 'GooeyNav', zh: '液态导航', cat: '导航与页面', vue: 'hard', vueReady: true, height: 460,
+    desc: '液态导航：切换时胶囊碎成液滴飞向新位置，途中互相融合，落地再聚成新的胶囊；WebGL2 SDF 着色器，拿不到 WebGL2 时退回 CPU 等值线 + clip-path。',
+    deps: [], demo: 'gooey-nav.html', source: 'react/components/ui/GooeyNav.jsx',
+    props: ['items', 'activeIndex / initialActiveIndex', 'color / colors', 'particleCount / spread / animationTime', 'gooeyness / wobble', 'size / theme'],
+    note: '零第三方依赖（纯 WebGL2 + SDF 着色器）；着色器里的 SDF 融合公式与 4 / 32 个 uniform 数组上限不要改。Vue 实装用 v-model:activeIndex 受控，onChange 换成 change 事件；帧时间取 performance.now()（上游用 rAF 时间戳，在 jsdom 等环境会算出负的 dt）。'
   }
 ]
 
