@@ -29,4 +29,5 @@ export const PREVIEWS = {
   'shredder': { webm: '/previews/shredder.webm', mp4: '/previews/shredder.mp4', poster: '/previews/shredder.webp' },
   'spotlight-card': { webm: '/previews/spotlight-card.webm', mp4: '/previews/spotlight-card.mp4', poster: '/previews/spotlight-card.webp' },
   'ai-prompt-box': { webm: '/previews/ai-prompt-box.webm', mp4: '/previews/ai-prompt-box.mp4', poster: '/previews/ai-prompt-box.webp' },
+  'stepper': { webm: '/previews/stepper.webm', mp4: '/previews/stepper.mp4', poster: '/previews/stepper.webp' },
 }

@@ -1,5 +1,5 @@
 /**
- * 26 个特效的站点数据。
+ * 27 个特效的站点数据。
  * 与 references/catalog.md 保持一致；新增/修改特效时同时更新这里。
  * 也供 scripts/sync-assets.mjs 做构建期文件校验。
  */
@@ -197,6 +197,13 @@ export const EFFECTS = [
     deps: ['motion-v', '@lucide/vue'], demo: 'ai-prompt-box.html', source: 'react/components/ui/ai-prompt-box.tsx',
     props: ['modelValue', 'mode', 'isLoading', 'showUpload / showVoice / showToggles', 'accept / maxFileSize', 'labels'],
     note: '图片只保留一张（新图替换旧图），支持选择 / 粘贴 / 拖拽，按 accept 与 maxFileSize 校验；录音停录后会按上游语义自动发一条语音占位消息。自定义文案用 labels 覆盖。Vue 用互斥的 mode 替代三个布尔开关，send / files-change 等事件替代回调。'
+  },
+  {
+    id: 'stepper', name: 'Stepper', zh: '分步引导', cat: '操作与反馈', vue: 'mid', vueReady: true, height: 520,
+    desc: '分步引导：数字 / 圆点 / 条形三种指示器，横向与纵向两种布局，滑动 / 淡入切换与弹簧高度动画。',
+    deps: ['Hugeicons'], demo: 'stepper.html', source: 'react/components/ui/Stepper.tsx',
+    props: ['steps', 'indicator / orientation', 'transition', 'linear', 'v-model:step', 'accentColor / theme'],
+    note: '指示器用滑块跟随当前步，纵向布局在 520px 以下自动折叠成紧凑横向排布；当前步的指示器是禁用的（与 React 原件一致）。linear 打开时只能点回走过的步骤。Vue 用 steps 数组 + #step 作用域插槽替代 React 的 children 与 Step 子组件，步序走 v-model:step。'
   }
 ]
 

@@ -1,4 +1,4 @@
-# 特效目录（26 个）
+# 特效目录（27 个）
 
 > 路径均相对 `skills/motion-effects/`。
 > **Vue 难度**：`易` ≈ 1–2 小时直译；`中` ≈ 半天，需处理 ref / 生命周期 / motion-v；`难` ≈ 1–2 天，含 WebGL / three.js / canvas 大组件。
@@ -21,6 +21,7 @@
 | 图片墙 / 自动滚动网格 | `GridMotion` | — |
 | 品牌 Logo 揭示 | `liquid-glass-logo-reveal` | — |
 | AI 对话输入框 | `AIPromptBox` | — |
+| 分步引导 / 引导流程 | `Stepper` | — |
 
 ## 总表
 
@@ -52,6 +53,7 @@
 | 24 | `Shredder` | 操作与反馈 | 可拖拽碎纸机：切条卷曲飘落 / 重排 / 循环 / 自动播放 / 键盘 shred | 无 | 内联 | 难 |
 | 25 | `SpotlightCard` | 卡片与容器 | 光斑卡片：跟随指针的柔光 / 边缘邻近发光 / 光束形态 / 按压 flare / 颗粒 | 无 | 内联 | 中 |
 | 26 | `AIPromptBox` | 操作与反馈 | AI 输入框：三种互斥模式 / 图片附件预览 / 语音录音 / 发送 | `motion-v` + `@lucide/vue` | CSS 文件 | 中 |
+| 27 | `Stepper` | 操作与反馈 | 分步引导：数字 / 圆点 / 条形指示器，横向与纵向布局，滑动切换与弹簧高度动画 | Hugeicons | CSS 文件 | 中 |
 
 ## Vue 实装进度（0.1）
 
@@ -84,10 +86,12 @@
 | `MagicBento` | `../../packages/vue/src/components/MagicBento.vue` | `../../packages/vue/tests/magic-bento.spec.ts` |
 | `GlassFolder` | `../../packages/vue/src/components/GlassFolder.vue` | `../../packages/vue/tests/glass-folder.spec.ts` |
 | `GlassIconReveal` | `../../packages/vue/src/components/GlassIconReveal.vue` | `../../packages/vue/tests/liquid-glass-logo-reveal.spec.ts` |
+| `AIPromptBox` | `../../packages/vue/src/components/AIPromptBox.vue` | `../../packages/vue/tests/ai-prompt-box.spec.ts` |
+| `Stepper` | `../../packages/vue/src/components/Stepper.vue` | `../../packages/vue/tests/stepper.spec.ts` |
 
-全部 25 个特效均已有 Vue 3 实装；React 源码与 vanilla 演示保留作对照真源。
+全部 27 个特效均已有 Vue 3 实装；React 源码与 vanilla 演示保留作对照真源。
 
-后二十二个（`TerminalReplay`、`ScrollLockedVideoHero`、`PeakChart`、`GlassyDashboard`、`SplashCursor`、`Shredder`、`SpotlightCard`、`LiquidNavbar`、`GlassSurface`、`AnimatedList`、`FlipCard`、`GhostCursor`、`GridMotion`、`RubberSegment`、`TiltedCard`、`Signature`、`PaperCrumple`、`ReflectiveCard`、`PillNav`、`MagicBento`、`GlassFolder`、`GlassIconReveal`）与 React 原件有几处有意的行为差异，见 `../../packages/vue/README.md` 的「与 React 原件的差异」。
+后二十四个（`TerminalReplay`、`ScrollLockedVideoHero`、`PeakChart`、`GlassyDashboard`、`SplashCursor`、`Shredder`、`SpotlightCard`、`LiquidNavbar`、`GlassSurface`、`AnimatedList`、`FlipCard`、`GhostCursor`、`GridMotion`、`RubberSegment`、`TiltedCard`、`Signature`、`PaperCrumple`、`ReflectiveCard`、`PillNav`、`MagicBento`、`GlassFolder`、`GlassIconReveal`、`AIPromptBox`、`Stepper`）与 React 原件有几处有意的行为差异，见 `../../packages/vue/README.md` 的「与 React 原件的差异」。
 
 > Vue 实装自带 CSS，不依赖 Tailwind；需要安装的依赖见下面「依赖安装」。
 
@@ -96,7 +100,7 @@
 ```bash
 # 按需安装，不要全量装
 pnpm add motion-v @vueuse/core    # FlipCard / RubberSegment / SwipeRow；@vueuse/core 是 motion-v 的 peer
-pnpm add @hugeicons/vue @hugeicons/core-free-icons   # AnimatedList / MagicBento / ReflectiveCard / SwipeRow
+pnpm add @hugeicons/vue @hugeicons/core-free-icons   # AnimatedList / MagicBento / ReflectiveCard / SwipeRow / Stepper
 pnpm add three                   # PaperCrumple
 pnpm add clsx tailwind-merge     # liquid-glass-logo-reveal 的 cn()
 pnpm add gsap @gsap/react lucide-react @fontsource-variable/manrope   # glassy-dashboard（React 原件）
@@ -110,7 +114,7 @@ React 项目对应：`motion` + `@hugeicons/react`；`glassy-dashboard` 另需 `
 **样式形态分三类**：
 
 - **CSS 文件**（12 个）：源码旁有同名 `.css`，直接一起复制。
-- **Tailwind**（`GridMotion`、`SwipeRow`）：React 源码没有独立 CSS，样式写死在 JSX 的任意值类里；Vue 项目不用 Tailwind 时，直接复用对应 demo 里的等价 CSS（`grid-motion.html` / `swipe-row.html`），不要逐条翻译任意值类。`SwipeRow` 的 Vue 实装已带提取好的 `SwipeRow.css`。
+- **Tailwind**（`GridMotion`、`SwipeRow`、`Stepper`）：React 源码没有独立 CSS，样式写死在 JSX 的任意值类里；Vue 项目不用 Tailwind 时，直接复用对应 demo 里的等价 CSS（`grid-motion.html` / `swipe-row.html` / `stepper.html`），不要逐条翻译任意值类。`SwipeRow` 与 `Stepper` 的 Vue 实装已带提取好的同名 CSS。
 - **内联**（TSX）：样式在组件文件的 `<style>` / style 对象里，随源码一起搬；`liquid-glass-logo-reveal` 的容器另有 5 个 Tailwind 工具类，可手写成普通 CSS；`glassy-dashboard` 把整份 `dashboardStyles` 以 `<style>{dashboardStyles}</style>` 注入，不依赖 Tailwind。
 
 ---
@@ -346,3 +350,12 @@ React 项目对应：`motion` + `@hugeicons/react`；`glassy-dashboard` 另需 `
 - **关键 API**：`value` / `onValueChange`（Vue 用 `v-model`）、`isLoading`、`placeholder`、`onSend`（Vue 用 `send` 事件）、`onStop`、`className`。Vue 额外提供 `mode`（`v-model:mode`，`search` / `think` / `canvas` / `null`）、`showUpload` / `showVoice` / `showToggles`、`accept`、`maxFileSize`（10MB）、`labels`、`files-change` / `file-error` / `recording-start` / `recording-stop` / `mode-change` 事件，以及 `focus` / `submit` / `clear` ref 方法。
 - **移植要点**：React 的三个布尔 `showSearch` / `showThink` / `showCanvas` 合并成互斥 `mode`；`onSend` 换成 `send` 事件，`value` / `onValueChange` 换成 `v-model`。无 UI 逻辑拆成四个组合式函数：录音计时（`setInterval` + 随机可视化柱，开始录音时生成一次）、预览弹层（Escape / 锁滚动 / 焦点归还）、附件（accept + 体积校验 + FileReader data URL + 只保留一张）、拖拽（只认带文件的拖拽，depth 计数防抖）。浏览器 API 只在挂载后或事件处理器里访问，SSR 安全。
 - **注意**：**零 WebGL 依赖**，离线可跑；图片只保留一张（新图替换旧图），跨域图片不上传、仅本地预览；录音用计时模拟，不接真实 `MediaRecorder`，停录按上游语义自动发一条语音占位消息；`prefers-reduced-motion` 下弹层过渡时长为 0；Enter 发送、Shift+Enter / 输入法组字不发送。
+
+## 27. Stepper · 分步引导
+
+- **源码**：`Stepper.tsx`（TypeScript + Tailwind 变体）；**演示**：`stepper.html`
+- **Vue 实装**：`../../packages/vue/src/components/Stepper.vue`（已测试；状态机在 `../../packages/vue/src/composables/useStepper.ts`）
+- **适用**：新手引导、结算流程、多步表单、配置向导；需要"指示器跟步 + 内容滑动切换"的成套交互。
+- **关键 API**：`steps`（Vue：步骤数组 `{ title?, description?, icon?, content? }`）、`step`（受控 → Vue 用 `v-model:step`）、`initialStep`、`onStepChange`（Vue：`step-change`）、`onFinalStepCompleted`（Vue：`final-step-completed`）、`indicator`（`numbers` / `dots` / `bars`）、`orientation`（`horizontal` / `vertical`）、`transition`（`slide` / `fade` / `none`）、`linear`、`disableStepIndicators`、`renderStepIndicator`（Vue：`#indicator` 插槽）、`showFooter`、`backButtonText`、`nextButtonText`、`completeButtonText`、`completedContent`、`theme`、`accentColor`、`frame`、`radius`、`width`。
+- **移植要点**：React 原件用 `children` + `<Step>` 子组件组织步骤，Vue 改用 `steps` 数组 + `#step` 作用域插槽（`{ index, step, current, status }`）；`Step` 的 `icon` 从 React 节点换成 Vue 组件。指示器下方的"滑块"靠 `translate3d` 跟随当前步，位置测量只看**轨道**的尺寸——盯根节点会被内容高度变化打断动画。主题是同一组 `--stepper-*` 变量，`accentColor` 会连同 `--stepper-solid-ink`（按亮度自动选黑或白）一起覆盖。
+- **注意**：纵向布局在面板宽度 < 520px 时自动折叠成紧凑的横向排布（`width` 默认 440，所以默认宽度下看不到竖排 rail）；**当前步的指示器是禁用的**（React 原件如此），`linear` 打开时只能点回走过的步骤。`prefers-reduced-motion` 下切换退化为淡入。React 源码依赖 Tailwind 与 `@hugeicons/react`，Vue 实装自带普通 CSS，只需 `@hugeicons/vue`。

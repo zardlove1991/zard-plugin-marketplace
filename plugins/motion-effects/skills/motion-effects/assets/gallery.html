@@ -440,7 +440,7 @@
     <div class="brand">
       <span class="dot"></span>
       <b>Motion Effects</b>
-      <span>25 个特效 · Vue 3 优先 · 生产接入</span>
+      <span>27 个特效 · Vue 3 优先 · 生产接入</span>
     </div>
     <div class="header-note">
       <span>↑ ↓ 切换 · / 搜索</span>
@@ -666,6 +666,20 @@ const EFFECTS = [
     deps: [], demo: 'spotlight-card.html', source: 'react/components/ui/SpotlightCard.jsx',
     props: ['theme', 'spotlightColor', 'intensity', 'spotlightSize', 'softness', 'shape', 'borderGlow', 'proximity', 'smoothing', 'ambient', 'flare', 'grain', 'className'],
     note: '零第三方依赖（纯 DOM + radial-gradient + rAF）；两枚绝对定位 span 承载光斑与边缘光，mask 画 1px 边框；proximity 让相邻卡片共享一团光；prefers-reduced-motion 下关闭平滑与环境漂移。'
+  },
+  {
+    id: 'ai-prompt-box', name: 'AIPromptBox', zh: 'AI 输入框', cat: '操作与反馈', vue: 'mid',
+    desc: 'AI 对话输入框：文本 v-model、联网 / 思考 / 画板三种互斥模式、图片附件预览、语音录音与发送 / 停止。',
+    deps: ['motion-v', '@lucide/vue'], demo: 'ai-prompt-box.html', source: 'react/components/ui/ai-prompt-box.tsx',
+    props: ['modelValue', 'mode', 'isLoading', 'showUpload / showVoice / showToggles', 'accept / maxFileSize', 'labels'],
+    note: '图片只保留一张（新图替换旧图），支持选择 / 粘贴 / 拖拽，按 accept 与 maxFileSize 校验；录音停录后会按上游语义自动发一条语音占位消息。自定义文案用 labels 覆盖。'
+  },
+  {
+    id: 'stepper', name: 'Stepper', zh: '分步引导', cat: '操作与反馈', vue: 'mid',
+    desc: '分步引导：数字 / 圆点 / 条形指示器，横向与纵向布局，滑动切换与弹簧高度动画。',
+    deps: ['Hugeicons'], demo: 'stepper.html', source: 'react/components/ui/Stepper.tsx',
+    props: ['steps', 'indicator', 'orientation', 'transition', 'linear', 'disableStepIndicators', 'v-model:step', 'accentColor', 'theme'],
+    note: '指示器下方的滑块靠 translate3d 跟随当前步，位置测量只看轨道尺寸；纵向布局在面板宽度 < 520px 时折叠成紧凑横向排布；当前步的指示器是禁用的；linear 打开时只能点回走过的步骤。'
   }
 ];
 

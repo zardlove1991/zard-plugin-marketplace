@@ -1,0 +1,929 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Stepper</title>
+<style>
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    min-height: 100svh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 22px;
+    padding: 32px 16px;
+    background: radial-gradient(120% 120% at 50% 0%, #2b2b31, #16161a 72%);
+    font-family: ui-sans-serif, -apple-system, "Segoe UI", system-ui, sans-serif;
+    color: #e7e7ea;
+  }
+  body[data-theme="light"] {
+    background: radial-gradient(120% 120% at 50% 0%, #f6f6f8, #e7e7ea 72%);
+    color: #27272a;
+  }
+  .intro { text-align: center; margin: 0; }
+  /* 给挂载点一个确定宽度：面板宽度才不会跟着每一步的文案长短变化，
+     滑块的滑动动画才不会被尺寸变化打断 */
+  #mount { width: min(100%, 720px); }
+  .intro h1 { margin: 0 0 6px; font-size: 22px; letter-spacing: -0.01em; }
+  .intro p { margin: 0; font-size: 13px; opacity: 0.62; }
+
+  /* ---------- 组件样式：与 React 原件的 --stepper-* 变量一一对应 ---------- */
+  .stepper {
+    --stepper-tile-radius: max(4px, calc(var(--stepper-well-radius) - 4px));
+    --stepper-well-radius: max(6px, calc(var(--stepper-radius) - 8px));
+    position: relative;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    width: min(100%, var(--stepper-width));
+    max-width: 100%;
+    min-width: 0;
+    border-radius: var(--stepper-radius);
+    color: var(--stepper-ink);
+    -webkit-tap-highlight-color: transparent;
+  }
+  .stepper.is-framed {
+    --stepper-bleed: 20px;
+    --stepper-inset: 12px;
+    --stepper-pad: 8px;
+    padding: var(--stepper-pad);
+    background: var(--stepper-frame);
+    box-shadow: var(--stepper-frame-shadow);
+    backdrop-filter: blur(20px) saturate(1.6);
+    -webkit-backdrop-filter: blur(20px) saturate(1.6);
+  }
+  .stepper.is-bare { --stepper-bleed: 8px; --stepper-inset: 0px; --stepper-pad: 0px; }
+  .stepper.is-rail { flex-direction: row; align-items: stretch; }
+  .stepper__rim {
+    pointer-events: none;
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    border-radius: inherit;
+    box-shadow: inset 0 0 0 1px var(--stepper-frame-edge), inset 0 1px 0 var(--stepper-frame-highlight);
+  }
+  .stepper__head { min-width: 0; }
+  .stepper__head.is-rail { display: flex; width: 212px; max-width: 42%; flex: none; }
+  .stepper__track {
+    position: relative;
+    display: flex;
+    gap: 4px;
+    border-radius: var(--stepper-well-radius);
+    padding: 4px;
+    background: var(--stepper-well);
+  }
+  .stepper__track.is-rail { flex-direction: column; flex: 1; }
+  .stepper__glider {
+    pointer-events: none;
+    position: absolute;
+    top: 0;
+    left: 0;
+    border-radius: var(--stepper-tile-radius);
+    opacity: 0;
+    background: var(--stepper-tile);
+    box-shadow: inset 0 0 0 1px var(--stepper-tile-edge), inset 0 1px 0 var(--stepper-tile-highlight), var(--stepper-tile-shadow);
+  }
+  .stepper__segment {
+    position: relative;
+    box-sizing: border-box;
+    display: flex;
+    min-width: 0;
+    cursor: pointer;
+    border: none;
+    border-radius: var(--stepper-tile-radius);
+    background: transparent;
+    font: inherit;
+    color: var(--stepper-muted);
+    transition: background-color 0.2s ease;
+  }
+  .stepper__segment:disabled { cursor: default; }
+  .stepper__segment.is-row { height: 40px; flex: 1 1 auto; align-items: center; justify-content: center; gap: 8px; padding: 0 10px; }
+  .stepper__segment.is-rail { height: auto; flex: none; align-items: flex-start; justify-content: flex-start; gap: 10px; padding: 10px; }
+  .stepper__segment:focus-visible { outline: 2px solid var(--stepper-ink); outline-offset: 2px; }
+  @media (hover: hover) {
+    .stepper__segment:not(:disabled):hover { background: var(--stepper-hover-fill); }
+  }
+  .stepper__badge {
+    display: grid;
+    width: 22px;
+    height: 22px;
+    flex: none;
+    place-items: center;
+    border-radius: 999px;
+    font-size: 11.5px;
+    line-height: 1;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    color: var(--stepper-muted);
+    box-shadow: inset 0 0 0 1px var(--stepper-faint);
+    transition: background-color 0.15s ease, box-shadow 0.15s ease, color 0.15s ease;
+  }
+  .stepper__badge[data-status="active"] { color: var(--stepper-ink); box-shadow: inset 0 0 0 1.5px var(--stepper-ink); }
+  .stepper__badge[data-status="complete"] { color: var(--stepper-solid-ink); background: var(--stepper-solid); box-shadow: none; }
+  .stepper__check { display: grid; place-items: center; }
+  .stepper__check svg { display: block; }
+  .stepper__text { display: flex; min-width: 0; flex-direction: column; gap: 2px; text-align: left; }
+  .stepper__text.is-rail { padding-top: 3px; }
+  .stepper__title {
+    overflow: hidden;
+    font-size: 13px;
+    line-height: 1.2;
+    font-weight: 600;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    transition: color 0.2s ease;
+  }
+  .stepper__title[data-status="upcoming"] { color: var(--stepper-muted); }
+  .stepper__desc { overflow: hidden; font-size: 12px; line-height: 1.35; color: var(--stepper-muted); text-overflow: ellipsis; white-space: nowrap; }
+  .stepper__dots { display: flex; justify-content: center; gap: 2px; }
+  .stepper__dot {
+    display: grid;
+    width: 22px;
+    height: 22px;
+    cursor: pointer;
+    place-items: center;
+    border: none;
+    border-radius: 999px;
+    background: transparent;
+    padding: 0;
+  }
+  .stepper__dot:disabled { cursor: default; }
+  .stepper__dot:focus-visible { outline: 2px solid var(--stepper-ink); outline-offset: 2px; }
+  .stepper__dot i {
+    display: block;
+    width: 8px;
+    height: 8px;
+    border-radius: 999px;
+    background: var(--stepper-faint);
+    transition: background-color 0.25s ease, transform 0.45s var(--stepper-spring);
+  }
+  .stepper__dot i[data-status="active"] { background: var(--stepper-solid); transform: scale(1.3); }
+  .stepper__dot i[data-status="complete"] { background: var(--stepper-muted); }
+  @media (hover: hover) {
+    .stepper__dot:not(:disabled):hover i { transform: scale(1.3); }
+  }
+  .stepper__bars { display: flex; gap: 6px; }
+  .stepper__bar {
+    display: flex;
+    height: 18px;
+    flex: 1;
+    cursor: pointer;
+    align-items: center;
+    border: none;
+    background: transparent;
+    padding: 0;
+  }
+  .stepper__bar:disabled { cursor: default; }
+  .stepper__bar:focus-visible { outline: 2px solid var(--stepper-ink); outline-offset: 2px; }
+  .stepper__bar-track { position: relative; width: 100%; height: 4px; overflow: hidden; border-radius: 4px; background: var(--stepper-track); }
+  @media (hover: hover) {
+    .stepper__bar:not(:disabled):hover .stepper__bar-track { background: var(--stepper-faint); }
+  }
+  .stepper__bar-fill {
+    position: absolute;
+    inset: 0;
+    transform-origin: left;
+    transform: scaleX(0);
+    background: var(--stepper-solid);
+    transition: transform 560ms var(--stepper-spring);
+  }
+  .stepper__bar-fill[data-filled] { transform: none; }
+  .stepper__body { display: flex; min-width: 0; flex-direction: column; }
+  .stepper__body.is-rail { flex: 1; padding: var(--stepper-inset) var(--stepper-inset) var(--stepper-inset) 20px; }
+  .stepper__body:not(.is-rail) { padding: 20px var(--stepper-inset) var(--stepper-inset); }
+  .stepper__viewport {
+    position: relative;
+    margin: -6px calc(var(--stepper-bleed) * -1);
+    overflow: hidden;
+  }
+  .stepper__pane { box-sizing: border-box; padding: 6px var(--stepper-bleed); outline: none; }
+  .stepper__pane.is-leaving { pointer-events: none; position: absolute; top: 0; right: 0; left: 0; }
+  .stepper__footer-wrap {
+    display: grid;
+    grid-template-rows: 1fr;
+    transition: grid-template-rows 480ms var(--stepper-spring), opacity 0.2s ease;
+  }
+  .stepper__footer-wrap[data-hidden] { pointer-events: none; grid-template-rows: 0fr; opacity: 0; }
+  .stepper__footer-clip { min-height: 0; }
+  .stepper__footer-wrap[data-hidden] .stepper__footer-clip { overflow: hidden; }
+  .stepper__footer { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding-top: 20px; }
+  .stepper__btn {
+    display: inline-flex;
+    height: 38px;
+    flex: none;
+    cursor: pointer;
+    align-items: center;
+    gap: 6px;
+    border: none;
+    border-radius: max(8px, calc(var(--stepper-radius) * 0.5));
+    padding: 0 14px;
+    font: inherit;
+    font-size: 13.5px;
+    line-height: 1;
+    font-weight: 600;
+    transition: filter 0.2s ease, transform 0.2s ease, opacity 0.2s ease;
+  }
+  .stepper__btn:focus-visible { outline: 2px solid var(--stepper-ink); outline-offset: 2px; }
+  .stepper__btn:active { filter: var(--stepper-press); transform: scale(0.96); }
+  .stepper__btn--back {
+    padding-left: 10px;
+    color: var(--stepper-ink);
+    background: var(--stepper-tile);
+    box-shadow: inset 0 0 0 1px var(--stepper-tile-edge), inset 0 1px 0 var(--stepper-tile-highlight), var(--stepper-tile-shadow);
+  }
+  .stepper__btn--back:hover { filter: var(--stepper-hover); }
+  .stepper__btn--back[data-hidden] { visibility: hidden; opacity: 0; transition: opacity 0.2s ease, visibility 0s 0.2s; }
+  .stepper__btn--next {
+    margin-left: auto;
+    padding-right: 11px;
+    color: var(--stepper-solid-ink);
+    background: var(--stepper-solid);
+    box-shadow: 0 4px 12px -6px rgba(0, 0, 0, 0.5);
+  }
+  .stepper__btn--next:hover { filter: var(--stepper-solid-hover); }
+  .stepper__pane h3 { margin: 0 0 6px; font-size: 17px; letter-spacing: -0.01em; }
+  .stepper__pane p { margin: 0; font-size: 13.5px; line-height: 1.6; opacity: 0.68; }
+  .stepper__pane input {
+    width: 100%;
+    margin-top: 12px;
+    padding: 9px 11px;
+    border: 1px solid var(--stepper-faint);
+    border-radius: 10px;
+    outline: none;
+    background: var(--stepper-well);
+    color: var(--stepper-ink);
+    font: inherit;
+    font-size: 13.5px;
+  }
+  .stepper__pane input::placeholder { color: var(--stepper-muted); }
+
+  /* ---------- 控制面板 ---------- */
+  .controls { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px 16px; width: min(100%, 560px); }
+  .control { display: flex; align-items: center; gap: 8px; font-size: 12px; opacity: 0.78; }
+  .control > span { letter-spacing: 0.02em; }
+  .seg { display: inline-flex; gap: 2px; border-radius: 999px; padding: 3px; background: rgba(127, 127, 140, 0.16); }
+  .seg button {
+    border: none;
+    border-radius: 999px;
+    padding: 5px 11px;
+    background: transparent;
+    color: inherit;
+    font: inherit;
+    font-size: 12px;
+    cursor: pointer;
+  }
+  .seg button.is-on { background: rgba(127, 127, 140, 0.34); }
+  .control input[type="color"] { width: 30px; height: 26px; padding: 0; border: none; border-radius: 8px; background: transparent; cursor: pointer; }
+  .control input[type="range"] { width: 120px; accent-color: #c8ff4d; }
+  .status { margin: 0; font: 500 12px/1.5 ui-monospace, monospace; opacity: 0.55; text-align: center; }
+
+  @media (prefers-reduced-motion: reduce) {
+    .stepper__dot i, .stepper__bar-fill, .stepper__footer-wrap { transition-duration: 0.01ms; }
+  }
+</style>
+</head>
+<body data-theme="dark">
+  <div class="intro">
+    <h1>Stepper</h1>
+    <p>分步引导：数字 / 圆点 / 条形指示器，横向与纵向布局，滑动切换与弹簧高度动画</p>
+  </div>
+
+  <div id="mount"></div>
+
+  <div class="controls">
+    <label class="control">
+      <span>Indicator</span>
+      <span class="seg" id="seg-indicator">
+        <button type="button" data-value="numbers" class="is-on">Numbers</button>
+        <button type="button" data-value="dots">Dots</button>
+        <button type="button" data-value="bars">Bars</button>
+      </span>
+    </label>
+    <label class="control">
+      <span>Layout</span>
+      <span class="seg" id="seg-orientation">
+        <button type="button" data-value="horizontal" class="is-on">Horizontal</button>
+        <button type="button" data-value="vertical">Vertical</button>
+      </span>
+    </label>
+    <label class="control">
+      <span>Transition</span>
+      <span class="seg" id="seg-transition">
+        <button type="button" data-value="slide" class="is-on">Slide</button>
+        <button type="button" data-value="fade">Fade</button>
+        <button type="button" data-value="none">None</button>
+      </span>
+    </label>
+    <label class="control"><span>Linear</span><input type="checkbox" id="opt-linear" /></label>
+    <label class="control"><span>Theme</span><input type="checkbox" id="opt-theme" /></label>
+    <label class="control"><span>Accent</span><input type="color" id="opt-accent" value="#c8ff4d" /></label>
+    <label class="control"><span>Width</span><input type="range" id="opt-width" min="320" max="720" step="20" value="440" /></label>
+  </div>
+
+  <p class="status" id="status">ready</p>
+
+<script>
+(function () {
+  var THEMES = {
+    dark: {
+      '--stepper-frame': 'rgba(38, 35, 46, 0.66)',
+      '--stepper-frame-edge': 'rgba(255, 255, 255, 0.08)',
+      '--stepper-frame-highlight': 'rgba(255, 255, 255, 0.07)',
+      '--stepper-frame-shadow': '0 22px 44px -20px rgba(0, 0, 0, 0.8), 0 6px 16px -8px rgba(0, 0, 0, 0.5)',
+      '--stepper-tile': 'linear-gradient(180deg, #3a3644 0%, #27242f 100%)',
+      '--stepper-tile-edge': 'rgba(255, 255, 255, 0.07)',
+      '--stepper-tile-highlight': 'rgba(255, 255, 255, 0.12)',
+      '--stepper-tile-shadow': '0 4px 10px -4px rgba(0, 0, 0, 0.7)',
+      '--stepper-well': 'rgba(255, 255, 255, 0.07)',
+      '--stepper-track': 'rgba(255, 255, 255, 0.1)',
+      '--stepper-ink': '#f4f4f5',
+      '--stepper-muted': 'rgba(244, 244, 245, 0.55)',
+      '--stepper-faint': 'rgba(255, 255, 255, 0.22)',
+      '--stepper-ring': 'rgba(244, 244, 245, 0.3)',
+      '--stepper-solid': '#f4f4f5',
+      '--stepper-solid-ink': '#18181b',
+      '--stepper-hover': 'brightness(1.12)',
+      '--stepper-hover-fill': 'rgba(255, 255, 255, 0.04)',
+      '--stepper-solid-hover': 'brightness(0.9)',
+      '--stepper-press': 'brightness(0.85)'
+    },
+    light: {
+      '--stepper-frame': 'rgba(240, 240, 243, 0.8)',
+      '--stepper-frame-edge': 'rgba(24, 24, 27, 0.07)',
+      '--stepper-frame-highlight': 'rgba(255, 255, 255, 0.95)',
+      '--stepper-frame-shadow': '0 22px 44px -22px rgba(24, 24, 27, 0.3), 0 6px 16px -10px rgba(24, 24, 27, 0.16)',
+      '--stepper-tile': 'linear-gradient(180deg, #ffffff 0%, #f6f6f8 100%)',
+      '--stepper-tile-edge': 'rgba(24, 24, 27, 0.08)',
+      '--stepper-tile-highlight': 'rgba(255, 255, 255, 1)',
+      '--stepper-tile-shadow': '0 4px 10px -5px rgba(24, 24, 27, 0.25)',
+      '--stepper-well': 'rgba(24, 24, 27, 0.05)',
+      '--stepper-track': 'rgba(24, 24, 27, 0.08)',
+      '--stepper-ink': '#27272a',
+      '--stepper-muted': 'rgba(39, 39, 42, 0.55)',
+      '--stepper-faint': 'rgba(24, 24, 27, 0.16)',
+      '--stepper-ring': 'rgba(24, 24, 27, 0.28)',
+      '--stepper-solid': '#27272a',
+      '--stepper-solid-ink': '#ffffff',
+      '--stepper-hover': 'brightness(0.97)',
+      '--stepper-hover-fill': 'rgba(24, 24, 27, 0.035)',
+      '--stepper-solid-hover': 'brightness(1.3)',
+      '--stepper-press': 'brightness(0.92)'
+    }
+  };
+
+  var SPRING = 'linear(0, 0.0603, 0.2033, 0.3821, 0.5633, 0.7258, 0.8584, 0.9574, 1.0242, 1.0634, 1.0809, 1.0828, 1.0747, 1.0613, 1.046, 1.0313, 1.0186, 1.0085, 1.0012, 0.9965, 0.994, 0.9931, 0.9933, 0.9941, 0.9953, 0.9966, 0.9978, 0.9988, 1)';
+  var SETTLE = 'cubic-bezier(0.22, 1, 0.36, 1)';
+
+  var CHECK_SVG = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>';
+  var ARROW_LEFT_SVG = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5"/><path d="m12 19-7-7 7-7"/></svg>';
+  var ARROW_RIGHT_SVG = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>';
+
+  var STEPS = [
+    {
+      title: 'Welcome',
+      description: 'Set up your workspace in a few quick steps.',
+      body: '<h3>Welcome aboard</h3><p>Set up your workspace in a few quick steps.</p>'
+    },
+    {
+      title: 'Plan',
+      description: 'Pick the plan that fits your team.',
+      body: '<h3>Choose a plan</h3><p>You can change this at any time. The stepper keeps the same spring timing as the React original.</p>'
+    },
+    {
+      title: 'Profile',
+      description: 'Tell us who you are.',
+      body: '<h3>What should we call you?</h3><input placeholder="Your name" />'
+    },
+    {
+      title: 'Review',
+      description: 'Check everything before you start.',
+      body: '<h3>Looking good</h3><p>Complete setup to open your workspace.</p>'
+    }
+  ];
+
+  var COMPLETED_BODY = '<h3>All done</h3><p>Your workspace is ready. Restart the demo to run it again.</p>';
+
+  function clamp(value, min, max) { return Math.min(max, Math.max(min, value)); }
+  function ease() {
+    if (typeof CSS !== 'undefined' && CSS.supports && CSS.supports('transition-timing-function', 'linear(0, 1)')) return SPRING;
+    return 'cubic-bezier(0.34, 1.4, 0.64, 1)';
+  }
+  function readableOn(color) {
+    var hex = String(color || '').trim().replace('#', '');
+    if (hex.length === 3) hex = hex.replace(/./g, function (c) { return c + c; });
+    if (!/^[0-9a-f]{6}$/i.test(hex)) return '#ffffff';
+    var rgb = [0, 2, 4].map(function (index) {
+      var c = parseInt(hex.slice(index, index + 2), 16) / 255;
+      return c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4);
+    });
+    return 0.2126 * rgb[0] + 0.7152 * rgb[1] + 0.0722 * rgb[2] > 0.4 ? '#18181b' : '#ffffff';
+  }
+  function reduced() {
+    return window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  }
+
+  function Stepper(mount, options) {
+    this.mount = mount;
+    this.options = Object.assign({
+      indicator: 'numbers',
+      orientation: 'horizontal',
+      transition: 'slide',
+      linear: false,
+      theme: 'dark',
+      accentColor: '',
+      frame: true,
+      radius: 24,
+      width: 440,
+      backButtonText: 'Back',
+      nextButtonText: 'Continue',
+      completeButtonText: 'Complete'
+    }, options || {});
+    this.steps = STEPS;
+    this.total = STEPS.length;
+    this.current = 1;
+    this.reached = 1;
+    this.view = { step: 1, previous: null, direction: 1, id: 0 };
+    this.tight = false;
+    this.compact = false;
+    this.height = 0;
+    this.placed = false;
+    this.build();
+  }
+
+  Stepper.prototype.build = function () {
+    var self = this;
+    var root = document.createElement('div');
+    root.className = 'stepper';
+    root.innerHTML =
+      '<div class="stepper__head"></div>' +
+      '<div class="stepper__body">' +
+        '<div class="stepper__viewport" aria-live="polite"></div>' +
+        '<div class="stepper__footer-wrap">' +
+          '<div class="stepper__footer-clip"><div class="stepper__footer">' +
+            '<button type="button" class="stepper__btn stepper__btn--back">' + ARROW_LEFT_SVG + '<span></span></button>' +
+            '<button type="button" class="stepper__btn stepper__btn--next"><span></span>' + ARROW_RIGHT_SVG + '</button>' +
+          '</div></div>' +
+        '</div>' +
+      '</div>' +
+      '<span class="stepper__rim"></span>';
+
+    this.root = root;
+    this.head = root.querySelector('.stepper__head');
+    this.body = root.querySelector('.stepper__body');
+    this.viewport = root.querySelector('.stepper__viewport');
+    this.footerWrap = root.querySelector('.stepper__footer-wrap');
+    this.backButton = root.querySelector('.stepper__btn--back');
+    this.nextButton = root.querySelector('.stepper__btn--next');
+    this.backLabel = this.backButton.querySelector('span');
+    this.nextLabel = this.nextButton.querySelector('span');
+
+    this.backButton.addEventListener('click', function () { self.go(self.current - 1); });
+    this.nextButton.addEventListener('click', function () { self.go(self.current + 1); });
+
+    this.mount.appendChild(root);
+    this.applyOptions();
+    this.renderHead();
+    this.renderPane(this.view.step);
+    this.renderFooter();
+
+    if (typeof ResizeObserver === 'function') {
+      // 根节点只用来量尺寸；滑块的摆放单独盯轨道，
+      // 否则内容高度一变就会打断正在进行的滑动动画
+      this.observer = new ResizeObserver(function () { self.measure(); });
+      this.observer.observe(root);
+    } else {
+      window.addEventListener('resize', function () { self.measure(); });
+    }
+    requestAnimationFrame(function () {
+      self.measure();
+      self.placeGlider(false);
+      self.height = self.viewport.offsetHeight;
+    });
+  };
+
+  Stepper.prototype.applyOptions = function () {
+    var opts = this.options;
+    var root = this.root;
+    root.classList.toggle('is-framed', opts.frame);
+    root.classList.toggle('is-bare', !opts.frame);
+    root.style.setProperty('--stepper-radius', Math.max(0, opts.radius) + 'px');
+    root.style.setProperty('--stepper-spring', SPRING);
+    root.style.setProperty('--stepper-width', typeof opts.width === 'number' ? opts.width + 'px' : opts.width);
+    var theme = THEMES[opts.theme] || THEMES.dark;
+    Object.keys(theme).forEach(function (key) { root.style.setProperty(key, theme[key]); });
+    if (opts.accentColor) {
+      root.style.setProperty('--stepper-solid', opts.accentColor);
+      root.style.setProperty('--stepper-solid-ink', readableOn(opts.accentColor));
+    }
+    this.backLabel.textContent = opts.backButtonText;
+  };
+
+  Stepper.prototype.statusOf = function (number) {
+    if (this.current > this.total || number < this.current) return 'complete';
+    if (number === this.current) return 'active';
+    return 'upcoming';
+  };
+
+  Stepper.prototype.reachable = function (number) {
+    if (this.options.disableStepIndicators) return false;
+    if (number === this.current) return false;
+    if (!this.options.linear) return true;
+    return number <= Math.min(this.reached, this.total);
+  };
+
+  /* 指示器：结构只在样式/布局变了时重建，状态变化就地改属性，
+     滑块节点始终留着，位置变化才有动画（与 React 原件一致）。 */
+  Stepper.prototype.renderHead = function () {
+    var kind = this.options.orientation === 'vertical' ? 'numbers' : this.options.indicator;
+    var rail = this.options.orientation === 'vertical' && !this.compact;
+    var rebuild = this.headKind !== kind || this.headRail !== rail || this.headTight !== this.tight;
+    this.kind = kind;
+    this.rail = rail;
+    this.head.classList.toggle('is-rail', rail);
+    if (rebuild) {
+      this.buildHead(kind, rail);
+      this.headKind = kind;
+      this.headRail = rail;
+      this.headTight = this.tight;
+    }
+    this.updateHead();
+  };
+
+  Stepper.prototype.buildHead = function (kind, rail) {
+    var self = this;
+    this.head.innerHTML = '';
+    this.markers = [];
+    this.dots = [];
+    this.bars = [];
+
+    if (kind === 'dots') {
+      this.track = null;
+      this.glider = null;
+      var dots = document.createElement('div');
+      dots.className = 'stepper__dots';
+      this.steps.forEach(function (step, index) {
+        var number = index + 1;
+        var button = document.createElement('button');
+        button.type = 'button';
+        button.className = 'stepper__dot';
+        button.setAttribute('aria-label', 'Step ' + number + ': ' + step.title);
+        button.addEventListener('click', function () { self.go(number); });
+        var mark = document.createElement('i');
+        button.appendChild(mark);
+        dots.appendChild(button);
+        self.dots.push({ button: button, mark: mark });
+      });
+      this.head.appendChild(dots);
+      return;
+    }
+
+    if (kind === 'bars') {
+      this.track = null;
+      this.glider = null;
+      var bars = document.createElement('div');
+      bars.className = 'stepper__bars';
+      this.steps.forEach(function (step, index) {
+        var number = index + 1;
+        var button = document.createElement('button');
+        button.type = 'button';
+        button.className = 'stepper__bar';
+        button.setAttribute('aria-label', 'Step ' + number + ': ' + step.title);
+        button.addEventListener('click', function () { self.go(number); });
+        var track = document.createElement('span');
+        track.className = 'stepper__bar-track';
+        var fill = document.createElement('span');
+        fill.className = 'stepper__bar-fill';
+        track.appendChild(fill);
+        button.appendChild(track);
+        bars.appendChild(button);
+        self.bars.push({ button: button, fill: fill });
+      });
+      this.head.appendChild(bars);
+      return;
+    }
+
+    var track = this.trackEl || (this.trackEl = document.createElement('div'));
+    track.className = 'stepper__track' + (rail ? ' is-rail' : '');
+    // 只摘掉旧的分段，滑块留在原地，位置变化才会滑动
+    Array.prototype.slice.call(track.querySelectorAll('.stepper__segment')).forEach(function (el) {
+      track.removeChild(el);
+    });
+    var glider = this.gliderEl || (this.gliderEl = document.createElement('span'));
+    glider.className = 'stepper__glider';
+    glider.setAttribute('aria-hidden', 'true');
+    if (glider.parentNode !== track) track.insertBefore(glider, track.firstChild);
+    this.track = track;
+    this.glider = glider;
+
+    this.steps.forEach(function (step, index) {
+      var number = index + 1;
+      var button = document.createElement('button');
+      button.type = 'button';
+      button.className = 'stepper__segment ' + (rail ? 'is-rail' : 'is-row');
+      button.setAttribute('aria-label', 'Step ' + number + ': ' + step.title);
+      button.addEventListener('click', function () { self.go(number); });
+
+      var badge = document.createElement('span');
+      badge.className = 'stepper__badge';
+      button.appendChild(badge);
+
+      var title = null;
+      var desc = null;
+      if (step.title && !(self.tight && !rail)) {
+        var text = document.createElement('span');
+        text.className = 'stepper__text' + (rail ? ' is-rail' : '');
+        title = document.createElement('span');
+        title.className = 'stepper__title';
+        text.appendChild(title);
+        if (rail && step.description) {
+          desc = document.createElement('span');
+          desc.className = 'stepper__desc';
+          text.appendChild(desc);
+        }
+        button.appendChild(text);
+      }
+      track.appendChild(button);
+      self.markers.push({ element: button, badge: badge, title: title, desc: desc, number: number });
+    });
+
+    this.head.appendChild(track);
+    this.observeTrack();
+  };
+
+  /* 轨道尺寸变了才重新摆滑块（这时不播动画） */
+  Stepper.prototype.observeTrack = function () {
+    var self = this;
+    if (this.trackObserver) this.trackObserver.disconnect();
+    if (!this.track || typeof ResizeObserver !== 'function') return;
+    this.trackObserver = new ResizeObserver(function () { self.placeGlider(false); });
+    this.trackObserver.observe(this.track);
+  };
+
+  Stepper.prototype.updateHead = function () {
+    var self = this;
+    function markCurrent(button, number) {
+      if (number === self.current) button.setAttribute('aria-current', 'step');
+      else button.removeAttribute('aria-current');
+    }
+
+    if (this.kind === 'dots') {
+      this.dots.forEach(function (entry, index) {
+        var number = index + 1;
+        var status = self.statusOf(number);
+        entry.button.setAttribute('data-status', status);
+        entry.mark.setAttribute('data-status', status);
+        markCurrent(entry.button, number);
+        entry.button.disabled = !self.reachable(number);
+      });
+      return;
+    }
+
+    if (this.kind === 'bars') {
+      this.bars.forEach(function (entry, index) {
+        var number = index + 1;
+        var status = self.statusOf(number);
+        var filled = self.current > self.total || number <= self.current;
+        entry.button.setAttribute('data-status', status);
+        if (filled) entry.fill.setAttribute('data-filled', '');
+        else entry.fill.removeAttribute('data-filled');
+        markCurrent(entry.button, number);
+        entry.button.disabled = !self.reachable(number);
+      });
+      return;
+    }
+
+    this.markers.forEach(function (marker, index) {
+      var number = marker.number;
+      var status = self.statusOf(number);
+      marker.element.setAttribute('data-status', status);
+      marker.badge.setAttribute('data-status', status);
+      if (marker.title) {
+        marker.title.setAttribute('data-status', status);
+        marker.title.textContent = self.steps[index].title;
+      }
+      if (marker.desc) marker.desc.textContent = self.steps[index].description;
+      self.updateBadge(marker.badge, status, number);
+      markCurrent(marker.element, number);
+      marker.element.disabled = !self.reachable(number);
+    });
+  };
+
+  /* 对勾只在新完成的那一步画一次，回退时换回序号 */
+  Stepper.prototype.updateBadge = function (badge, status, number) {
+    if (status === 'complete') {
+      if (badge.getAttribute('data-state') === 'complete') return;
+      badge.setAttribute('data-state', 'complete');
+      badge.innerHTML = '<span class="stepper__check">' + CHECK_SVG + '</span>';
+      this.drawCheck(badge);
+      return;
+    }
+    if (badge.getAttribute('data-state') === 'number') return;
+    badge.setAttribute('data-state', 'number');
+    badge.textContent = String(number);
+  };
+
+  Stepper.prototype.drawCheck = function (badge) {
+    var path = badge.querySelector('path');
+    if (!path || typeof path.animate !== 'function' || reduced()) return;
+    path.style.strokeDasharray = '24';
+    path.animate([{ strokeDashoffset: 24 }, { strokeDashoffset: 0 }], { duration: 360, easing: SETTLE });
+  };
+
+  Stepper.prototype.renderPane = function (number, leaving) {
+    var self = this;
+    var isCompleted = number > this.total;
+    var body = isCompleted ? COMPLETED_BODY : this.steps[number - 1].body;
+    this.viewport.innerHTML = '';
+    if (leaving) {
+      leaving.classList.add('is-leaving');
+      leaving.setAttribute('aria-hidden', 'true');
+      this.viewport.appendChild(leaving);
+    }
+    var pane = document.createElement('div');
+    pane.className = 'stepper__pane';
+    pane.tabIndex = -1;
+    pane.innerHTML = body;
+    this.pane = pane;
+    this.viewport.appendChild(pane);
+    if (!isCompleted) {
+      var input = pane.querySelector('input');
+      if (input) input.addEventListener('input', function () { self.onInput(input.value); });
+    }
+  };
+
+  Stepper.prototype.renderFooter = function () {
+    var completed = this.current > this.total;
+    var isLast = this.current === this.total;
+    this.footerWrap.toggleAttribute('data-hidden', completed);
+    this.footerWrap.setAttribute('aria-hidden', completed ? 'true' : 'false');
+    this.backButton.toggleAttribute('data-hidden', this.current <= 1);
+    this.nextLabel.textContent = isLast ? this.options.completeButtonText : this.options.nextButtonText;
+    this.nextButton.innerHTML = '<span>' + this.nextLabel.textContent + '</span>' + (isLast ? CHECK_SVG : ARROW_RIGHT_SVG);
+    this.backButton.tabIndex = completed ? -1 : 0;
+    this.nextButton.tabIndex = completed ? -1 : 0;
+  };
+
+  Stepper.prototype.measure = function () {
+    var vertical = this.options.orientation === 'vertical';
+    var folded = vertical && this.root.clientWidth < 520;
+    var tight = false;
+    if (!vertical || folded) {
+      var labelled = this.steps.some(function (step) { return !!step.title; });
+      if (labelled && this.track && this.markers.length) {
+        var badges = 0;
+        var labels = 0;
+        this.markers.forEach(function (marker) {
+          var width = marker.element.firstElementChild ? marker.element.firstElementChild.getBoundingClientRect().width : 22;
+          badges += (width || 22) + 20;
+          if (marker.title) labels += marker.title.scrollWidth + 8;
+        });
+        var room = this.track.clientWidth - 8 - 4 * Math.max(0, this.total - 1);
+        tight = badges + labels > room + 0.5;
+      }
+    }
+    var changed = folded !== this.compact || tight !== this.tight;
+    this.compact = folded;
+    this.tight = tight;
+    if (changed) this.renderHead();
+  };
+
+  Stepper.prototype.placeGlider = function (animate) {
+    if (!this.glider || !this.markers) return;
+    var marker = this.markers[Math.min(this.current, this.total) - 1];
+    if (!marker) return;
+    var segment = marker.element;
+    var spring = ease();
+    this.glider.style.transition = animate
+      ? 'transform 560ms ' + spring + ', width 560ms ' + spring + ', height 560ms ' + spring + ', opacity 200ms ease'
+      : 'opacity 200ms ease';
+    this.glider.style.transform = 'translate3d(' + segment.offsetLeft + 'px, ' + segment.offsetTop + 'px, 0)';
+    this.glider.style.width = segment.offsetWidth + 'px';
+    this.glider.style.height = segment.offsetHeight + 'px';
+    this.glider.style.opacity = this.current > this.total ? '0' : '1';
+  };
+
+  Stepper.prototype.animate = function (direction, leaving) {
+    var viewport = this.viewport;
+    var pane = this.pane;
+    var mode = this.options.transition === 'none' ? 'none' : (reduced() ? 'fade' : this.options.transition);
+    if (!viewport.animate || mode === 'none') {
+      if (leaving && leaving.parentNode) leaving.parentNode.removeChild(leaving);
+      return;
+    }
+
+    var from = this.height;
+    var to = viewport.offsetHeight;
+    var spring = ease();
+    if (Math.abs(from - to) > 0.5) {
+      viewport.animate([{ height: from + 'px' }, { height: to + 'px' }], {
+        duration: reduced() ? 200 : 560,
+        easing: reduced() ? SETTLE : spring
+      });
+    }
+    var axis = this.rail ? 'Y' : 'X';
+    var shift = mode === 'slide' ? 36 : 0;
+    if (pane) {
+      if (shift) {
+        pane.animate(
+          [{ transform: 'translate' + axis + '(' + direction * shift + 'px)' }, { transform: 'none' }],
+          { duration: 560, easing: spring }
+        );
+      }
+      pane.animate([{ opacity: 0 }, { opacity: 0, offset: 0.25 }, { opacity: 1 }], { duration: 420, easing: 'ease-out' });
+    }
+    if (leaving) {
+      leaving.animate([{ opacity: 1 }, { opacity: 0 }], {
+        duration: 140,
+        easing: 'cubic-bezier(0.2, 0, 0.4, 1)',
+        fill: 'forwards'
+      });
+      var exit = leaving.animate(
+        [{ transform: 'none' }, { transform: 'translate' + axis + '(' + -direction * shift + 'px)' }],
+        { duration: 200, easing: 'cubic-bezier(0.4, 0, 1, 1)', fill: 'forwards' }
+      );
+      var remove = function () { if (leaving.parentNode) leaving.parentNode.removeChild(leaving); };
+      if (exit && typeof exit.onfinish !== 'undefined') exit.onfinish = remove;
+      else setTimeout(remove, 220);
+    }
+  };
+
+  Stepper.prototype.go = function (target) {
+    var next = clamp(target, 1, this.total + 1);
+    if (next === this.current) return;
+    var direction = next > this.current ? 1 : -1;
+    var leaving = this.pane;
+    this.current = next;
+    if (next > this.reached) this.reached = next;
+    this.renderHead();
+    this.renderPane(next, leaving);
+    this.renderFooter();
+    this.placeGlider(true);
+    var self = this;
+    requestAnimationFrame(function () {
+      self.animate(direction, leaving);
+      self.height = self.viewport.offsetHeight;
+    });
+    if (next > this.total) {
+      if (this.options.onFinalStepCompleted) this.options.onFinalStepCompleted(next);
+    } else if (this.options.onStepChange) {
+      this.options.onStepChange(next);
+    }
+  };
+
+  Stepper.prototype.set = function (patch) {
+    Object.assign(this.options, patch);
+    this.applyOptions();
+    this.renderHead();
+    this.renderPane(this.current);
+    this.renderFooter();
+    this.placeGlider(false);
+  };
+
+  /* ---------- 页面装配 ---------- */
+  var statusEl = document.getElementById('status');
+  var stepper = new Stepper(document.getElementById('mount'), {
+    onStepChange: function (step) {
+      statusEl.textContent = 'step ' + step + ' / ' + stepper.total;
+    },
+    onFinalStepCompleted: function () {
+      statusEl.textContent = 'all steps completed';
+    }
+  });
+
+  function bindSegment(id, key) {
+    var group = document.getElementById(id);
+    group.addEventListener('click', function (event) {
+      var button = event.target.closest('button[data-value]');
+      if (!button) return;
+      Array.prototype.forEach.call(group.querySelectorAll('button'), function (item) {
+        item.classList.toggle('is-on', item === button);
+      });
+      var patch = {};
+      patch[key] = button.getAttribute('data-value');
+      stepper.set(patch);
+    });
+  }
+  bindSegment('seg-indicator', 'indicator');
+  bindSegment('seg-orientation', 'orientation');
+  bindSegment('seg-transition', 'transition');
+
+  document.getElementById('opt-linear').addEventListener('change', function (event) {
+    stepper.set({ linear: event.target.checked });
+  });
+  document.getElementById('opt-theme').addEventListener('change', function (event) {
+    document.body.setAttribute('data-theme', event.target.checked ? 'light' : 'dark');
+    stepper.set({ theme: event.target.checked ? 'light' : 'dark' });
+  });
+  document.getElementById('opt-accent').addEventListener('input', function (event) {
+    stepper.set({ accentColor: event.target.value });
+  });
+  document.getElementById('opt-width').addEventListener('input', function (event) {
+    stepper.set({ width: Number(event.target.value) });
+  });
+})();
+</script>
+</body>
+</html>

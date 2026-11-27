@@ -1,6 +1,6 @@
 # Vue 组件（0.1）
 
-已有 26 个特效移植成 Vue 3 组件，详情页的预览台里直接渲染真实组件。其中 22 个（`HoldButton`、`SwipeRow`、`SpecularButton`、`TerminalReplay`、`PeakChart`、`SpotlightCard`、`LiquidNavbar`、`GlassSurface`、`AnimatedList`、`FlipCard`、`GhostCursor`、`GridMotion`、`RubberSegment`、`TiltedCard`、`Signature`、`PaperCrumple`、`ReflectiveCard`、`PillNav`、`MagicBento`、`GlassFolder`、`GlassIconReveal`、`AIPromptBox`）带「自定义」面板：改参数，预览实时跟着变，「代码」页签的用法片段只写出你改过的项。另外 4 个需要独占文档，放在 iframe 里加载：
+已有 27 个特效移植成 Vue 3 组件，详情页的预览台里直接渲染真实组件。其中 23 个（`HoldButton`、`SwipeRow`、`SpecularButton`、`TerminalReplay`、`PeakChart`、`SpotlightCard`、`LiquidNavbar`、`GlassSurface`、`AnimatedList`、`FlipCard`、`GhostCursor`、`GridMotion`、`RubberSegment`、`TiltedCard`、`Signature`、`PaperCrumple`、`ReflectiveCard`、`PillNav`、`MagicBento`、`GlassFolder`、`GlassIconReveal`、`AIPromptBox`、`Stepper`）带「自定义」面板：改参数，预览实时跟着变，「代码」页签的用法片段只写出你改过的项。另外 4 个需要独占文档，放在 iframe 里加载：
 
 | 组件 | 详情页 | 测试 |
 |---|---|---|
@@ -30,13 +30,14 @@
 | `GlassFolder` | [玻璃文件夹](/effects/glass-folder-cards) | `packages/vue/tests/glass-folder.spec.ts` |
 | `GlassIconReveal` | [液态玻璃 Logo](/effects/glass-logo-reveal) | `packages/vue/tests/liquid-glass-logo-reveal.spec.ts` |
 | `AIPromptBox` | [AI 输入框](/effects/ai-prompt-box) | `packages/vue/tests/ai-prompt-box.spec.ts` |
+| `Stepper` | [分步引导](/effects/stepper) | `packages/vue/tests/stepper.spec.ts` |
 
 `ScrollLockedVideoHero` 会锁定所在页面的滚动，`GlassyDashboard` 是整屏工作区，`SplashCursor` 会铺满整个视口跟随光标，`Shredder` 需要一个固定宽度的父容器，四者的预览都放在 iframe 里；iframe 里跑的仍是同一个真实组件。
 
 ## 导入
 
 ```ts
-import { AIPromptBox, AnimatedList, FlipCard, GhostCursor, GlassFolder, GlassIconReveal, GlassReveal21st, GlassSurface, GridMotion, MagicBento, PaperCrumple, PillNav, ReflectiveCard, RubberSegment, Signature, TiltedCard, GlassyDashboard, HoldButton, LiquidNavbar, PeakChart, ScrollLockedVideoHero, Shredder, SpecularButton, SpotlightCard, SplashCursor, SwipeRow, TerminalReplay } from '@motion-effects/vue'
+import { AIPromptBox, AnimatedList, FlipCard, GhostCursor, GlassFolder, GlassIconReveal, GlassReveal21st, GlassSurface, GridMotion, MagicBento, PaperCrumple, PillNav, ReflectiveCard, RubberSegment, Signature, Stepper, TiltedCard, GlassyDashboard, HoldButton, LiquidNavbar, PeakChart, ScrollLockedVideoHero, Shredder, SpecularButton, SpotlightCard, SplashCursor, SwipeRow, TerminalReplay } from '@motion-effects/vue'
 import type { SwipeAction } from '@motion-effects/vue'
 ```
 
@@ -526,9 +527,39 @@ const mode = ref<AIPromptMode | null>(null)
 ```
 
 `mode` 为 `search` / `think` / `canvas` / `null`，互斥；选中后消息自动加 `[Search: …]` 等前缀。上传按钮支持图片选择 / 粘贴 / 拖拽，只保留一张；麦克风录音，停录后自动发一条语音占位消息。`labels` 可整体替换英文文案。
-- 后二十三个与 React 原件有几处有意的行为差异，清单见上面那份 README 的「与 React 原件的差异」。
-- 二十六个组件都做了 SSR 安全处理，浏览器 API 只在 `onMounted` 或用户事件中访问。
+
+### Stepper
+
+```vue
+<script setup lang="ts">
+import { ref } from 'vue'
+import { Stepper } from '@motion-effects/vue'
+import type { StepperStep } from '@motion-effects/vue'
+
+const steps: StepperStep[] = [
+  { title: 'Welcome', description: 'Set up your workspace' },
+  { title: 'Plan', description: 'Choose a plan' },
+  { title: 'Profile', description: 'Tell us who you are' },
+  { title: 'Review', description: 'Check everything' }
+]
+const step = ref(1)
+</script>
+
+<template>
+  <Stepper v-model:step="step" :steps="steps" indicator="numbers">
+    <template #step="{ index }">
+      <strong>第 {{ index + 1 }} 步</strong>
+    </template>
+    <template #completed><strong>全部完成</strong></template>
+  </Stepper>
+</template>
+```
+
+步骤内容用 `#step` 作用域插槽（`{ index, step, current, status }`），步序可用 `v-model:step` 受控；`indicator` 可切 `numbers` / `dots` / `bars`，`orientation="vertical"` 是左侧竖排（面板宽度 < 520px 时自动折叠成紧凑横向排布）。当前步的指示器是禁用的，`linear` 打开时只能点回走过的步骤。
+- 后二十四个与 React 原件有几处有意的行为差异，清单见上面那份 README 的「与 React 原件的差异」。
+- 二十七个组件都做了 SSR 安全处理，浏览器 API 只在 `onMounted` 或用户事件中访问。
 - `AIPromptBox` 用互斥的 `v-model:mode` 替代 React 的三个布尔开关，发出 `send` / `files-change` / `recording-stop` 等事件；图片只留一张，支持选择 / 粘贴 / 拖拽，文案用 `labels` 覆盖。
+- `Stepper` 用 `steps` 数组 + `#step` 作用域插槽替代 React 的 `children` 与 `<Step>` 子组件，步序走 `v-model:step`，发出 `step-change` / `final-step-completed`；指示器下方的滑块用弹簧曲线跟步。
 - 当前是 workspace 私有包，未发布 npm；外部项目可复制 `packages/vue/src` 或等待发布。
 
 ## 本地测试

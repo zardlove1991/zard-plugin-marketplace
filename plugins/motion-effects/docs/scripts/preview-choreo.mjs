@@ -201,5 +201,27 @@ export const CHOREO = {
       await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2, { steps: 6 })
       await pause(page, 500)
     }
+  },
+
+  // 分步引导：连点 Continue，让滑块跟步、面板滑动切换
+  'stepper': {
+    zoom: 1.3,
+    css: hide('.intro, .controls, .status'),
+    async run(page, { width, height }) {
+      const next = await page.locator('.stepper__btn--next').boundingBox()
+      if (!next) return
+      const x = next.x + next.width / 2
+      const y = next.y + next.height / 2
+      await page.mouse.move(x, y, { steps: 6 })
+      await pause(page, 500)
+      await page.mouse.click(x, y)
+      await pause(page, 1100)
+      await page.mouse.click(x, y)
+      await pause(page, 1100)
+      await page.mouse.click(x, y)
+      await pause(page, 1500)
+      await page.mouse.move(width / 2, height / 2, { steps: 8 })
+      await pause(page, 400)
+    }
   }
 }

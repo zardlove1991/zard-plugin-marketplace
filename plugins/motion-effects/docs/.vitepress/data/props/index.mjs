@@ -24,6 +24,7 @@ import magicBento from './magic-bento.mjs'
 import glassFolder from './glass-folder.mjs'
 import glassLogoReveal from './glass-logo-reveal.mjs'
 import aiPromptBox from './ai-prompt-box.mjs'
+import stepper from './stepper.mjs'
 
 export const PROP_SCHEMAS = {
   'hold-button': holdButton,
@@ -47,5 +48,6 @@ export const PROP_SCHEMAS = {
   'magic-bento': magicBento,
   'glass-folder-cards': glassFolder,
   'glass-logo-reveal': glassLogoReveal,
-  'ai-prompt-box': aiPromptBox
+  'ai-prompt-box': aiPromptBox,
+  stepper: stepper
 }
