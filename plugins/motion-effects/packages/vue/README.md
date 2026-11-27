@@ -1,6 +1,6 @@
 # @motion-effects/vue
 
-`motion-effects` 的 Vue 3 实装包（0.1）。当前包含 28 个已完成移植并有 Vitest 覆盖的组件：
+`motion-effects` 的 Vue 3 实装包（0.1）。当前包含 29 个已完成移植并有 Vitest 覆盖的组件：
 
 | 组件 | 说明 | 依赖 |
 |---|---|---|
@@ -32,8 +32,9 @@
 | `AIPromptBox` | AI 输入框：文本 / 三种模式 / 图片附件预览 / 语音录音 / 发送与停止 | `motion-v`、`@lucide/vue` |
 | `Stepper` | 分步引导：数字 / 圆点 / 条形指示器，横向与纵向布局，滑动切换与弹簧高度动画 | Hugeicons（仅内置箭头与对勾） |
 | `ClickSpark` | 点击火花：短线 / 拖尾 / 圆点 / 星形，带重力、扇形扩散、辉光与光环 | 无 |
+| `GooeyNav` | 液态导航：胶囊碎成液滴飞向新项，途中融合再聚形 | 无 |
 
-全部 28 个特效都已移植 + vanilla 演示为真源，按需按 `references/vue-porting.md` 移植。
+全部 29 个特效都已移植 + vanilla 演示为真源，按需按 `references/vue-porting.md` 移植。
 
 > `TerminalReplay`、`ScrollLockedVideoHero`、`PeakChart`、`GlassyDashboard` 和 `LiquidNavbar` 按 Vue 习惯设计：没有 `className` prop，`class` / `style` 自动透传到根元素；受控状态只走 `v-model`，不另发 `xxx-change` 事件。前三个组件仍保留 React 式的 `className` 与 `open-change`；`SplashCursor` / `GlassSurface` / `AnimatedList` 保留了 React 原件的 `className` / `style` props；`Shredder` 保留 React 的 `className` prop，但用 `#item` 插槽替代 `renderItem`，事件改走 `shred` / `reorder`；`SpotlightCard` 保留 `className` 与默认插槽，其余 div 属性自动透传；`Stepper` 没有 `className` prop（`class` / `style` 自动透传），步序走 `v-model:step`，步骤内容用 `#step` 作用域插槽。
 
@@ -177,7 +178,28 @@ const spark = ref<InstanceType<typeof ClickSpark> | null>(null)
 </template>
 ```
 
-CSS 随 SFC 自动引入，不需要单独 import CSS 文件。根类名前缀分别为 `.hold-button`、`.sr-root`、`.specular-button`、`.tr-root`、`.slvh`、`.pc-root`、`.nimbus-nav`、`.glass-surface`、`.animated-list`、`.flip-card`、`.ghost-cursor`、`.gm-root`、`.rubber-segment`、`.tilted-card`、`.stepper`、`.click-spark`。
+`GooeyNav` 用 `v-model:active-index` 受控当前项；切换时胶囊碎成液滴飞向新位置，途中互相融合，落地再聚成新的胶囊：
+
+```vue
+<script setup lang="ts">
+import { ref } from 'vue'
+import { GooeyNav } from '@motion-effects/vue'
+import type { GooeyNavItem } from '@motion-effects/vue'
+
+const items: GooeyNavItem[] = [
+  { label: '首页', href: '#' },
+  { label: '作品', href: '#' },
+  { label: '关于', href: '#' }
+]
+const active = ref(0)
+</script>
+
+<template>
+  <GooeyNav v-model:active-index="active" :items="items" color="#c8ff4d" />
+</template>
+```
+
+CSS 随 SFC 自动引入，不需要单独 import CSS 文件。根类名前缀分别为 `.hold-button`、`.sr-root`、`.specular-button`、`.tr-root`、`.slvh`、`.pc-root`、`.nimbus-nav`、`.glass-surface`、`.animated-list`、`.flip-card`、`.ghost-cursor`、`.gm-root`、`.rubber-segment`、`.tilted-card`、`.stepper`、`.click-spark`、`.gooey-nav`。
 
 ## 组件契约
 
@@ -410,6 +432,15 @@ CSS 随 SFC 自动引入，不需要单独 import CSS 文件。根类名前缀�
 - 没有 `className` prop（`class` / `style` 自动透传）；根类名前缀 `.click-spark`
 - `prefers-reduced-motion` 下寿命压到 320ms 且不做位移与淡出
 
+### GooeyNav
+
+- props：`items`（`GooeyNavItem[]`，每项 `{ label?, href?, icon? }`；`icon` 传 Vue 组件）、`activeIndex`（`v-model:active-index` 受控）、`initialActiveIndex`（`0`）、`theme`（`dark` / `light`）、`color`、`activeTextColor`、`colors`（`string[]`，液滴配色）、`size`（`sm` / `md` / `lg`）、`frame`、`animationTime`（`600`）、`particleCount`（`15`）、`spread`（`56`）、`timeVariance`（`300`）、`gooeyness`（`0.5`）、`wobble`（`0.5`）、`hoverEffect`
+- emits：`update:activeIndex`（配合 `v-model:active-index`）、`change`（`[index, item]`）
+- 通过 ref 暴露 `go(index)`：手动把胶囊搬到指定项
+- 纯 WebGL2 + SDF 着色器，零第三方依赖；拿不到 WebGL2 时退回 CPU 等值线 + `clip-path`，液体照样有
+- 着色器与上游逐字一致：`blend()` 里 w 通道的 `mix(b.w, a.w, h)` 参数顺序不能写反（写反会让场值停在 1e5 哨兵上、液滴整个不画），`uPills[4]` / `uDrops[32]` 的 uniform 数组上限也不要改
+- 根类名前缀 `.gooey-nav`；`prefers-reduced-motion` 下不做液滴飞行，直接切到新项
+
 ## 与 React 原件的差异
 
 前三个组件是 1:1 直译。后二十五个在移植时处理了上游的几处问题或按 Vue 习惯调整，行为上有意不同（`SplashCursor` / `Shredder` / `SpotlightCard` / `GlassSurface` / `AnimatedList` / `FlipCard` / `GhostCursor` / `GridMotion` / `RubberSegment` / `TiltedCard` / `Signature` / `PaperCrumple` 的引擎是 1:1 抽取，差异只在框架胶水与 DOM 归属）：
@@ -451,6 +482,7 @@ CSS 随 SFC 自动引入，不需要单独 import CSS 文件。根类名前缀�
 - `GlassFolder` 的 React 内联样式字符串落成 `GlassFolder.css` 全局引入；canvas 封面画生成器在 `glassFolderArt.ts`，几何常量在 `glassFolderConstants.ts`（均 `// @ts-nocheck` 保留原算法）。`open` 用 `v-model:open` 受控，同时保留原有回调 props 与对应的 Vue 事件。
 - `AIPromptBox` 把 React 的 `showSearch` / `showThink` / `showCanvas` 三个布尔状态合并成一个互斥的 `mode`（`search` / `think` / `canvas` / `null`），对应用户只能选一种模式；`onSend` 换成 `send` 事件，`value` / `onValueChange` 换成 `v-model`。录音 / 附件 / 预览 / 拖拽拆成 `useAIPromptBox.ts` 的四个组合式函数，浏览器 API 只在事件或挂载后访问。
 - `ClickSpark` 没有 `className` prop（`class` / `style` 自动透传），React 的 `ref.spark(x, y)` 通过 ref 暴露；帧时间统一取 `performance.now()`——上游用 rAF 回调的时间戳，在 jsdom 等两者不同源的环境里会算出负的 `elapsed`，火花永远画不出来（`PeakChart` / `SpotlightCard` 也是这个约定）。
+- `GooeyNav` 用 `v-model:active-index` 受控、`change` 事件替代 `onChange`；帧时间统一取 `performance.now()`——上游用 rAF 回调的时间戳，在 jsdom 等两者不同源的环境里会算出负的 `dt`，动画不动（`PeakChart` / `SpotlightCard` 也是这个约定）。着色器与上游逐字一致，没有改动。
 - `Stepper` 的 `children` + `<Step>` 子组件换成 `steps` 数组 + `#step` 作用域插槽，`Step` 的 `icon` 从 React 节点换成 Vue 组件；`onStepChange` / `onFinalStepCompleted` 换成 `step-change` / `final-step-completed` 事件，步序走 `v-model:step`。React 原件的滑块位置监听轨道尺寸（改内容高度不会打断滑动动画），Vue 实装沿用同一策略。三个按钮的默认文案已中文化（`上一步` / `下一步` / `完成`），React 原件保留上游的 `Back` / `Continue` / `Complete`；需要英文时显式传 `back-button-text` 等 props。
 - `GlassIconReveal` / `GlassReveal21st` 的 SDF / 着色器 / 时间曲线逐段搬到 `liquidGlassRevealEngine.ts`（`// @ts-nocheck` 保留原数值逻辑），生命周期在 `useLiquidGlassReveal.ts`；`cn()` 换成 Vue 的 class 数组，`onClick` 换成 `click` 事件。内置 21st 标记随包导出 `MARK_21ST`。
 
@@ -475,7 +507,7 @@ pnpm check       # test + typecheck + 标识符审计
 - `ScrollLockedVideoHero` 没有 poster：视频数据加载前显示深色背景和标题。
 - `TerminalReplay` 的无障碍文案、复制按钮标题和默认脚本沿用上游的写法，没有做本地化。
 - `PeakChart` 运行中修改 `width` 会重建画布并重播揭示动画（上游 effect 依赖 `[width, u]` 的语义）；`fontStretch` 的实际效果随平台字体支持变化。
-- 二十八个组件都做了 SSR 安全处理：浏览器 API 只在 `onMounted` 或用户事件中访问；`LiquidNavbar` 的 `getContext` / `matchMedia` / `AudioContext` 同样如此。`GlassyDashboard` 的 `matchMedia` / `ResizeObserver` / `history` 也在挂载后才用；`SplashCursor` 的 `getContext` / `matchMedia`、`Shredder` 的 `ResizeObserver` / canvas 上下文、`SpotlightCard` 的 `matchMedia` / `IntersectionObserver` 同样只在挂载后访问；`GlassSurface` 的 `getContext` / `Image` / `ResizeObserver` / `IntersectionObserver` / `canvas 2d` 也都在挂载后；`AnimatedList` 的 `matchMedia` / `CSS.supports` / `IntersectionObserver` / `ResizeObserver` / `window` 监听同样只在挂载后；`FlipCard` 的 `useReducedMotion` / 指针捕获同样只在挂载与事件中；`GhostCursor` 的 `getContext` / `matchMedia` / `window` 指针监听 / `IntersectionObserver` 同样只在挂载后；`GridMotion` 的 `ResizeObserver` / `IntersectionObserver` / `window` 监听同样只在挂载后；`RubberSegment` 的 `ResizeObserver` / `document.fonts` / 指针捕获同样只在挂载后；`TiltedCard` 的 `matchMedia` / `IntersectionObserver` / 陀螺仪权限同样只在挂载后；`Signature` 的 canvas 2d / `devicePixelRatio` / `IntersectionObserver` 同样只在挂载后；`PaperCrumple` 的 `WebGLRenderer` / `TextureLoader` / `matchMedia` 同样只在挂载后；`ReflectiveCard` 的 `getContext` / `getUserMedia` / `matchMedia` 同样只在挂载后；`PillNav` 的 `matchMedia` / `ResizeObserver` / `document.fonts` 同样只在挂载后；`MagicBento` 的 `matchMedia` / `ResizeObserver` / `getAnimations` / `canvas 2d` 同样只在挂载后；`GlassFolder` 的 `IntersectionObserver` / `devicePixelRatio` / `canvas 2d` 同样只在挂载后；`GlassIconReveal` / `GlassReveal21st` 的 `getContext` / `matchMedia` / `IntersectionObserver` 同样只在挂载后；`AIPromptBox` 的 `FileReader` / `ResizeObserver` / `document` paste / 录音计时器同样只在挂载后或事件中；`Stepper` 的 `ResizeObserver` / `matchMedia` / `CSS.supports` / `element.animate` 同样只在挂载后或事件中；`ClickSpark` 的 `matchMedia` / `document.createElement('canvas')` / `canvas.getContext('2d')` 同样只在挂载后或事件中。
+- 二十九个组件都做了 SSR 安全处理：浏览器 API 只在 `onMounted` 或用户事件中访问；`LiquidNavbar` 的 `getContext` / `matchMedia` / `AudioContext` 同样如此。`GlassyDashboard` 的 `matchMedia` / `ResizeObserver` / `history` 也在挂载后才用；`SplashCursor` 的 `getContext` / `matchMedia`、`Shredder` 的 `ResizeObserver` / canvas 上下文、`SpotlightCard` 的 `matchMedia` / `IntersectionObserver` 同样只在挂载后访问；`GlassSurface` 的 `getContext` / `Image` / `ResizeObserver` / `IntersectionObserver` / `canvas 2d` 也都在挂载后；`AnimatedList` 的 `matchMedia` / `CSS.supports` / `IntersectionObserver` / `ResizeObserver` / `window` 监听同样只在挂载后；`FlipCard` 的 `useReducedMotion` / 指针捕获同样只在挂载与事件中；`GhostCursor` 的 `getContext` / `matchMedia` / `window` 指针监听 / `IntersectionObserver` 同样只在挂载后；`GridMotion` 的 `ResizeObserver` / `IntersectionObserver` / `window` 监听同样只在挂载后；`RubberSegment` 的 `ResizeObserver` / `document.fonts` / 指针捕获同样只在挂载后；`TiltedCard` 的 `matchMedia` / `IntersectionObserver` / 陀螺仪权限同样只在挂载后；`Signature` 的 canvas 2d / `devicePixelRatio` / `IntersectionObserver` 同样只在挂载后；`PaperCrumple` 的 `WebGLRenderer` / `TextureLoader` / `matchMedia` 同样只在挂载后；`ReflectiveCard` 的 `getContext` / `getUserMedia` / `matchMedia` 同样只在挂载后；`PillNav` 的 `matchMedia` / `ResizeObserver` / `document.fonts` 同样只在挂载后；`MagicBento` 的 `matchMedia` / `ResizeObserver` / `getAnimations` / `canvas 2d` 同样只在挂载后；`GlassFolder` 的 `IntersectionObserver` / `devicePixelRatio` / `canvas 2d` 同样只在挂载后；`GlassIconReveal` / `GlassReveal21st` 的 `getContext` / `matchMedia` / `IntersectionObserver` 同样只在挂载后；`AIPromptBox` 的 `FileReader` / `ResizeObserver` / `document` paste / 录音计时器同样只在挂载后或事件中；`Stepper` 的 `ResizeObserver` / `matchMedia` / `CSS.supports` / `element.animate` 同样只在挂载后或事件中；`ClickSpark` 的 `matchMedia` / `document.createElement('canvas')` / `canvas.getContext('2d')` 同样只在挂载后或事件中；`GooeyNav` 的 `matchMedia` / `canvas.getContext('webgl2')` / `ResizeObserver` / `document.fonts.ready` 同样只在挂载后访问。
 - `GlassyDashboard` 的示例数据固定三个周期（7/30/90 天）与四视图；CSV 只在浏览器本地生成，不上传。背景图为 Unsplash 远程资源，离线时只有底色。
 - `SplashCursor` 需要 WebGL2 与浮点纹理扩展；不支持时只显示静态降级提示。弱机建议 `quality="low"`，主题切到 `light` 时要配浅色背景。
 - `Shredder` 的行快照依赖 `SVG foreignObject` + canvas，跨域图片会被污染；同页多实例时各自独立（引擎状态不共享）。
