@@ -115,6 +115,18 @@ export type GlassSurfaceChannel = 'R' | 'G' | 'B' | 'A'
 
 export type GlassSurfaceRenderer = 'auto' | 'webgl' | 'svg'
 
+/** Stepper 的一个步骤：指示器上的标题 / 描述与图标 */
+export interface StepperStep {
+  /** 指示器下方的标题 */
+  title?: string
+  /** 纵向布局时显示在标题下方的第二行 */
+  description?: string
+  /** 指示器里的图标（Vue 组件）；不传时显示序号 */
+  icon?: Component | null
+  /** 简单内容文案；复杂内容用 #step 插槽 */
+  content?: string
+}
+
 /** 玻璃背后的同源图 / 视频 / canvas。Vue 的模板 ref 在模板里会自动解包成 DOM。 */
 export type GlassBackdrop =
   | HTMLImageElement

@@ -27,6 +27,7 @@ export { default as GlassFolder } from './components/GlassFolder.vue'
 export { default as GlassIconReveal } from './components/GlassIconReveal.vue'
 export { default as GlassReveal21st } from './components/GlassReveal21st.vue'
 export { default as AIPromptBox } from './components/AIPromptBox.vue'
+export { default as Stepper } from './components/Stepper.vue'
 export { MARK_21ST } from './composables/liquidGlassMark'
 export { ANIMATED_LIST_ITEMS, ANIMATED_LIST_ICONS } from './components/animatedListIcons'
 export {
@@ -62,6 +63,7 @@ export type {
   GlassFolderMenuItem,
   SignatureStrokes,
   SignatureTheme,
+  StepperStep,
   GhostCursorTheme,
   GlassBackdrop,
   GlassSurfaceChannel,
@@ -80,6 +82,13 @@ export type {
   TerminalStep
 } from './types'
 export type { HoldPhase, HoldInput } from './composables/useHoldGesture'
+export type {
+  StepperIndicator,
+  StepperOrientation,
+  StepperTransition,
+  StepperStatus,
+  StepperView
+} from './composables/useStepper'
 export type { SpecularSettings } from './composables/useSpecularLight'
 export type { SplashCursorSettings } from './composables/useSplashCursor'
 export type {
