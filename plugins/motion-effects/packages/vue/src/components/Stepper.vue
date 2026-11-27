@@ -26,8 +26,11 @@ interface Props {
   disableStepIndicators?: boolean
   /** 显示底部按钮 */
   showFooter?: boolean
+  /** 返回按钮文案（默认已中文化，与 React 原件的英文默认值不同） */
   backButtonText?: string
+  /** 下一步按钮文案（默认已中文化，与 React 原件的英文默认值不同） */
   nextButtonText?: string
+  /** 最后一步的下一步按钮文案（默认已中文化，与 React 原件的英文默认值不同） */
   completeButtonText?: string
   /** 最后一步之后展示的文案 */
   completedContent?: string
@@ -51,9 +54,9 @@ const props = withDefaults(defineProps<Props>(), {
   linear: false,
   disableStepIndicators: false,
   showFooter: true,
-  backButtonText: 'Back',
-  nextButtonText: 'Continue',
-  completeButtonText: 'Complete',
+  backButtonText: '上一步',
+  nextButtonText: '下一步',
+  completeButtonText: '完成',
   completedContent: undefined,
   theme: 'dark',
   accentColor: undefined,

@@ -62,6 +62,20 @@ describe('Stepper', () => {
     expect(el.style.getPropertyValue('--stepper-solid-ink')).toBe('#18181b')
   })
 
+  it('defaults the footer copy to Chinese and lets it be overridden', () => {
+    const wrapper = mountStepper()
+    expect(wrapper.find('.stepper__btn--back').text()).toContain('上一步')
+    expect(wrapper.find('.stepper__btn--next').text()).toContain('下一步')
+
+    const english = mountStepper({
+      backButtonText: 'Back',
+      nextButtonText: 'Continue',
+      completeButtonText: 'Complete'
+    })
+    expect(english.find('.stepper__btn--back').text()).toContain('Back')
+    expect(english.find('.stepper__btn--next').text()).toContain('Continue')
+  })
+
   it('moves forward and backward and emits the change events', async () => {
     const wrapper = mountStepper()
 
@@ -85,7 +99,7 @@ describe('Stepper', () => {
       await wrapper.find('.stepper__btn--next').trigger('click')
     }
     await nextTick()
-    expect(wrapper.find('.stepper__btn--next').text()).toContain('Complete')
+    expect(wrapper.find('.stepper__btn--next').text()).toContain('完成')
 
     await wrapper.find('.stepper__btn--next').trigger('click')
     expect(wrapper.emitted('final-step-completed')).toBeTruthy()

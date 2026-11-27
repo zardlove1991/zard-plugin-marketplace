@@ -142,9 +142,9 @@ import { Stepper } from '@motion-effects/vue'
 import type { StepperStep } from '@motion-effects/vue'
 
 const steps: StepperStep[] = [
-  { title: 'Welcome', description: 'Set up your workspace' },
-  { title: 'Plan', description: 'Choose a plan' },
-  { title: 'Profile', description: 'Tell us who you are' }
+  { title: '欢迎', description: '几步就能把工作区搭好' },
+  { title: '选择方案', description: '挑一个适合团队的方案' },
+  { title: '填写资料', description: '告诉我们你是谁' }
 ]
 const step = ref(1)
 </script>
@@ -375,7 +375,7 @@ CSS 随 SFC 自动引入，不需要单独 import CSS 文件。根类名前缀�
 
 ### Stepper
 
-- props：`steps`（`StepperStep[]`，每项 `{ title?, description?, icon?, content? }`；`icon` 传 Vue 组件）、`step`（`v-model:step` 受控）、`initialStep`（`1`）、`indicator`（`numbers` / `dots` / `bars`）、`orientation`（`horizontal` / `vertical`）、`transition`（`slide` / `fade` / `none`）、`linear`、`disableStepIndicators`、`showFooter`、`backButtonText`、`nextButtonText`、`completeButtonText`、`completedContent`、`theme`（`dark` / `light`）、`accentColor`、`frame`、`radius`（`24`）、`width`（`440`）
+- props：`steps`（`StepperStep[]`，每项 `{ title?, description?, icon?, content? }`；`icon` 传 Vue 组件）、`step`（`v-model:step` 受控）、`initialStep`（`1`）、`indicator`（`numbers` / `dots` / `bars`）、`orientation`（`horizontal` / `vertical`）、`transition`（`slide` / `fade` / `none`）、`linear`、`disableStepIndicators`、`showFooter`、`backButtonText`（`上一步`）、`nextButtonText`（`下一步`）、`completeButtonText`（`完成`）、`completedContent`、`theme`（`dark` / `light`）、`accentColor`、`frame`、`radius`（`24`）、`width`（`440`）
 - 插槽：`#step`（作用域参数 `{ index, step, current, status }`）放每一步的内容，替代 React 的 `children` 与 `<Step>` 子组件；`#completed` 放走完最后一步后的内容
 - emits：`update:step`（配合 `v-model:step`）、`step-change`、`final-step-completed`
 - 指示器下方的滑块用弹簧曲线跟步；位置测量只看轨道尺寸，盯根节点会被内容高度变化打断动画
@@ -423,7 +423,7 @@ CSS 随 SFC 自动引入，不需要单独 import CSS 文件。根类名前缀�
 - `MagicBento` 的六个内置可视化逐段搬成 `MagicBentoVisual.vue`（JSX → Vue 模板 + `<component :is>`）；`renderItem` 换成 `#item` 插槽，`onItemClick` 换成 `item-click`。引擎 / 常量 / WAAPI 重播集合放在 `magicBentoHelpers.ts` / `useMagicBento.ts`（`// @ts-nocheck` 保留原始数值逻辑）。
 - `GlassFolder` 的 React 内联样式字符串落成 `GlassFolder.css` 全局引入；canvas 封面画生成器在 `glassFolderArt.ts`，几何常量在 `glassFolderConstants.ts`（均 `// @ts-nocheck` 保留原算法）。`open` 用 `v-model:open` 受控，同时保留原有回调 props 与对应的 Vue 事件。
 - `AIPromptBox` 把 React 的 `showSearch` / `showThink` / `showCanvas` 三个布尔状态合并成一个互斥的 `mode`（`search` / `think` / `canvas` / `null`），对应用户只能选一种模式；`onSend` 换成 `send` 事件，`value` / `onValueChange` 换成 `v-model`。录音 / 附件 / 预览 / 拖拽拆成 `useAIPromptBox.ts` 的四个组合式函数，浏览器 API 只在事件或挂载后访问。
-- `Stepper` 的 `children` + `<Step>` 子组件换成 `steps` 数组 + `#step` 作用域插槽，`Step` 的 `icon` 从 React 节点换成 Vue 组件；`onStepChange` / `onFinalStepCompleted` 换成 `step-change` / `final-step-completed` 事件，步序走 `v-model:step`。React 原件的滑块位置监听轨道尺寸（改内容高度不会打断滑动动画），Vue 实装沿用同一策略。
+- `Stepper` 的 `children` + `<Step>` 子组件换成 `steps` 数组 + `#step` 作用域插槽，`Step` 的 `icon` 从 React 节点换成 Vue 组件；`onStepChange` / `onFinalStepCompleted` 换成 `step-change` / `final-step-completed` 事件，步序走 `v-model:step`。React 原件的滑块位置监听轨道尺寸（改内容高度不会打断滑动动画），Vue 实装沿用同一策略。三个按钮的默认文案已中文化（`上一步` / `下一步` / `完成`），React 原件保留上游的 `Back` / `Continue` / `Complete`；需要英文时显式传 `back-button-text` 等 props。
 - `GlassIconReveal` / `GlassReveal21st` 的 SDF / 着色器 / 时间曲线逐段搬到 `liquidGlassRevealEngine.ts`（`// @ts-nocheck` 保留原数值逻辑），生命周期在 `useLiquidGlassReveal.ts`；`cn()` 换成 Vue 的 class 数组，`onClick` 换成 `click` 事件。内置 21st 标记随包导出 `MARK_21ST`。
 
 ## 测试
