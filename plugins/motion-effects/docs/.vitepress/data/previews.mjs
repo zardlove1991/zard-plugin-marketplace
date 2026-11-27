@@ -32,4 +32,5 @@ export const PREVIEWS = {
   'stepper': { webm: '/previews/stepper.webm', mp4: '/previews/stepper.mp4', poster: '/previews/stepper.webp' },
   'click-spark': { webm: '/previews/click-spark.webm', mp4: '/previews/click-spark.mp4', poster: '/previews/click-spark.webp' },
   'gooey-nav': { webm: '/previews/gooey-nav.webm', mp4: '/previews/gooey-nav.mp4', poster: '/previews/gooey-nav.webp' },
+  'dock': { webm: '/previews/dock.webm', mp4: '/previews/dock.mp4', poster: '/previews/dock.webp' },
 }

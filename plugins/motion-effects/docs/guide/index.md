@@ -1,13 +1,13 @@
 # 接入指南
 
-这个站点是 `motion-effects` 技能的**可视化预览与接入文档**。29 个特效都有：
+这个站点是 `motion-effects` 技能的**可视化预览与接入文档**。30 个特效都有：
 
 - 可运行的独立演示（iframe，原生 HTML/CSS/JS，无构建依赖）
 - React 源码（JSX/TSX，部分带 CSS）
 - Vue 3 移植难度、依赖与关键 API
 - 移植/降级注意事项
 
-已有 29 个 Vue 3 实装，详情页里直接渲染真实组件，其中 25 个还能在「自定义」面板里调参数；完整清单见 [Vue 组件（0.1）](/guide/vue-components)。
+已有 30 个 Vue 3 实装，详情页里直接渲染真实组件，其中 26 个还能在「自定义」面板里调参数；完整清单见 [Vue 组件（0.1）](/guide/vue-components)。
 
 ## 选型
 
@@ -22,6 +22,7 @@
 | 身份卡 / 3D 翻面 | `reflective-card`、`flip-card` |
 | 导航 | `pill-nav`、`liquid-glass-navbar` |
 | 液态导航 | `gooey-nav` | — |
+| 应用 Dock | `dock` | — |
 | 氛围装饰 | `ghost-cursor`、`paper-crumple`、`grid-motion` |
 | 内容演示 | `terminal-replay`、`signature` |
 | 分步引导 | `stepper` | — |

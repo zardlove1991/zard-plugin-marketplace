@@ -1,4 +1,4 @@
-# 特效目录（29 个）
+# 特效目录（30 个）
 
 > 路径均相对 `skills/motion-effects/`。
 > **Vue 难度**：`易` ≈ 1–2 小时直译；`中` ≈ 半天，需处理 ref / 生命周期 / motion-v；`难` ≈ 1–2 天，含 WebGL / three.js / canvas 大组件。
@@ -15,6 +15,7 @@
 | 身份卡 / 票券 / 3D 翻面 | `ReflectiveCard` | `FlipCard` |
 | 导航 | `PillNav` | `liquid-glass-navbar` |
 | 液态导航 | `GooeyNav` | `PillNav`、`liquid-glass-navbar` |
+| 应用 Dock | `Dock` | `PillNav`、`GooeyNav` |
 | 氛围装饰 | `GhostCursor` | `SplashCursor`、`PaperCrumple`、`GridMotion` |
 | 拖拽碎纸 / 列表重排 | `Shredder` | `SwipeRow` |
 | 卡片光斑 / 悬停高光 | `SpotlightCard` | `ReflectiveCard`、`GlassSurface` |
@@ -58,6 +59,7 @@
 | 27 | `Stepper` | 操作与反馈 | 分步引导：数字 / 圆点 / 条形指示器，横向与纵向布局，滑动切换与弹簧高度动画 | Hugeicons | CSS 文件 | 中 |
 | 28 | `ClickSpark` | 操作与反馈 | 点击火花：短线 / 拖尾 / 圆点 / 星形四种形状，带重力、扇形扩散、辉光与光环 | 无 | 内联 | 中 |
 | 29 | `GooeyNav` | 导航与页面 | 液态导航：胶囊碎成液滴飞向新项，途中融合再聚形 | 无 | CSS 文件 | 难 |
+| 30 | `Dock` | 导航与页面 | 应用 Dock：指针靠近图标按弹簧放大、点击弹跳，右键弹出玻璃菜单 | Hugeicons | CSS 文件 | 难 |
 
 ## Vue 实装进度（0.1）
 
@@ -94,10 +96,11 @@
 | `Stepper` | `../../packages/vue/src/components/Stepper.vue` | `../../packages/vue/tests/stepper.spec.ts` |
 | `ClickSpark` | `../../packages/vue/src/components/ClickSpark.vue` | `../../packages/vue/tests/click-spark.spec.ts` |
 | `GooeyNav` | `../../packages/vue/src/components/GooeyNav.vue` | `../../packages/vue/tests/gooey-nav.spec.ts` |
+| `Dock` | `../../packages/vue/src/components/Dock.vue` | `../../packages/vue/tests/dock.spec.ts` |
 
-全部 29 个特效均已有 Vue 3 实装；React 源码与 vanilla 演示保留作对照真源。
+全部 30 个特效均已有 Vue 3 实装；React 源码与 vanilla 演示保留作对照真源。
 
-后二十五个（`TerminalReplay`、`ScrollLockedVideoHero`、`PeakChart`、`GlassyDashboard`、`SplashCursor`、`Shredder`、`SpotlightCard`、`LiquidNavbar`、`GlassSurface`、`AnimatedList`、`FlipCard`、`GhostCursor`、`GridMotion`、`RubberSegment`、`TiltedCard`、`Signature`、`PaperCrumple`、`ReflectiveCard`、`PillNav`、`MagicBento`、`GlassFolder`、`GlassIconReveal`、`AIPromptBox`、`Stepper`、`ClickSpark`、`GooeyNav`）与 React 原件有几处有意的行为差异，见 `../../packages/vue/README.md` 的「与 React 原件的差异」。
+后二十五个（`TerminalReplay`、`ScrollLockedVideoHero`、`PeakChart`、`GlassyDashboard`、`SplashCursor`、`Shredder`、`SpotlightCard`、`LiquidNavbar`、`GlassSurface`、`AnimatedList`、`FlipCard`、`GhostCursor`、`GridMotion`、`RubberSegment`、`TiltedCard`、`Signature`、`PaperCrumple`、`ReflectiveCard`、`PillNav`、`MagicBento`、`GlassFolder`、`GlassIconReveal`、`AIPromptBox`、`Stepper`、`ClickSpark`、`GooeyNav`、`Dock`）与 React 原件有几处有意的行为差异，见 `../../packages/vue/README.md` 的「与 React 原件的差异」。
 
 > Vue 实装自带 CSS，不依赖 Tailwind；需要安装的依赖见下面「依赖安装」。
 
@@ -119,7 +122,7 @@ React 项目对应：`motion` + `@hugeicons/react`；`glassy-dashboard` 另需 `
 
 **样式形态分三类**：
 
-- **CSS 文件**（14 个）：源码旁有同名 `.css`，直接一起复制。
+- **CSS 文件**（15 个）：源码旁有同名 `.css`，直接一起复制。
 - **Tailwind**（`GridMotion`、`SwipeRow`、`Stepper`）：React 源码没有独立 CSS，样式写死在 JSX 的任意值类里；Vue 项目不用 Tailwind 时，直接复用对应 demo 里的等价 CSS（`grid-motion.html` / `swipe-row.html` / `stepper.html`），不要逐条翻译任意值类。`SwipeRow` 与 `Stepper` 的 Vue 实装已带提取好的同名 CSS。
 - **内联**（TSX）：样式在组件文件的 `<style>` / style 对象里，随源码一起搬；`liquid-glass-logo-reveal` 的容器另有 5 个 Tailwind 工具类，可手写成普通 CSS；`glassy-dashboard` 把整份 `dashboardStyles` 以 `<style>{dashboardStyles}</style>` 注入，不依赖 Tailwind。
 
@@ -384,3 +387,12 @@ React 项目对应：`motion` + `@hugeicons/react`；`glassy-dashboard` 另需 `
 - **移植要点**：纯 WebGL2 + SDF 着色器，**零第三方依赖**（不引 GLSL 库）。着色器里用 smooth-min 把胶囊与液滴的 SDF 融合，React 原件把整段着色器写在组件里，Vue 实装拆到 `gooeyNavEngine.ts`。两处必须与上游一致：`blend()` 里 w 通道的 `mix(b.w, a.w, h)` 参数顺序（写反会让场值停在 1e5 哨兵上、液滴整个不画），以及 `uPills[4]` / `uDrops[32]` 的 uniform 数组上限。**帧时间要取 `performance.now()` 而不是 rAF 回调的时间戳**：上游用时间戳，在 jsdom 等两者不同源的环境里会算出负的 dt，动画不动。
 - **注意**：拿不到 WebGL2 时组件退回 CPU 侧的等值线追踪 + `clip-path`（同一份 SDF 公式），液体照样有，只是没有 GPU 的柔光与阴影。`prefers-reduced-motion` 下不做液滴飞行，直接切到新项。指针移到某一项会出现柔和高亮（`hoverEffect`）。
 - **测量口径**：画布尺寸与液滴位置一律用 `offset*`（布局像素），不要用 `getBoundingClientRect()`——页面被 CSS `zoom` 放大时后者返回的是放大后的值，画布会被撑大、液滴整体错位（文档站录预览视频时整页就是 `zoom` 放大的，症状就是液滴飘到导航条外面）。
+
+## 30. Dock · 应用 Dock
+
+- **源码**：`Dock.jsx` + `Dock.css`（JavaScript + CSS 变体，1030 + 514 行，库里最大的组件）；**演示**：`dock.html`
+- **Vue 实装**：`../../packages/vue/src/components/Dock.vue` + `DockMenu.vue`（已测试；引擎在 `../../packages/vue/src/composables/useDock.ts`）
+- **适用**：桌面端应用启动器、工具栏、后台系统的主导航；需要"指针靠近就放大"的拟物交互。
+- **关键 API**：`items`（`{ icon?, label?, onClick?, active?, badge?, menu? }`，用 `{ separator: true }` 分组）、`position`（`bottom` / `top` / `left` / `right`）、`theme`、`baseItemSize`（50）、`magnification`（70）、`distance`（200）、`panelHeight`（68）、`gap`（10）、`roundness`（0.5）、`spring`（`mass 0.1 / stiffness 150 / damping 12`）、`bounce`、`autoHide`、`tiles`、`showLabels`、`showIndicators`、`showBadges`、`badgeColor`、`accentColor`。
+- **移植要点**：放大是**弹簧积分**出来的：每个图标一个 `size / velocity` 状态，按指针到该图标的距离算目标尺寸，再用 `velocity = (velocity + h·k·(target − size)) / (1 + h·c + h²·k)` 逼近（`h = dt / 240` 的子步）。菜单是独立组件：玻璃层用 `clip-path: path(...)` + SVG 路径画带小尾巴的圆角面板，子菜单递归渲染。**指针坐标要换算成宿主内的布局像素**：页面被 CSS `zoom` 放大时 `getBoundingClientRect()` 返回的是放大后的值，跟布局坐标混用会让放大范围整体偏移。WAAPI 不可用时（jsdom 等）菜单动画直接落终态，不要抛错。
+- **注意**：面板放不下时整条 dock 会等比缩小到 0.4 倍（按父容器可用宽度算）。`autoHide` 打开时初始就是收起的，指针靠近对应边缘才展开。菜单支持右键 / 长按 450ms / 菜单键三种打开方式，键盘上下键切换、`ArrowRight` 开子菜单、`Esc` 关闭。图标是 Vue 组件（React 原件是节点）。

@@ -1,6 +1,6 @@
 # Vue 组件（0.1）
 
-已有 29 个特效移植成 Vue 3 组件，详情页的预览台里直接渲染真实组件。其中 25 个（`HoldButton`、`SwipeRow`、`SpecularButton`、`TerminalReplay`、`PeakChart`、`SpotlightCard`、`LiquidNavbar`、`GlassSurface`、`AnimatedList`、`FlipCard`、`GhostCursor`、`GridMotion`、`RubberSegment`、`TiltedCard`、`Signature`、`PaperCrumple`、`ReflectiveCard`、`PillNav`、`MagicBento`、`GlassFolder`、`GlassIconReveal`、`AIPromptBox`、`Stepper`、`ClickSpark`、`GooeyNav`）带「自定义」面板：改参数，预览实时跟着变，「代码」页签的用法片段只写出你改过的项。另外 4 个需要独占文档，放在 iframe 里加载：
+已有 30 个特效移植成 Vue 3 组件，详情页的预览台里直接渲染真实组件。其中 26 个（`HoldButton`、`SwipeRow`、`SpecularButton`、`TerminalReplay`、`PeakChart`、`SpotlightCard`、`LiquidNavbar`、`GlassSurface`、`AnimatedList`、`FlipCard`、`GhostCursor`、`GridMotion`、`RubberSegment`、`TiltedCard`、`Signature`、`PaperCrumple`、`ReflectiveCard`、`PillNav`、`MagicBento`、`GlassFolder`、`GlassIconReveal`、`AIPromptBox`、`Stepper`、`ClickSpark`、`GooeyNav`、`Dock`）带「自定义」面板：改参数，预览实时跟着变，「代码」页签的用法片段只写出你改过的项。另外 4 个需要独占文档，放在 iframe 里加载：
 
 | 组件 | 详情页 | 测试 |
 |---|---|---|
@@ -33,13 +33,14 @@
 | `Stepper` | [分步引导](/effects/stepper) | `packages/vue/tests/stepper.spec.ts` |
 | `ClickSpark` | [点击火花](/effects/click-spark) | `packages/vue/tests/click-spark.spec.ts` |
 | `GooeyNav` | [液态导航](/effects/gooey-nav) | `packages/vue/tests/gooey-nav.spec.ts` |
+| `Dock` | [应用 Dock](/effects/dock) | `packages/vue/tests/dock.spec.ts` |
 
 `ScrollLockedVideoHero` 会锁定所在页面的滚动，`GlassyDashboard` 是整屏工作区，`SplashCursor` 会铺满整个视口跟随光标，`Shredder` 需要一个固定宽度的父容器，四者的预览都放在 iframe 里；iframe 里跑的仍是同一个真实组件。
 
 ## 导入
 
 ```ts
-import { AIPromptBox, AnimatedList, ClickSpark, GooeyNav, FlipCard, GhostCursor, GlassFolder, GlassIconReveal, GlassReveal21st, GlassSurface, GridMotion, MagicBento, PaperCrumple, PillNav, ReflectiveCard, RubberSegment, Signature, Stepper, TiltedCard, GlassyDashboard, HoldButton, LiquidNavbar, PeakChart, ScrollLockedVideoHero, Shredder, SpecularButton, SpotlightCard, SplashCursor, SwipeRow, TerminalReplay } from '@motion-effects/vue'
+import { AIPromptBox, AnimatedList, ClickSpark, Dock, GooeyNav, FlipCard, GhostCursor, GlassFolder, GlassIconReveal, GlassReveal21st, GlassSurface, GridMotion, MagicBento, PaperCrumple, PillNav, ReflectiveCard, RubberSegment, Signature, Stepper, TiltedCard, GlassyDashboard, HoldButton, LiquidNavbar, PeakChart, ScrollLockedVideoHero, Shredder, SpecularButton, SpotlightCard, SplashCursor, SwipeRow, TerminalReplay } from '@motion-effects/vue'
 import type { SwipeAction } from '@motion-effects/vue'
 ```
 
@@ -599,13 +600,36 @@ const active = ref(0)
 
 切换时胶囊碎成液滴飞向新项，途中互相融合，落地再聚成新的胶囊。纯 WebGL2 + SDF 着色器，零第三方依赖；拿不到 WebGL2 时退回 CPU 等值线 + `clip-path`，液体照样有。`v-model:active-index` 受控，另发 `change` 事件。
 
+### Dock
+
+```vue
+<script setup lang="ts">
+import { Dock } from '@motion-effects/vue'
+import type { DockItem } from '@motion-effects/vue'
+
+const items: DockItem[] = [
+  { label: '访达', icon: HomeIcon },
+  { label: '邮件', icon: MailIcon, badge: 3 },
+  { separator: true },
+  { label: '废纸篓', icon: TrashIcon }
+]
+</script>
+
+<template>
+  <Dock :items="items" position="bottom" :magnification="80" />
+</template>
+```
+
+macOS 风格 Dock：指针靠近时图标按弹簧放大、点击弹跳，右键 / 长按 / 菜单键弹出玻璃质感菜单（带小尾巴、子菜单与键盘导航）。纯 DOM + CSS 变量，零第三方依赖；`icon` 传 Vue 组件。
+
 步骤内容用 `#step` 作用域插槽（`{ index, step, current, status }`），步序可用 `v-model:step` 受控；`indicator` 可切 `numbers` / `dots` / `bars`，`orientation="vertical"` 是左侧竖排（面板宽度 < 520px 时自动折叠成紧凑横向排布）。当前步的指示器是禁用的，`linear` 打开时只能点回走过的步骤。 按钮默认文案是中文（`上一步` / `下一步` / `完成`），需要英文时传 `back-button-text` / `next-button-text` / `complete-button-text`。
-- 后二十六个与 React 原件有几处有意的行为差异，清单见上面那份 README 的「与 React 原件的差异」。
-- 二十九个组件都做了 SSR 安全处理，浏览器 API 只在 `onMounted` 或用户事件中访问。
+- 后二十七个与 React 原件有几处有意的行为差异，清单见上面那份 README 的「与 React 原件的差异」。
+- 三十个组件都做了 SSR 安全处理，浏览器 API 只在 `onMounted` 或用户事件中访问。
 - `AIPromptBox` 用互斥的 `v-model:mode` 替代 React 的三个布尔开关，发出 `send` / `files-change` / `recording-stop` 等事件；图片只留一张，支持选择 / 粘贴 / 拖拽，文案用 `labels` 覆盖。
 - `Stepper` 用 `steps` 数组 + `#step` 作用域插槽替代 React 的 `children` 与 `<Step>` 子组件，步序走 `v-model:step`，发出 `step-change` / `final-step-completed`；指示器下方的滑块用弹簧曲线跟步；三个按钮的默认文案已中文化（React 原件仍是英文默认值）。
 - `ClickSpark` 没有 `className` prop（`class` / `style` 自动透传）；通过 ref 暴露 `spark(x, y)`；帧时间取 `performance.now()`，上游用 rAF 时间戳（后者在 jsdom 等环境会算出负的 elapsed）。
 - `GooeyNav` 用 `v-model:active-index` 受控、`change` 事件替代 `onChange`；帧时间取 `performance.now()`，上游用 rAF 时间戳（后者在 jsdom 等环境会算出负的 dt）。
+- `Dock` 的 `icon` 传 Vue 组件（React 原件是节点），点了某一项发 `select` 事件；指针坐标按布局像素换算，避免页面被 CSS `zoom` 放大时放大范围整体偏移。
 - 当前是 workspace 私有包，未发布 npm；外部项目可复制 `packages/vue/src` 或等待发布。
 
 ## 本地测试

@@ -203,6 +203,28 @@ export const CHOREO = {
     }
   },
 
+  // 应用 Dock：指针依次划过图标，展示弹簧放大
+  'dock': {
+    zoom: 1.25,
+    css: hide('.intro, .controls, .status'),
+    async run(page) {
+      const items = page.locator('.dock-item')
+      const count = await items.count()
+      for (let i = 0; i < count - 1; i++) {
+        const box = await items.nth(i).boundingBox()
+        if (!box) continue
+        await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2, { steps: 10 })
+        await pause(page, 850)
+      }
+      // 停在中间那一项，封面取帧时放大效果最明显
+      const mid = await items.nth(Math.floor(count / 2)).boundingBox()
+      if (mid) {
+        await page.mouse.move(mid.x + mid.width / 2, mid.y + mid.height / 2, { steps: 8 })
+        await pause(page, 1300)
+      }
+    }
+  },
+
   // 液态导航：依次点四项，让胶囊反复碎成液滴再聚回来
   'gooey-nav': {
     zoom: 1.6,

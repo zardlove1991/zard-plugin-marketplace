@@ -440,7 +440,7 @@
     <div class="brand">
       <span class="dot"></span>
       <b>Motion Effects</b>
-      <span>29 个特效 · Vue 3 优先 · 生产接入</span>
+      <span>30 个特效 · Vue 3 优先 · 生产接入</span>
     </div>
     <div class="header-note">
       <span>↑ ↓ 切换 · / 搜索</span>
@@ -687,6 +687,13 @@ const EFFECTS = [
     deps: [], demo: 'gooey-nav.html', source: 'react/components/ui/GooeyNav.jsx',
     props: ['items', 'activeIndex', 'color / colors', 'particleCount / spread / animationTime', 'gooeyness / wobble', 'size / theme'],
     note: '零第三方依赖（纯 WebGL2 + SDF 着色器）；拿不到 WebGL2 时退回 CPU 等值线 + clip-path；着色器里 blend() 的 mix 参数顺序不能写反，否则液滴整个不画。'
+  },
+  {
+    id: 'dock', name: 'Dock', zh: '应用 Dock', cat: '导航与页面', vue: 'hard',
+    desc: 'macOS 风格 Dock：指针靠近时图标按弹簧放大、点击弹跳，右键弹出玻璃质感菜单。',
+    deps: ['Hugeicons'], demo: 'dock.html', source: 'react/components/ui/Dock.jsx',
+    props: ['items', 'position / theme', 'baseItemSize / magnification / distance', 'panelHeight / gap / roundness', 'spring', 'autoHide / tiles / bounce'],
+    note: '零第三方依赖（纯 DOM + CSS 变量 + WAAPI），菜单用 clip-path 玻璃层与 SVG 路径画小尾巴；指针坐标按布局像素换算，避免页面被 CSS zoom 放大时放大范围整体偏移。'
   },
   {
     id: 'stepper', name: 'Stepper', zh: '分步引导', cat: '操作与反馈', vue: 'mid',

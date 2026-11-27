@@ -1,5 +1,5 @@
 /**
- * 29 个特效的站点数据。
+ * 30 个特效的站点数据。
  * 与 references/catalog.md 保持一致；新增/修改特效时同时更新这里。
  * 也供 scripts/sync-assets.mjs 做构建期文件校验。
  */
@@ -218,6 +218,13 @@ export const EFFECTS = [
     deps: [], demo: 'gooey-nav.html', source: 'react/components/ui/GooeyNav.jsx',
     props: ['items', 'activeIndex / initialActiveIndex', 'color / colors', 'particleCount / spread / animationTime', 'gooeyness / wobble', 'size / theme'],
     note: '零第三方依赖（纯 WebGL2 + SDF 着色器）；着色器里的 SDF 融合公式与 4 / 32 个 uniform 数组上限不要改。Vue 实装用 v-model:activeIndex 受控，onChange 换成 change 事件；帧时间取 performance.now()（上游用 rAF 时间戳，在 jsdom 等环境会算出负的 dt）。'
+  },
+  {
+    id: 'dock', name: 'Dock', zh: '应用 Dock', cat: '导航与页面', vue: 'hard', vueReady: true, height: 520,
+    desc: 'macOS 风格 Dock：指针靠近时图标按弹簧放大、点击弹跳，右键 / 长按 / 菜单键弹出玻璃质感菜单（带小尾巴、子菜单与键盘导航）。',
+    deps: ['Hugeicons'], demo: 'dock.html', source: 'react/components/ui/Dock.jsx',
+    props: ['items', 'position / theme', 'baseItemSize / magnification / distance', 'panelHeight / gap / roundness', 'spring', 'autoHide / tiles / bounce'],
+    note: '零第三方依赖（纯 DOM + CSS 变量 + WAAPI），菜单用 clip-path 玻璃层与 SVG 路径画小尾巴。Vue 实装用 #icon 传 Vue 组件；指针坐标按布局像素换算（页面被 CSS zoom 放大时 getBoundingClientRect 返回放大后的值，会让放大范围整体偏移）。'
   }
 ]
 
