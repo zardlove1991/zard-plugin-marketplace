@@ -460,8 +460,13 @@ CSS 随 SFC 自动引入，不需要单独 import CSS 文件。根类名前缀�
 cd plugins/motion-effects
 pnpm test        # Vitest
 pnpm typecheck   # vue-tsc
-pnpm check       # test + typecheck
+pnpm check       # test + typecheck + 标识符审计
 ```
+
+`pnpm check` 还会跑 `packages/vue/scripts/check-free-identifiers.mjs`：移植过来的引擎带
+`// @ts-nocheck`（为了保住原始数值算法），代价是「引用了没定义的名字」「把 option 取值器
+当值用」这类错误也被一起盖住——类型检查过、运行时才炸。审计脚本会去掉 `@ts-nocheck`
+跑一遍 tsc，并用 AST 找出被当成值用的取值器。
 
 ## 已知限制
 

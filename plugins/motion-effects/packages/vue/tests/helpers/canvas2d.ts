@@ -93,3 +93,43 @@ export function installAutoIntersectionObserver() {
     }
   }
 }
+
+/**
+ * 会立刻回调一次的 ResizeObserver。
+ *
+ * setup.ts 装的是空实现，组件的尺寸回调在 jsdom 里永远不跑——
+ * 于是「回调里引用了没定义的常量」这类错误在测试里看不见，浏览器里才炸。
+ * 这里让 observe() 立刻回调一次，把那条路径逼出来。
+ */
+export function installAutoResizeObserver() {
+  const Original = globalThis.ResizeObserver
+  const instances: Array<{ disconnected: boolean }> = []
+
+  class AutoResizeObserver {
+    root = null
+    rootMargin = ''
+    thresholds = []
+    private state = { disconnected: false }
+    constructor(private callback: ResizeObserverCallback) {
+      instances.push(this.state)
+    }
+    observe(target: Element) {
+      this.callback([{ target } as ResizeObserverEntry], this as unknown as ResizeObserver)
+    }
+    unobserve() {}
+    disconnect() {
+      this.state.disconnected = true
+    }
+  }
+
+  globalThis.ResizeObserver = AutoResizeObserver as unknown as typeof ResizeObserver
+  ;(window as unknown as { ResizeObserver: typeof ResizeObserver }).ResizeObserver = globalThis.ResizeObserver
+
+  return {
+    instances,
+    restore: () => {
+      globalThis.ResizeObserver = Original
+      ;(window as unknown as { ResizeObserver: typeof ResizeObserver }).ResizeObserver = Original
+    }
+  }
+}

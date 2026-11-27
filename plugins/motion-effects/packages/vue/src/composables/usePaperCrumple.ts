@@ -58,8 +58,22 @@ export function usePaperCrumple(options: UsePaperCrumpleOptions) {
   let doCancel: (() => void) | null = null
   let teardown: (() => void) | null = null
 
-  const opts = () => ({ releaseBehavior, crumpleAmount, crumpleDuration, releaseDuration,
-    creaseStrength, draggable, dragRotation, dragRadius, returnToOrigin, disabled, onStateChange, onError })
+  // 这里返回的是「值」：option 都是 () => T 的取值器，直接透传会让调用方拿到函数
+  // （opts.releaseBehavior === 'stay' 永远为 false、opts.disabled 永远为真）
+  const opts = () => ({
+    releaseBehavior: releaseBehavior(),
+    crumpleAmount: crumpleAmount(),
+    crumpleDuration: crumpleDuration(),
+    releaseDuration: releaseDuration(),
+    creaseStrength: creaseStrength(),
+    draggable: draggable(),
+    dragRotation: dragRotation(),
+    dragRadius: dragRadius(),
+    returnToOrigin: returnToOrigin(),
+    disabled: disabled(),
+    onStateChange,
+    onError
+  })
 
   function start() {
     teardown?.()
@@ -68,13 +82,34 @@ export function usePaperCrumple(options: UsePaperCrumpleOptions) {
       canvas = canvasRef.value,
       hit = hitRef.value;
     if (!root || !canvas || !hit) return;
+    // 同上：这些 option 是取值器，start() 里要的是当次的值
+    const v = {
+      src: src(),
+      backSrc: backSrc(),
+      width: width(),
+      height: height(),
+      imageFit: imageFit(),
+      detail: detail(),
+      seed: seed(),
+      foldSharpness: foldSharpness(),
+      foldCount: foldCount(),
+      wrinkleDepth: wrinkleDepth(),
+      paperColor: paperColor(),
+      roughness: roughness(),
+      paperTexture: paperTexture(),
+      lightIntensity: lightIntensity(),
+      lightAngle: lightAngle(),
+      shadow: shadow(),
+      shadowOpacity: shadowOpacity(),
+      rotation: rotation()
+    };
     status.value = ('loading');
     hit.disabled = true;
     hit.dataset.held = 'false';
     hit.setAttribute('aria-pressed', 'false');
     const initialRect = root.getBoundingClientRect();
-    const initialWidth = Math.max(1, finite(width, 320));
-    const initialHeight = Math.max(1, finite(height, 400));
+    const initialWidth = Math.max(1, finite(v.width, 320));
+    const initialHeight = Math.max(1, finite(v.height, 400));
     const initialScale = Math.min(
       1,
       Math.max(1, initialRect.width - 48) / initialWidth,
@@ -90,17 +125,17 @@ export function usePaperCrumple(options: UsePaperCrumpleOptions) {
       opts().onError?.(error instanceof Error ? error : new Error('WebGL is unavailable.'));
       return;
     }
-    const paperWidth = Math.max(1, finite(width, 320));
-    const paperHeight = Math.max(1, finite(height, 400));
+    const paperWidth = Math.max(1, finite(v.width, 320));
+    const paperHeight = Math.max(1, finite(v.height, 400));
     const aspect = paperHeight / paperWidth;
     const shortSide = Math.min(1, aspect);
-    const resolution = Math.round(clamp(finite(detail, 64) / 4, 8, 24));
+    const resolution = Math.round(clamp(finite(v.detail, 64) / 4, 8, 24));
     const columns = Math.max(8, Math.round(resolution / Math.max(1, aspect)));
     const rows = Math.max(8, Math.round(resolution * Math.min(1, aspect)));
-    const rng = randomSource(finite(seed, 7));
-    const sharpness = clamp(finite(foldSharpness, 0.6), 0, 1);
-    const foldTotal = Math.round(clamp(finite(foldCount, 6), 3, 16));
-    const depth = clamp(finite(wrinkleDepth, 0.65), 0, 2);
+    const rng = randomSource(finite(v.seed, 7));
+    const sharpness = clamp(finite(v.foldSharpness, 0.6), 0, 1);
+    const foldTotal = Math.round(clamp(finite(v.foldCount, 6), 3, 16));
+    const depth = clamp(finite(v.wrinkleDepth, 0.65), 0, 2);
     const count = (columns + 1) * (rows + 1);
     const original = new Float32Array(count * 3);
     const positions = new Float32Array(count * 3);
@@ -127,11 +162,11 @@ export function usePaperCrumple(options: UsePaperCrumpleOptions) {
         }
       }
     }
-    const pathKey = JSON.stringify([paperWidth, paperHeight, resolution, foldTotal, sharpness, depth, finite(seed, 7)]);
+    const pathKey = JSON.stringify([paperWidth, paperHeight, resolution, foldTotal, sharpness, depth, finite(v.seed, 7)]);
     if (pathCache?.key !== pathKey) {
       pathCache = {
         key: pathKey,
-        value: createPaperPath(original, indices, shortSide, foldTotal, sharpness, depth, finite(seed, 7))
+        value: createPaperPath(original, indices, shortSide, foldTotal, sharpness, depth, finite(v.seed, 7))
       };
     }
     const paperPath = pathCache.value;
@@ -162,10 +197,10 @@ export function usePaperCrumple(options: UsePaperCrumpleOptions) {
     grain.minFilter = THREE.LinearFilter;
     grain.needsUpdate = true;
     const materialOptions = {
-      roughness: clamp(finite(roughness, 0.92), 0, 1),
+      roughness: clamp(finite(v.roughness, 0.92), 0, 1),
       metalness: 0,
       bumpMap: grain,
-      bumpScale: clamp(finite(paperTexture, 0.08), 0, 1) * 0.32,
+      bumpScale: clamp(finite(v.paperTexture, 0.08), 0, 1) * 0.32,
       alphaTest: 0.04,
       alphaToCoverage: true,
       flatShading: false
@@ -174,7 +209,7 @@ export function usePaperCrumple(options: UsePaperCrumpleOptions) {
     const backMaterial = new THREE.MeshStandardMaterial({
       ...materialOptions,
       side: THREE.BackSide,
-      color: backSrc ? '#ffffff' : paperColor
+      color: v.backSrc ? '#ffffff' : v.paperColor
     });
     const lighting = { value: 0 };
     for (const material of [frontMaterial, backMaterial]) {
@@ -187,7 +222,7 @@ export function usePaperCrumple(options: UsePaperCrumpleOptions) {
           #include <map_fragment>
           #ifdef USE_MAP
             if (vMapUv.x < 0.0 || vMapUv.x > 1.0 || vMapUv.y < 0.0 || vMapUv.y > 1.0) discard;
-            ${material === backMaterial && !backSrc ? 'diffuseColor.rgb = diffuse;' : ''}
+            ${material === backMaterial && !v.backSrc ? 'diffuseColor.rgb = diffuse;' : ''}
           #endif
         `
         );
@@ -199,7 +234,7 @@ export function usePaperCrumple(options: UsePaperCrumpleOptions) {
         `
         );
       };
-      material.customProgramCacheKey = () => `paper-${material === backMaterial && !backSrc ? 'stock' : 'print'}`;
+      material.customProgramCacheKey = () => `paper-${material === backMaterial && !v.backSrc ? 'stock' : 'print'}`;
     }
     const depthMaterial = new THREE.MeshDepthMaterial({
       depthPacking: THREE.RGBADepthPacking,
@@ -220,9 +255,9 @@ export function usePaperCrumple(options: UsePaperCrumpleOptions) {
     const sheet = new THREE.Group();
     const front = new THREE.Mesh(geometry, frontMaterial);
     const back = new THREE.Mesh(geometry, backMaterial);
-    front.castShadow = shadow;
-    front.receiveShadow = shadow;
-    back.receiveShadow = shadow;
+    front.castShadow = v.shadow;
+    front.receiveShadow = v.shadow;
+    back.receiveShadow = v.shadow;
     front.customDepthMaterial = depthMaterial;
     sheet.add(front, back);
     const scene = new THREE.Scene();
@@ -230,8 +265,8 @@ export function usePaperCrumple(options: UsePaperCrumpleOptions) {
     const camera = new THREE.PerspectiveCamera(35, 1, 0.1, 10000);
     const ambient = new THREE.HemisphereLight(0xffffff, 0xa4a0b0, 1.35);
     scene.add(ambient);
-    const light = new THREE.DirectionalLight(0xfffaf0, Math.max(0, finite(lightIntensity, 1.8)));
-    light.castShadow = shadow;
+    const light = new THREE.DirectionalLight(0xfffaf0, Math.max(0, finite(v.lightIntensity, 1.8)));
+    light.castShadow = v.shadow;
     light.shadow.mapSize.set(1024, 1024);
     light.shadow.bias = -0.0002;
     light.shadow.normalBias = 0.6;
@@ -239,16 +274,16 @@ export function usePaperCrumple(options: UsePaperCrumpleOptions) {
     scene.add(light, light.target);
     const floorGeometry = new THREE.PlaneGeometry(1, 1);
     const floorMaterial = new THREE.ShadowMaterial({
-      opacity: clamp(finite(shadowOpacity, 0.08), 0, 1),
+      opacity: clamp(finite(v.shadowOpacity, 0.08), 0, 1),
       depthWrite: false
     });
     const floor = new THREE.Mesh(floorGeometry, floorMaterial);
     floor.receiveShadow = true;
-    floor.visible = shadow;
+    floor.visible = v.shadow;
     scene.add(floor);
     renderer.setClearColor(0x000000, 0);
     renderer.outputColorSpace = THREE.SRGBColorSpace;
-    renderer.shadowMap.enabled = shadow;
+    renderer.shadowMap.enabled = v.shadow;
     renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     const amount = spring(),
       memory = spring(),
@@ -294,7 +329,7 @@ export function usePaperCrumple(options: UsePaperCrumpleOptions) {
     let reduceMotion = media.matches;
     let previousAmount = -1,
       previousMemory = -1;
-    const baseRotation = THREE.MathUtils.degToRad(finite(rotation, 0));
+    const baseRotation = THREE.MathUtils.degToRad(finite(v.rotation, 0));
     function publish(next) {
       if (next === state) return;
       state = next;
@@ -397,15 +432,16 @@ export function usePaperCrumple(options: UsePaperCrumpleOptions) {
       if (disposed || !ready || contextLost || !inView || document.hidden) return;
       const dt = lastTime ? Math.min(0.04, (time - lastTime) / 1000) : 1 / 60;
       lastTime = time;
-      const opts = opts();
+      // 局部变量不能叫 opts：会遮蔽外层的 opts() 取值函数（TDZ）
+      const current = opts();
       let moving = false;
-      const duration = held ? finite(opts.crumpleDuration, 0.55) : finite(opts.releaseDuration, 0.4);
+      const duration = held ? finite(current.crumpleDuration, 0.55) : finite(current.releaseDuration, 0.4);
       for (const s of springs)
         moving = advance(s, dt, s === amount || s === memory ? duration : 0.42, reduceMotion || keyboard) || moving;
       peak = Math.max(peak, amount.value);
       deform();
       sheet.rotation.set(tiltX.value, tiltY.value, baseRotation);
-      if (held && !keyboard && opts.draggable) {
+      if (held && !keyboard && current.draggable) {
         const attribute = geometry.attributes.position;
         anchor.set(0, 0, 0);
         for (let i = 0; i < 3; i++) {
@@ -460,7 +496,7 @@ export function usePaperCrumple(options: UsePaperCrumpleOptions) {
       renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
       renderer.setSize(viewportWidth, viewportHeight, false);
       const reach = Math.max(viewportWidth, viewportHeight);
-      const angle = THREE.MathUtils.degToRad(finite(lightAngle, -35));
+      const angle = THREE.MathUtils.degToRad(finite(v.lightAngle, -35));
       light.position.set(Math.sin(angle) * reach, Math.cos(angle) * reach, reach * 4);
       light.shadow.camera.left = light.shadow.camera.bottom = -reach;
       light.shadow.camera.right = light.shadow.camera.top = reach;
@@ -482,40 +518,40 @@ export function usePaperCrumple(options: UsePaperCrumpleOptions) {
     }
     function finish(instant = false) {
       if (!held) return;
-      const opts = opts();
+      const current = opts();
       held = false;
       hit.setAttribute('aria-pressed', 'false');
       hit.dataset.held = 'false';
       const captured = pointerId;
       pointerId = null;
       if (captured !== null && hit.hasPointerCapture(captured)) hit.releasePointerCapture(captured);
-      if (opts.releaseBehavior === 'stay') {
+      if (current.releaseBehavior === 'stay') {
         amount.target = amount.value;
         amount.velocity = 0;
       } else {
         amount.target = 0;
         memory.target =
-          opts.releaseBehavior === 'creased'
-            ? Math.max(memory.value, peak * clamp(finite(opts.creaseStrength, 0.18), 0, 1))
+          current.releaseBehavior === 'creased'
+            ? Math.max(memory.value, peak * clamp(finite(current.creaseStrength, 0.18), 0, 1))
             : 0;
       }
       tiltX.target = tiltY.target = 0;
-      if (opts.returnToOrigin && opts.releaseBehavior !== 'stay') {
+      if (current.returnToOrigin && current.releaseBehavior !== 'stay') {
         posX.target = posY.target = 0;
       } else {
         const bounds = geometry.boundingBox;
-        const spanX = opts.releaseBehavior === 'stay' && bounds ? bounds.max.x - bounds.min.x : 1;
-        const spanY = opts.releaseBehavior === 'stay' && bounds ? bounds.max.y - bounds.min.y : aspect;
+        const spanX = current.releaseBehavior === 'stay' && bounds ? bounds.max.x - bounds.min.x : 1;
+        const spanY = current.releaseBehavior === 'stay' && bounds ? bounds.max.y - bounds.min.y : aspect;
         const halfWidth =
           ((Math.abs(Math.cos(baseRotation)) * spanX + Math.abs(Math.sin(baseRotation)) * spanY) * scale) / 2;
         const halfHeight =
           ((Math.abs(Math.sin(baseRotation)) * spanX + Math.abs(Math.cos(baseRotation)) * spanY) * scale) / 2;
         const limitX = Math.min(
-          Math.max(0, finite(opts.dragRadius, 180)),
+          Math.max(0, finite(current.dragRadius, 180)),
           Math.max(0, viewportWidth / 2 - halfWidth - 16)
         );
         const limitY = Math.min(
-          Math.max(0, finite(opts.dragRadius, 180)),
+          Math.max(0, finite(current.dragRadius, 180)),
           Math.max(0, viewportHeight / 2 - halfHeight - 16)
         );
         const coast = !reduceMotion && !keyboard && performance.now() - lastMove < 90 ? 0.06 : 0;
@@ -525,7 +561,7 @@ export function usePaperCrumple(options: UsePaperCrumpleOptions) {
       if (instant || keyboard || reduceMotion) for (const s of springs) advance(s, 0, 0, true);
       keyboard = false;
       publish(
-        opts.releaseBehavior === 'stay' && amount.target > 0.001
+        current.releaseBehavior === 'stay' && amount.target > 0.001
           ? 'crumpled'
           : memory.target > 0.001
             ? 'creased'
@@ -724,7 +760,7 @@ export function usePaperCrumple(options: UsePaperCrumpleOptions) {
             const targetAspect = paperWidth / paperHeight;
             let rx = 1,
               ry = 1;
-            if (imageFit === 'cover') {
+            if (v.imageFit === 'cover') {
               if (imageAspect > targetAspect) rx = targetAspect / imageAspect;
               else ry = imageAspect / targetAspect;
             } else {
@@ -740,8 +776,8 @@ export function usePaperCrumple(options: UsePaperCrumpleOptions) {
         );
       });
     }
-    if (src) {
-      Promise.all([load(src), backSrc ? load(backSrc) : Promise.resolve(null)])
+    if (v.src) {
+      Promise.all([load(v.src), v.backSrc ? load(v.backSrc) : Promise.resolve(null)])
         .then(([frontTexture, backTexture]) => {
           if (disposed) return;
           if (backTexture) {
@@ -770,7 +806,6 @@ export function usePaperCrumple(options: UsePaperCrumpleOptions) {
       disposed = true;
       cancelAnimationFrame(frame);
       if (pointerId !== null && hit.hasPointerCapture(pointerId)) hit.releasePointerCapture(pointerId);
-      resetRef.current = cancelRef.current = null;
       observer.disconnect();
       intersectionObserver.disconnect();
       hit.removeEventListener('pointerdown', pointerDown);

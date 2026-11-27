@@ -2,6 +2,8 @@ import { mount, type VueWrapper } from '@vue/test-utils'
 import { nextTick } from 'vue'
 import { afterEach, describe, expect, it } from 'vitest'
 import MagicBento from '../src/components/MagicBento.vue'
+import { installAutoIntersectionObserver, installAutoResizeObserver } from './helpers/canvas2d'
+import { advanceFrames } from './helpers/frames'
 
 const mounted: VueWrapper[] = []
 afterEach(() => {
@@ -95,6 +97,34 @@ describe('MagicBento', () => {
     expect(card.attributes('data-clickable')).toBe('')
     expect(card.attributes('role')).toBe('button')
     expect(card.attributes('tabindex')).toBe('0')
+  })
+
+  it('drives the resize / intro / pointer paths without hitting undefined names', async () => {
+    // 回归：引擎里漏 import 过 clamp / TILT / MAGNET / MIN_CELL / MIN_PAIR / STAGGER，
+    // 这几条路径（尺寸回调、入场动画、指针跟随）平时在 jsdom 里根本不会跑，
+    // 浏览器上才会炸出 ReferenceError
+    const resize = installAutoResizeObserver()
+    const intersection = installAutoIntersectionObserver()
+    try {
+      const wrapper = mountBento()
+      await nextTick()
+
+      // 尺寸回调：决定列数（MIN_CELL / MIN_PAIR）
+      expect(resize.instances.length).toBeGreaterThan(0)
+      // 入场动画：给每个格子排入场延迟（STAGGER）
+      const cells = wrapper.findAll('.magic-bento__cell')
+      expect(cells.length).toBeGreaterThan(0)
+      expect(cells[0].attributes('style')).toContain('--mb-delay')
+      expect(cells[1].attributes('style')).toContain('--mb-delay')
+
+      // 指针跟随：帧循环里的 clamp / TILT / MAGNET
+      window.dispatchEvent(new MouseEvent('pointermove', { clientX: 40, clientY: 30 }))
+      await advanceFrames(2)
+      expect(wrapper.find('.magic-bento').exists()).toBe(true)
+    } finally {
+      resize.restore()
+      intersection.restore()
+    }
   })
 
   it('lets a scoped item slot replace the card content', () => {

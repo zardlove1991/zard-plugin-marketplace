@@ -244,6 +244,12 @@ export function edt1d(grid: Float64Array, offset: number, stride: number, f: Flo
 // One SDF per logo for the whole page: building it takes ~100 ms, remounts and twins reuse it.
 const logoCache = new Map<string, Promise<LogoData>>()
 
+/** 贴到纹理里的 logo 与它的距离场 */
+export interface LogoData {
+  canvas: HTMLCanvasElement
+  sdf: Float32Array
+}
+
 export function loadLogo(logo: string) {
   let job = logoCache.get(logo)
   if (!job) {

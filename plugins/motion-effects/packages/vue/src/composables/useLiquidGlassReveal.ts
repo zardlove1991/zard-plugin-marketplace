@@ -1,7 +1,7 @@
 // @ts-nocheck
 // WebGL2 Logo 揭示引擎：结构性改写成 Vue 生命周期，时间曲线逐段照搬 React 原件。
 import { onBeforeUnmount, onMounted, ref, watch, type Ref } from 'vue'
-import { BOX, LOOKS, OUTRO, clamp01, createRenderer, endOf, frameAt, loadLogo, logoUrl } from './liquidGlassRevealEngine'
+import { BOX, LOOKS, OUTRO, clamp01, createRenderer, endOf, frameAt, loadLogo, logoUrl, type LogoData } from './liquidGlassRevealEngine'
 
 export interface UseLiquidGlassRevealOptions {
   wrap: Ref<HTMLElement | null>
@@ -175,7 +175,7 @@ export function startEngine(wrap, live) {
 export function useLiquidGlassReveal(options: UseLiquidGlassRevealOptions) {
   const { wrap, settings, loop, speed, time, logo } = options
   const fallback = ref(false)
-  let engine: ReturnType<typeof createEngine> | null = null
+  let engine: ReturnType<typeof createRenderer> | null = null
   let teardown: (() => void) | null = null
   const live = { current: { settings: settings(), loop: loop(), speed: speed(), time: time() } }
 

@@ -9,7 +9,7 @@
     "preview": "pnpm --filter motion-effects-docs preview",
     "test": "pnpm --filter @motion-effects/vue test",
     "typecheck": "pnpm --filter @motion-effects/vue typecheck",
-    "check": "pnpm test && pnpm typecheck"
+    "check": "pnpm test && pnpm typecheck && pnpm --filter @motion-effects/vue lint:identifiers"
   },
   "pnpm": {
     "onlyBuiltDependencies": [

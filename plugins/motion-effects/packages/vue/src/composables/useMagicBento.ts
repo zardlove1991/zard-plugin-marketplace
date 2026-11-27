@@ -1,7 +1,7 @@
 // @ts-nocheck
 // MagicBento 网格 / 聚光 / 粒子 / 倾斜引擎，逐段照搬 React 原件。
 import { onBeforeUnmount, onMounted, ref, watch, type Ref } from 'vue'
-import { FLOW, REPLAY, finite, nameOf } from './magicBentoHelpers'
+import { FLOW, MAGNET, MIN_CELL, MIN_PAIR, REPLAY, STAGGER, TILT, clamp, finite, nameOf } from './magicBentoHelpers'
 
 export interface UseMagicBentoOptions {
   root: Ref<HTMLElement | null>
